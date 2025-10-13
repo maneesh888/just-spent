@@ -4,6 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.justspent.app.data.model.Expense
 import com.justspent.app.data.model.ExpenseData
 import com.justspent.app.data.repository.ExpenseRepositoryInterface
+import com.justspent.app.data.repository.ExpenseError
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,8 +35,8 @@ class ExpenseListViewModelTest {
         Dispatchers.setMain(testDispatcher)
         
         // Setup default mock responses
-        whenever(mockRepository.getAllExpenses()).thenReturn(flowOf(emptyList()))
-        whenever(mockRepository.getTotalSpending()).thenReturn(flowOf(BigDecimal.ZERO))
+        whenever(mockRepository.getAllExpenses(any())).thenReturn(flowOf(emptyList()))
+        whenever(mockRepository.getTotalSpending(any())).thenReturn(flowOf(BigDecimal.ZERO))
         
         viewModel = ExpenseListViewModel(mockRepository)
     }
@@ -69,8 +70,8 @@ class ExpenseListViewModelTest {
         )
         val total = BigDecimal("40.50")
         
-        whenever(mockRepository.getAllExpenses()).thenReturn(flowOf(expenses))
-        whenever(mockRepository.getTotalSpending()).thenReturn(flowOf(total))
+        whenever(mockRepository.getAllExpenses(any())).thenReturn(flowOf(expenses))
+        whenever(mockRepository.getTotalSpending(any())).thenReturn(flowOf(total))
         
         // When
         viewModel = ExpenseListViewModel(mockRepository)
@@ -159,8 +160,8 @@ class ExpenseListViewModelTest {
     fun `formatting currency works correctly`() = runTest {
         // Given
         val total = BigDecimal("1234.56")
-        whenever(mockRepository.getAllExpenses()).thenReturn(flowOf(emptyList()))
-        whenever(mockRepository.getTotalSpending()).thenReturn(flowOf(total))
+        whenever(mockRepository.getAllExpenses(any())).thenReturn(flowOf(emptyList()))
+        whenever(mockRepository.getTotalSpending(any())).thenReturn(flowOf(total))
         
         // When
         viewModel = ExpenseListViewModel(mockRepository)
@@ -171,16 +172,101 @@ class ExpenseListViewModelTest {
         assertThat(state.formattedTotalSpending).isEqualTo("$1,234.56")
     }
     
+    @Test
+    fun `loadExpenses handles repository error gracefully`() = runTest {
+        // Given
+        val errorMessage = "Network error"
+        whenever(mockRepository.getAllExpenses(any())).thenThrow(RuntimeException(errorMessage))
+        
+        // When
+        viewModel = ExpenseListViewModel(mockRepository)
+        advanceUntilIdle()
+        
+        // Then
+        val state = viewModel.uiState.value
+        assertThat(state.expenses).isEmpty()
+        assertThat(state.errorMessage).isNotNull()
+        assertThat(state.isLoading).isFalse()
+    }
+    
+    @Test
+    fun `refreshExpenses updates state correctly`() = runTest {
+        // Given
+        val initialExpenses = listOf(createSampleExpense("1", BigDecimal("10.00")))
+        val updatedExpenses = listOf(
+            createSampleExpense("1", BigDecimal("10.00")),
+            createSampleExpense("2", BigDecimal("20.00"))
+        )
+        
+        whenever(mockRepository.getAllExpenses(any()))
+            .thenReturn(flowOf(initialExpenses))
+            .thenReturn(flowOf(updatedExpenses))
+        whenever(mockRepository.getTotalSpending(any()))
+            .thenReturn(flowOf(BigDecimal("10.00")))
+            .thenReturn(flowOf(BigDecimal("30.00")))
+        
+        viewModel = ExpenseListViewModel(mockRepository)
+        advanceUntilIdle()
+        
+        // When
+        viewModel.refreshExpenses()
+        advanceUntilIdle()
+        
+        // Then
+        val state = viewModel.uiState.value
+        assertThat(state.expenses).hasSize(2)
+        assertThat(state.totalSpending).isEqualTo(BigDecimal("30.00"))
+    }
+    
+    @Test
+    fun `filterExpensesByCategory works correctly`() = runTest {
+        // Given
+        val foodExpenses = listOf(createSampleExpense("1", category = "Food & Dining"))
+        whenever(mockRepository.getExpensesByCategory("Food & Dining", any()))
+            .thenReturn(flowOf(foodExpenses))
+        
+        // When
+        viewModel.filterExpensesByCategory("Food & Dining")
+        advanceUntilIdle()
+        
+        // Then
+        val state = viewModel.uiState.value
+        assertThat(state.expenses).hasSize(1)
+        assertThat(state.expenses.first().category).isEqualTo("Food & Dining")
+        verify(mockRepository).getExpensesByCategory("Food & Dining", any())
+    }
+    
+    @Test
+    fun `viewModel handles multiple rapid operations`() = runTest {
+        // Given
+        val expense1 = createSampleExpense("1")
+        val expense2 = createSampleExpense("2")
+        whenever(mockRepository.addExpense(any()))
+            .thenReturn(Result.success(expense1))
+            .thenReturn(Result.success(expense2))
+        
+        // When - Rapid successive operations
+        viewModel.addSampleExpense()
+        viewModel.addSampleExpense()
+        advanceUntilIdle()
+        
+        // Then
+        verify(mockRepository, times(2)).addExpense(any())
+        assertThat(viewModel.errorMessage.value).isNull()
+    }
+    
     private fun createSampleExpense(
         id: String,
-        amount: BigDecimal = BigDecimal("15.50")
+        amount: BigDecimal = BigDecimal("15.50"),
+        category: String = "Food & Dining"
     ): Expense {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         return Expense(
             id = id,
+            userId = "test-user",
             amount = amount,
             currency = "USD",
-            category = "Food & Dining",
+            category = category,
             transactionDate = now,
             createdAt = now,
             updatedAt = now,
