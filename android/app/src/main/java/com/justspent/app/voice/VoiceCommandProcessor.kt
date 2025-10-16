@@ -145,44 +145,46 @@ class VoiceCommandProcessor @Inject constructor() {
     
     /**
      * Extract expense category from command
+     * Matches iOS implementation from ContentView.swift:396-414
      */
     private fun extractCategory(command: String): String {
         val categoryMappings = mapOf(
-            // Food & Dining
-            listOf("food", "dining", "restaurant", "meal", "lunch", "dinner", "breakfast", 
-                   "coffee", "cafe", "eat", "ate", "snack") to "Food & Dining",
-            
-            // Grocery
+            // Food & Dining - matches iOS exactly
+            listOf("food", "tea", "coffee", "lunch", "dinner", "breakfast", "restaurant",
+                   "meal", "drink", "cafe", "dining", "eat", "ate", "snack") to "Food & Dining",
+
+            // Grocery - matches iOS
             listOf("grocery", "groceries", "supermarket", "market", "food shopping") to "Grocery",
-            
-            // Transportation
-            listOf("transport", "transportation", "taxi", "uber", "gas", "fuel", "petrol", 
-                   "parking", "toll", "careem") to "Transportation",
-            
-            // Shopping
-            listOf("shopping", "clothes", "clothing", "mall", "store", "purchase", "buy", "bought") to "Shopping",
-            
-            // Entertainment
-            listOf("entertainment", "movie", "cinema", "concert", "fun", "games", "theatre") to "Entertainment",
-            
-            // Bills & Utilities
-            listOf("bill", "bills", "utility", "utilities", "electricity", "water", "internet", 
-                   "phone", "rent", "subscription") to "Bills & Utilities",
-            
+
+            // Transportation - matches iOS
+            listOf("gas", "fuel", "taxi", "uber", "transport", "transportation", "parking",
+                   "petrol", "toll", "careem") to "Transportation",
+
+            // Shopping - matches iOS
+            listOf("shopping", "clothes", "clothing", "store", "mall", "purchase", "buy", "bought") to "Shopping",
+
+            // Entertainment - matches iOS
+            listOf("movie", "cinema", "concert", "entertainment", "fun", "games", "theatre") to "Entertainment",
+
+            // Bills & Utilities - matches iOS
+            listOf("bill", "bills", "rent", "utility", "utilities", "electricity", "water",
+                   "internet", "phone", "subscription") to "Bills & Utilities",
+
             // Healthcare
-            listOf("healthcare", "health", "doctor", "hospital", "medicine", "medical", 
+            listOf("healthcare", "health", "doctor", "hospital", "medicine", "medical",
                    "pharmacy", "clinic") to "Healthcare",
-            
+
             // Education
             listOf("education", "school", "course", "training", "books", "learning", "tuition") to "Education"
         )
-        
+
+        // Match iOS behavior: check in priority order (Food & Dining first)
         for ((keywords, category) in categoryMappings) {
             if (keywords.any { command.contains(it) }) {
                 return category
             }
         }
-        
+
         return "Other"
     }
     
