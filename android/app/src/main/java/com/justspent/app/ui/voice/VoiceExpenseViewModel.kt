@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.justspent.app.data.model.ExpenseData
 import com.justspent.app.data.repository.ExpenseRepositoryInterface
+import com.justspent.app.voice.VoiceCommandProcessor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,25 +14,169 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.math.BigDecimal
+import java.util.Locale
 import javax.inject.Inject
 
 data class VoiceExpenseUiState(
     val isProcessing: Boolean = false,
     val isProcessed: Boolean = false,
     val errorMessage: String? = null,
-    val processedExpense: String? = null
+    val processedExpense: String? = null,
+    val confidenceScore: Double? = null,
+    val suggestedPhrases: List<String> = emptyList(),
+    val requiresConfirmation: Boolean = false,
+    val extractedData: ExtractedVoiceData? = null
+)
+
+data class ExtractedVoiceData(
+    val originalCommand: String,
+    val amount: String?,
+    val currency: String?,
+    val category: String?,
+    val merchant: String?,
+    val notes: String?
 )
 
 @HiltViewModel
 class VoiceExpenseViewModel @Inject constructor(
-    private val repository: ExpenseRepositoryInterface
+    private val repository: ExpenseRepositoryInterface,
+    private val voiceCommandProcessor: VoiceCommandProcessor,
+    val voiceRecordingManager: com.justspent.app.voice.VoiceRecordingManager
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(VoiceExpenseUiState())
     val uiState: StateFlow<VoiceExpenseUiState> = _uiState.asStateFlow()
-    
+
     private var lastVoiceCommand: VoiceCommand? = null
+    private var lastRawCommand: String? = null
+
+    /**
+     * Start voice recording with auto-stop detection
+     */
+    fun startVoiceRecording() {
+        _uiState.value = VoiceExpenseUiState(isProcessing = true)
+
+        voiceRecordingManager.startRecording(
+            onResult = { transcription ->
+                // Process the transcription
+                processRawVoiceCommand(transcription)
+            },
+            onError = { errorMessage ->
+                _uiState.value = VoiceExpenseUiState(
+                    errorMessage = errorMessage
+                )
+            }
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        voiceRecordingManager.release()
+    }
     
+    /**
+     * Process raw voice command using the VoiceCommandProcessor
+     */
+    fun processRawVoiceCommand(
+        command: String,
+        locale: Locale = Locale.getDefault()
+    ) {
+        android.util.Log.d("VoiceExpenseViewModel", "Processing voice command: '$command'")
+        lastRawCommand = command
+        _uiState.value = VoiceExpenseUiState(isProcessing = true)
+
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("VoiceExpenseViewModel", "Calling voiceCommandProcessor.processVoiceCommand()")
+                val result = voiceCommandProcessor.processVoiceCommand(command, locale)
+                val confidenceScore = voiceCommandProcessor.getConfidenceScore(command)
+
+                android.util.Log.d("VoiceExpenseViewModel", "Confidence score: $confidenceScore")
+
+                result.fold(
+                    onSuccess = { expenseData ->
+                        android.util.Log.d("VoiceExpenseViewModel", "Successfully parsed: amount=${expenseData.amount}, currency=${expenseData.currency}, category=${expenseData.category}")
+
+                        val extractedData = ExtractedVoiceData(
+                            originalCommand = command,
+                            amount = expenseData.amount.toString(),
+                            currency = expenseData.currency,
+                            category = expenseData.category,
+                            merchant = expenseData.merchant,
+                            notes = expenseData.notes
+                        )
+
+                        // Check if confirmation is needed (large amounts or low confidence)
+                        val requiresConfirmation = expenseData.amount.toDouble() > 1000.0 || confidenceScore < 0.8
+
+                        android.util.Log.d("VoiceExpenseViewModel", "Requires confirmation: $requiresConfirmation")
+
+                        if (requiresConfirmation) {
+                            _uiState.value = VoiceExpenseUiState(
+                                isProcessing = false,
+                                requiresConfirmation = true,
+                                extractedData = extractedData,
+                                confidenceScore = confidenceScore
+                            )
+                        } else {
+                            // Auto-save for high confidence, small amounts
+                            android.util.Log.d("VoiceExpenseViewModel", "Auto-saving expense")
+                            saveExpenseData(expenseData, extractedData, confidenceScore)
+                        }
+                    },
+                    onFailure = { error ->
+                        android.util.Log.e("VoiceExpenseViewModel", "Failed to process command: ${error.message}", error)
+                        val suggestions = voiceCommandProcessor.getSuggestedPhrases(locale)
+                        _uiState.value = VoiceExpenseUiState(
+                            errorMessage = error.message ?: "Failed to process voice command",
+                            suggestedPhrases = suggestions.take(3),
+                            confidenceScore = confidenceScore
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("VoiceExpenseViewModel", "Exception processing command", e)
+                _uiState.value = VoiceExpenseUiState(
+                    errorMessage = e.message ?: "Failed to process voice command"
+                )
+            }
+        }
+    }
+    
+    /**
+     * Confirm and save the extracted expense data
+     */
+    fun confirmExpense() {
+        val currentState = _uiState.value
+        val extractedData = currentState.extractedData
+        
+        if (extractedData != null) {
+            viewModelScope.launch {
+                try {
+                    // Re-process to get ExpenseData object
+                    val result = voiceCommandProcessor.processVoiceCommand(extractedData.originalCommand)
+                    result.fold(
+                        onSuccess = { expenseData ->
+                            saveExpenseData(expenseData, extractedData, currentState.confidenceScore)
+                        },
+                        onFailure = { error ->
+                            _uiState.value = VoiceExpenseUiState(
+                                errorMessage = error.message ?: "Failed to save expense"
+                            )
+                        }
+                    )
+                } catch (e: Exception) {
+                    _uiState.value = VoiceExpenseUiState(
+                        errorMessage = e.message ?: "Failed to save expense"
+                    )
+                }
+            }
+        }
+    }
+    
+    /**
+     * Legacy method for structured voice command input
+     */
     fun processVoiceCommand(
         amount: String?,
         category: String?,
@@ -69,10 +214,59 @@ class VoiceExpenseViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Retry the last voice command
+     */
     fun retry() {
-        lastVoiceCommand?.let { command ->
+        lastRawCommand?.let { command ->
+            processRawVoiceCommand(command)
+        } ?: lastVoiceCommand?.let { command ->
             processVoiceCommand(command.amount, command.category, command.merchant, command.note)
         }
+    }
+    
+    /**
+     * Reset the UI state
+     */
+    fun resetState() {
+        _uiState.value = VoiceExpenseUiState()
+    }
+    
+    /**
+     * Get training phrases for the user
+     */
+    fun getTrainingPhrases(locale: Locale = Locale.getDefault()): List<String> {
+        return voiceCommandProcessor.getSuggestedPhrases(locale)
+    }
+    
+    /**
+     * Save expense data and update UI state
+     */
+    private suspend fun saveExpenseData(
+        expenseData: ExpenseData,
+        extractedData: ExtractedVoiceData,
+        confidenceScore: Double?
+    ) {
+        android.util.Log.d("VoiceExpenseViewModel", "Saving expense to database: ${expenseData.amount} ${expenseData.currency}")
+        val result = repository.addExpense(expenseData)
+
+        result.fold(
+            onSuccess = { expense ->
+                android.util.Log.d("VoiceExpenseViewModel", "Expense saved successfully with ID: ${expense.id}")
+                _uiState.value = VoiceExpenseUiState(
+                    isProcessed = true,
+                    processedExpense = formatExpenseForDisplay(expenseData),
+                    extractedData = extractedData,
+                    confidenceScore = confidenceScore
+                )
+            },
+            onFailure = { error ->
+                android.util.Log.e("VoiceExpenseViewModel", "Failed to save expense: ${error.message}", error)
+                _uiState.value = VoiceExpenseUiState(
+                    errorMessage = error.message ?: "Failed to save expense"
+                )
+            }
+        )
     }
     
     private fun parseVoiceCommand(command: VoiceCommand): ExpenseData {

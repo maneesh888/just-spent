@@ -92,7 +92,13 @@ dependencies {
     
     // Google Assistant & App Actions - commented out for now to fix build
     // implementation("com.google.assistant:app-actions:1.0.0")
-    
+
+    // Speech Recognition
+    implementation("androidx.core:core-ktx:1.12.0")
+
+    // Accompanist Permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
     // Date & Time
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
     

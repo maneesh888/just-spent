@@ -1,7 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(chmod:*)",
+      "Bash(gradle:*)",
+      "Bash(curl:*)",
+      "Bash(./gradlew:*)",
+      "Bash(brew install:*)",
+      "Bash(find:*)",
+      "Read(/Users/maneesh/.gradle/**)",
+      "Read(/var/folders/jp/g4592v7n2wsgjtt2kgd4yqw40000gn/T/TemporaryItems/NSIRD_screencaptureui_01yfaT/**)",
+      "Bash(/Users/maneesh/Documents/Hobby/just-spent/android/gradlew compileDebugKotlin)",
+      "Bash(unzip:*)",
+      "Bash(./gradle-8.2/bin/gradle --project-dir /Users/maneesh/Documents/Hobby/just-spent/android compileDebugKotlin)",
+      "Bash(./gradle-8.2/bin/gradle --project-dir /Users/maneesh/Documents/Hobby/just-spent/android build)",
+      "Bash(git add:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(plutil -lint:*)",
+      "Bash(sed:*)",
+      "Bash(/Users/maneesh/.gradle/caches/gradle-8.2/gradle-8.2/bin/gradle compileDebugKotlin --stacktrace)",
+      "Bash(./gradle-8.2/bin/gradle --project-dir /Users/maneesh/Documents/Hobby/just-spent/android test)",
+      "Bash(./gradle-8.2/bin/gradle:*)",
+      "Bash(adb:*)",
+      "Bash(tee:*)",
+      "Read(//private/tmp/**)"
     ],
     "deny": [],
     "ask": []
