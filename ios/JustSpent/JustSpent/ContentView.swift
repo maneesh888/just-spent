@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var viewModel = ExpenseListViewModel()
     @State private var showingSiriSuccess = false
     @State private var siriMessage = ""
+    @State private var isErrorMessage = false // Track if current message is an error
     @State private var showingVoiceInput = false
     @State private var voiceInputText = ""
     
@@ -208,8 +209,15 @@ struct ContentView: View {
                 }
             }
             .navigationBarHidden(true)
-            .alert("Siri Success", isPresented: $showingSiriSuccess) {
-                Button("OK") { }
+            .alert(isErrorMessage ? "Voice Recognition Error" : "Siri Success", isPresented: $showingSiriSuccess) {
+                Button("OK") {
+                    isErrorMessage = false
+                }
+                if isErrorMessage {
+                    Button("Retry") {
+                        retryVoiceRecording()
+                    }
+                }
             } message: {
                 Text(siriMessage)
             }
@@ -353,12 +361,14 @@ struct ContentView: View {
                 } catch {
                     await MainActor.run {
                         siriMessage = "Failed to save expense: \(error.localizedDescription)"
+                        isErrorMessage = true
                         showingSiriSuccess = true
                     }
                 }
             }
         } else {
             siriMessage = "Could not understand: '\(input)'\n\nTry: 'I just spent 20 dollars for tea'"
+            isErrorMessage = true
             showingSiriSuccess = true
         }
     }
@@ -544,6 +554,7 @@ struct ContentView: View {
         } catch {
             print("❌ Audio session setup failed: \(error)")
             siriMessage = "Failed to setup audio session"
+            isErrorMessage = true
             showingSiriSuccess = true
             return
         }
@@ -557,6 +568,7 @@ struct ContentView: View {
         // Create recognition task
         guard let recognizer = speechRecognizer else {
             siriMessage = "Speech recognition is not available"
+            isErrorMessage = true
             showingSiriSuccess = true
             return
         }
@@ -604,6 +616,7 @@ struct ContentView: View {
                         // Only show error if it's not a cancellation (which is normal)
                         if (error as NSError).code != 301 { // kLSRErrorDomain Code=301 is cancellation
                             self.siriMessage = "Speech recognition failed: \(error.localizedDescription)"
+                            self.isErrorMessage = true
                             self.showingSiriSuccess = true
                         }
                     } else if isFinal && !finalTranscription.isEmpty {
@@ -611,6 +624,7 @@ struct ContentView: View {
                         self.processVoiceTranscription(finalTranscription)
                     } else {
                         self.siriMessage = "No speech detected. Please try again."
+                        self.isErrorMessage = true
                         self.showingSiriSuccess = true
                     }
                     
@@ -641,6 +655,7 @@ struct ContentView: View {
         } catch {
             print("❌ Audio engine failed to start: \(error)")
             siriMessage = "Failed to start recording: \(error.localizedDescription)"
+            isErrorMessage = true
             showingSiriSuccess = true
         }
     }
@@ -680,6 +695,7 @@ struct ContentView: View {
         // Validate input
         guard !transcription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             siriMessage = "No speech detected. Please try speaking clearly."
+            isErrorMessage = true
             showingSiriSuccess = true
             return
         }
@@ -720,12 +736,14 @@ struct ContentView: View {
                 } catch {
                     await MainActor.run {
                         siriMessage = "❌ Failed to save expense: \(error.localizedDescription)"
+                        isErrorMessage = true
                         showingSiriSuccess = true
                     }
                 }
             }
         } else {
             siriMessage = "❌ Could not understand: '\(transcription)'\n\nTry saying: 'I just spent 20 dollars for tea'"
+            isErrorMessage = true
             showingSiriSuccess = true
         }
     }
@@ -818,8 +836,20 @@ struct ContentView: View {
         }
     }
     
+    // MARK: - Retry Function
+
+    private func retryVoiceRecording() {
+        // Reset error state
+        isErrorMessage = false
+        siriMessage = ""
+        showingSiriSuccess = false
+
+        // Start a new voice recording session
+        startRecording()
+    }
+
     // MARK: - Auto-Stop Detection Functions
-    
+
     private func startSilenceDetection() {
         // Start a timer that checks for silence every 0.5 seconds
         silenceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
@@ -858,8 +888,8 @@ struct ContentView: View {
         print("🎙️ Auto-stop triggered by silence detection")
         silenceTimer?.invalidate()
         silenceTimer = nil
-        recognitionTask?.finish() // Gracefully finish instead of cancel
-        cleanupRecording()
+        recognitionTask?.finish() // Gracefully finish - this will trigger the completion handler which calls cleanupRecording()
+        // Note: cleanupRecording() is called in the recognition task completion handler, not here
     }
     
 }
