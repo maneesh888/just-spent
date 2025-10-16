@@ -375,21 +375,22 @@ struct ContentView: View {
     
     private func extractExpenseData(from command: String) -> (amount: Double?, currency: String?, category: String?, merchant: String?) {
         let lowercased = command.lowercased()
-        
+
         // Extract amount using improved regex patterns
         var amount: Double?
         var currency: String = "USD"
-        
-        // Try multiple patterns for better detection
+
+        // Try numeric patterns first
         let patterns = [
             (#"(\d+(?:\.\d{1,2})?)\s*(?:dirhams?|aed)"#, "AED"),
             (#"(\d+(?:\.\d{1,2})?)\s*(?:dollars?|usd|\$)"#, "USD"),
             (#"(\d+(?:\.\d{1,2})?)\s*(?:euros?|eur|€)"#, "EUR"),
+            (#"(\d+(?:\.\d{1,2})?)\s*(?:pounds?|gbp|£)"#, "GBP"),
             (#"(\d+(?:\.\d{1,2})?)"#, "USD") // Default fallback for just numbers
         ]
-        
+
         let range = NSRange(location: 0, length: command.count)
-        
+
         for (pattern, curr) in patterns {
             if let regex = try? NSRegularExpression(pattern: pattern, options: []),
                let match = regex.firstMatch(in: lowercased, options: [], range: range) {
@@ -401,28 +402,74 @@ struct ContentView: View {
                 }
             }
         }
-        
-        // Category mapping
-        let categoryMappings: [String: String] = [
-            "food": "Food & Dining", "tea": "Food & Dining", "coffee": "Food & Dining",
-            "lunch": "Food & Dining", "dinner": "Food & Dining", "breakfast": "Food & Dining",
-            "restaurant": "Food & Dining", "meal": "Food & Dining", "drink": "Food & Dining",
-            "grocery": "Grocery", "groceries": "Grocery", "supermarket": "Grocery",
-            "gas": "Transportation", "fuel": "Transportation", "taxi": "Transportation",
-            "uber": "Transportation", "transport": "Transportation", "parking": "Transportation",
-            "shopping": "Shopping", "clothes": "Shopping", "store": "Shopping",
-            "movie": "Entertainment", "cinema": "Entertainment", "concert": "Entertainment",
-            "bill": "Bills & Utilities", "rent": "Bills & Utilities", "utility": "Bills & Utilities"
+
+        // If numeric parsing failed, try written numbers
+        if amount == nil {
+            amount = extractWrittenAmount(from: lowercased)
+            // Detect currency from context
+            if lowercased.contains("dirham") || lowercased.contains("aed") {
+                currency = "AED"
+            } else if lowercased.contains("dollar") || lowercased.contains("usd") {
+                currency = "USD"
+            } else if lowercased.contains("euro") || lowercased.contains("eur") {
+                currency = "EUR"
+            } else if lowercased.contains("pound") || lowercased.contains("gbp") {
+                currency = "GBP"
+            }
+        }
+
+        // Enhanced category mapping with broader keywords
+        let categoryKeywords: [(keywords: [String], category: String)] = [
+            // Food & Dining - comprehensive food-related keywords
+            (["food", "tea", "coffee", "lunch", "dinner", "breakfast", "restaurant",
+              "meal", "drink", "cafe", "dining", "eat", "ate", "snack", "brunch",
+              "takeout", "takeaway", "delivery", "pizza", "burger", "sandwich",
+              "sushi", "dessert", "ice cream", "bakery", "starbucks", "mcdonald"], "Food & Dining"),
+
+            // Grocery - food shopping related
+            (["grocery", "groceries", "supermarket", "market", "food shopping",
+              "vegetables", "fruits", "produce", "walmart", "carrefour", "lulu"], "Grocery"),
+
+            // Transportation - comprehensive transport and fuel keywords
+            (["gas", "fuel", "taxi", "uber", "transport", "transportation", "parking",
+              "petrol", "toll", "careem", "lyft", "metro", "subway", "train", "bus",
+              "diesel", "station", "refuel", "fill up", "car", "vehicle", "ride",
+              "trip", "travel", "flight", "airline", "ticket"], "Transportation"),
+
+            // Shopping - retail and purchases
+            (["shopping", "clothes", "clothing", "store", "mall", "purchase", "buy", "bought",
+              "shoes", "accessories", "fashion", "retail", "amazon", "online shopping",
+              "electronics", "gadget", "phone", "laptop"], "Shopping"),
+
+            // Entertainment - leisure and fun activities
+            (["movie", "cinema", "concert", "entertainment", "fun", "games", "theatre",
+              "sports", "gym", "fitness", "netflix", "streaming", "spotify", "music",
+              "hobby", "recreation", "amusement", "park"], "Entertainment"),
+
+            // Bills & Utilities - recurring expenses
+            (["bill", "bills", "rent", "utility", "utilities", "electricity", "water",
+              "internet", "phone", "subscription", "insurance", "mortgage", "loan",
+              "payment", "recurring", "monthly", "annual"], "Bills & Utilities"),
+
+            // Healthcare - medical expenses
+            (["healthcare", "health", "doctor", "hospital", "medicine", "medical",
+              "pharmacy", "clinic", "prescription", "dentist", "therapy", "checkup",
+              "emergency", "surgery", "treatment"], "Healthcare"),
+
+            // Education - learning and development
+            (["education", "school", "course", "training", "books", "learning", "tuition",
+              "college", "university", "class", "workshop", "seminar", "certification",
+              "textbook", "supplies", "fees"], "Education")
         ]
-        
+
         var category: String = "Other"
-        for (keyword, categoryName) in categoryMappings {
-            if lowercased.contains(keyword) {
+        for (keywords, categoryName) in categoryKeywords {
+            if keywords.contains(where: { lowercased.contains($0) }) {
                 category = categoryName
                 break
             }
         }
-        
+
         // Extract merchant
         var merchant: String?
         let merchantPattern = #"(?:at|from)\s+([a-zA-Z\s]+?)(?:\s|$)"#
@@ -430,8 +477,63 @@ struct ContentView: View {
         if let match = merchantRegex?.firstMatch(in: lowercased, options: [], range: range) {
             merchant = String(command[Range(match.range(at: 1), in: command)!]).trimmingCharacters(in: .whitespaces)
         }
-        
+
         return (amount: amount, currency: currency, category: category, merchant: merchant)
+    }
+
+    /// Extract written numbers like "twenty-five dollars", "one hundred", "two thousand"
+    /// Handles compound numbers and multipliers (hundred, thousand)
+    private func extractWrittenAmount(from command: String) -> Double? {
+        let ones: [String: Int] = [
+            "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+            "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
+            "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19
+        ]
+
+        let tens: [String: Int] = [
+            "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
+            "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90
+        ]
+
+        // Extract potential amount substring (words between action word and currency/category)
+        let actionPattern = "(spent|spend|paid|pay|cost)\\s+([\\w\\s]+?)\\s+(dollars?|dirhams?|aed|euros?|pounds?|for|on|at)"
+        if let regex = try? NSRegularExpression(pattern: actionPattern, options: .caseInsensitive),
+           let match = regex.firstMatch(in: command, options: [], range: NSRange(location: 0, length: command.count)),
+           let amountRange = Range(match.range(at: 2), in: command) {
+            let amountText = String(command[amountRange]).lowercased()
+            return parseWrittenNumber(from: amountText, ones: ones, tens: tens)
+        }
+
+        // Fallback: try to parse the whole command
+        return parseWrittenNumber(from: command, ones: ones, tens: tens)
+    }
+
+    private func parseWrittenNumber(from text: String, ones: [String: Int], tens: [String: Int]) -> Double? {
+        let words = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        var total = 0
+        var current = 0
+
+        for word in words {
+            let cleanWord = word.lowercased()
+
+            if let value = ones[cleanWord] {
+                current += value
+            } else if let value = tens[cleanWord] {
+                current += value
+            } else if cleanWord == "hundred" {
+                if current == 0 { current = 1 } // "hundred" alone means "one hundred"
+                current *= 100
+            } else if cleanWord == "thousand" {
+                if current == 0 { current = 1 } // "thousand" alone means "one thousand"
+                current *= 1000
+                total += current
+                current = 0
+            }
+        }
+
+        total += current
+        return total > 0 && total <= 999999 ? Double(total) : nil
     }
     
     // MARK: - Speech Recognition Functions
