@@ -28,8 +28,8 @@ struct ContentView: View {
     @State private var silenceTimer: Timer?
     @State private var lastSpeechTime = Date()
     @State private var hasDetectedSpeech = false
-    @State private var silenceThreshold: TimeInterval = 2.0 // Stop after 2 seconds of silence
-    @State private var minimumSpeechDuration: TimeInterval = 1.0 // Require at least 1 second of speech
+    @State private var silenceThreshold = AppConstants.VoiceRecording.silenceThreshold
+    @State private var minimumSpeechDuration = AppConstants.VoiceRecording.minimumSpeechDuration
     
     // Permission UI states
     @State private var showingPermissionAlert = false
@@ -44,17 +44,17 @@ struct ContentView: View {
                     // Header
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Just Spent")
+                            Text(LocalizedStrings.appTitle)
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
-                            Text("Voice-enabled expense tracker")
+                            Text(LocalizedStrings.appSubtitle)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
-                        
+
                         VStack(alignment: .trailing) {
-                            Text("Total")
+                            Text(LocalizedStrings.totalLabel)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(viewModel.formattedTotalSpending)
@@ -76,11 +76,11 @@ struct ContentView: View {
                                     .foregroundColor(.blue)
                                 
                                 VStack(spacing: 12) {
-                                    Text("No expenses yet")
+                                    Text(LocalizedStrings.emptyStateNoExpenses)
                                         .font(.title2)
                                         .foregroundColor(.secondary)
-                                    
-                                    Text("Tap the voice button below to get started")
+
+                                    Text(LocalizedStrings.emptyStateTapVoiceButton)
                                         .font(.body)
                                         .foregroundColor(.secondary)
                                         .multilineTextAlignment(.center)
@@ -92,24 +92,24 @@ struct ContentView: View {
                                     .foregroundColor(.orange)
                                 
                                 VStack(spacing: 12) {
-                                    Text("Voice features need permissions")
+                                    Text(LocalizedStrings.emptyStatePermissionsNeeded)
                                         .font(.title2)
                                         .foregroundColor(.secondary)
-                                    
+
                                     if !speechRecognitionAvailable {
-                                        Text("Speech recognition is not available on this device")
+                                        Text(LocalizedStrings.emptyStateRecognitionUnavailable)
                                             .font(.body)
                                             .foregroundColor(.secondary)
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal)
                                     } else {
-                                        Text("Grant Speech Recognition and Microphone permissions to use voice expense logging")
+                                        Text(LocalizedStrings.emptyStateGrantPermissions)
                                             .font(.body)
                                             .foregroundColor(.secondary)
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal)
-                                        
-                                        Button("Grant Permissions") {
+
+                                        Button(LocalizedStrings.buttonGrantPermissions) {
                                             openAppSettings()
                                         }
                                         .buttonStyle(.borderedProminent)
@@ -154,14 +154,14 @@ struct ContentView: View {
                                             .frame(width: 8, height: 8)
                                             .scaleEffect(isRecording ? 1.0 : 0.5)
                                             .animation(.easeInOut(duration: 0.5).repeatForever(), value: isRecording)
-                                        Text(hasDetectedSpeech ? "Processing..." : "Listening...")
+                                        Text(hasDetectedSpeech ? LocalizedStrings.voiceProcessing : LocalizedStrings.voiceListening)
                                             .foregroundColor(hasDetectedSpeech ? .green : .red)
                                             .font(.caption)
                                             .fontWeight(.medium)
                                     }
-                                    
+
                                     // Auto-stop indicator
-                                    Text("Will stop automatically when you finish speaking")
+                                    Text(LocalizedStrings.voiceWillStopAuto)
                                         .font(.caption2)
                                         .foregroundColor(.secondary)
                                         .multilineTextAlignment(.center)
@@ -181,8 +181,8 @@ struct ContentView: View {
                                     // Extra safety check before any speech recognition
                                     guard speechRecognitionAvailable else {
                                         showPermissionAlert(
-                                            title: "Voice Recognition Unavailable",
-                                            message: "Speech recognition is not available on this device."
+                                            title: LocalizedStrings.permissionTitleVoiceUnavailable,
+                                            message: LocalizedStrings.permissionMessageUnavailable
                                         )
                                         return
                                     }
@@ -209,33 +209,33 @@ struct ContentView: View {
                 }
             }
             .navigationBarHidden(true)
-            .alert(isErrorMessage ? "Voice Recognition Error" : "Siri Success", isPresented: $showingSiriSuccess) {
-                Button("OK") {
+            .alert(isErrorMessage ? LocalizedStrings.voiceRecognitionErrorTitle : LocalizedStrings.voiceRecognitionSuccessTitle, isPresented: $showingSiriSuccess) {
+                Button(LocalizedStrings.buttonOK) {
                     isErrorMessage = false
                 }
                 if isErrorMessage {
-                    Button("Retry") {
+                    Button(LocalizedStrings.buttonRetry) {
                         retryVoiceRecording()
                     }
                 }
             } message: {
                 Text(siriMessage)
             }
-            .alert("Voice Expense Entry", isPresented: $showingVoiceInput) {
-                TextField("Say your expense...", text: $voiceInputText)
-                Button("Process") {
+            .alert(LocalizedStrings.voiceRecognitionEntryTitle, isPresented: $showingVoiceInput) {
+                TextField(LocalizedStrings.voiceEnterExpense, text: $voiceInputText)
+                Button(LocalizedStrings.buttonProcess) {
                     if !voiceInputText.isEmpty {
                         processVoiceInput(voiceInputText)
                         voiceInputText = ""
                     }
                 }
-                Button("Cancel", role: .cancel) {
+                Button(LocalizedStrings.buttonCancel, role: .cancel) {
                     voiceInputText = ""
                 }
             } message: {
-                Text("Enter your expense naturally, like: 'I just spent 20 dollars for tea'")
+                Text(LocalizedStrings.voiceEnterNaturally)
             }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SiriExpenseReceived"))) { notification in
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(AppConstants.Notification.siriExpenseReceived))) { notification in
                 if let message = notification.userInfo?["message"] as? String {
                     siriMessage = message
                     showingSiriSuccess = true
@@ -245,7 +245,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("VoiceExpenseRequested"))) { notification in
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(AppConstants.Notification.voiceExpenseRequested))) { notification in
                 showingVoiceInput = true
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
@@ -267,10 +267,10 @@ struct ContentView: View {
                 }
             }
             .alert(permissionAlertTitle, isPresented: $showingPermissionAlert) {
-                Button("Go to Settings") {
+                Button(LocalizedStrings.buttonGoToSettings) {
                     openAppSettings()
                 }
-                Button("Cancel", role: .cancel) { }
+                Button(LocalizedStrings.buttonCancel, role: .cancel) { }
             } message: {
                 Text(permissionAlertMessage)
             }
@@ -289,8 +289,8 @@ struct ContentView: View {
     private func enableSiriSupport() {
         if #available(iOS 12.0, *) {
             // Create a user activity for the shortcut
-            let activity = NSUserActivity(activityType: "com.justspent.logExpense")
-            activity.title = "Log Expense"
+            let activity = NSUserActivity(activityType: AppConstants.UserActivityType.logExpense)
+            activity.title = LocalizedStrings.siriTitleLogExpense
             activity.userInfo = [
                 "action": "logExpense",
                 "source": "siri"
@@ -304,7 +304,7 @@ struct ContentView: View {
             // Present the Add to Siri interface
             presentAddToSiri(shortcut: shortcut)
         } else {
-            siriMessage = "Siri shortcuts require iOS 12 or later"
+            siriMessage = LocalizedStrings.siriRequiresiOS12
             showingSiriSuccess = true
         }
     }
@@ -328,9 +328,9 @@ struct ContentView: View {
     }
     
     private func processVoiceInput(_ input: String) {
-        // Use the same NLP processing as in JustSpentApp
-        let extractedData = extractExpenseData(from: input)
-        
+        // Use VoiceCommandParser for NLP processing
+        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(input)
+
         if let amount = extractedData.amount,
            let category = extractedData.category {
             
@@ -339,19 +339,23 @@ struct ContentView: View {
                     let repository = ExpenseRepository()
                     let expenseData = ExpenseData(
                         amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? "USD",
+                        currency: extractedData.currency ?? AppConstants.Currency.defaultCurrency,
                         category: category,
                         merchant: extractedData.merchant,
-                        notes: "Added via intelligent voice processing",
+                        notes: LocalizedStrings.expenseAddedViaIntelligent,
                         transactionDate: Date(),
-                        source: "voice_siri",
+                        source: AppConstants.ExpenseSource.voiceSiri,
                         voiceTranscript: input
                     )
                     
                     _ = try await repository.addExpense(expenseData)
                     
                     await MainActor.run {
-                        siriMessage = "Smart processing success!\n💰 Amount: $\(amount)\n📂 Category: \(category)\n📝 From: '\(input)'"
+                        siriMessage = LocalizedStrings.expenseSmartProcessing(
+                            amount: String(amount),
+                            category: category,
+                            transcript: input
+                        )
                         showingSiriSuccess = true
                         Task {
                             await viewModel.loadExpenses()
@@ -360,184 +364,26 @@ struct ContentView: View {
                     
                 } catch {
                     await MainActor.run {
-                        siriMessage = "Failed to save expense: \(error.localizedDescription)"
+                        siriMessage = LocalizedStrings.expenseFailedToSave(error.localizedDescription)
                         isErrorMessage = true
                         showingSiriSuccess = true
                     }
                 }
             }
         } else {
-            siriMessage = "Could not understand: '\(input)'\n\nTry: 'I just spent 20 dollars for tea'"
+            siriMessage = LocalizedStrings.expenseCouldNotUnderstand(input)
             isErrorMessage = true
             showingSiriSuccess = true
         }
     }
-    
-    private func extractExpenseData(from command: String) -> (amount: Double?, currency: String?, category: String?, merchant: String?) {
-        let lowercased = command.lowercased()
 
-        // Extract amount using improved regex patterns
-        var amount: Double?
-        var currency: String = "USD"
+    // MARK: - Voice Command Processing
+    // The extractExpenseData function has been removed and replaced with VoiceCommandParser.
+    // Use VoiceCommandParser.shared.parseExpenseCommand() instead.
+    // See: ios/JustSpent/JustSpent/Common/Utilities/VoiceCommandParser.swift
 
-        // Try numeric patterns first
-        let patterns = [
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:dirhams?|aed)"#, "AED"),
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:dollars?|usd|\$)"#, "USD"),
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:euros?|eur|€)"#, "EUR"),
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:pounds?|gbp|£)"#, "GBP"),
-            (#"(\d+(?:\.\d{1,2})?)"#, "USD") // Default fallback for just numbers
-        ]
-
-        let range = NSRange(location: 0, length: command.count)
-
-        for (pattern, curr) in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
-               let match = regex.firstMatch(in: lowercased, options: [], range: range) {
-                let amountStr = String(lowercased[Range(match.range(at: 1), in: lowercased)!])
-                if let parsedAmount = Double(amountStr) {
-                    amount = parsedAmount
-                    currency = curr
-                    break // Use first successful match
-                }
-            }
-        }
-
-        // If numeric parsing failed, try written numbers
-        if amount == nil {
-            amount = extractWrittenAmount(from: lowercased)
-            // Detect currency from context
-            if lowercased.contains("dirham") || lowercased.contains("aed") {
-                currency = "AED"
-            } else if lowercased.contains("dollar") || lowercased.contains("usd") {
-                currency = "USD"
-            } else if lowercased.contains("euro") || lowercased.contains("eur") {
-                currency = "EUR"
-            } else if lowercased.contains("pound") || lowercased.contains("gbp") {
-                currency = "GBP"
-            }
-        }
-
-        // Enhanced category mapping with broader keywords
-        let categoryKeywords: [(keywords: [String], category: String)] = [
-            // Food & Dining - comprehensive food-related keywords
-            (["food", "tea", "coffee", "lunch", "dinner", "breakfast", "restaurant",
-              "meal", "drink", "cafe", "dining", "eat", "ate", "snack", "brunch",
-              "takeout", "takeaway", "delivery", "pizza", "burger", "sandwich",
-              "sushi", "dessert", "ice cream", "bakery", "starbucks", "mcdonald"], "Food & Dining"),
-
-            // Grocery - food shopping related
-            (["grocery", "groceries", "supermarket", "market", "food shopping",
-              "vegetables", "fruits", "produce", "walmart", "carrefour", "lulu"], "Grocery"),
-
-            // Transportation - comprehensive transport and fuel keywords
-            (["gas", "fuel", "taxi", "uber", "transport", "transportation", "parking",
-              "petrol", "toll", "careem", "lyft", "metro", "subway", "train", "bus",
-              "diesel", "station", "refuel", "fill up", "car", "vehicle", "ride",
-              "trip", "travel", "flight", "airline", "ticket"], "Transportation"),
-
-            // Shopping - retail and purchases
-            (["shopping", "clothes", "clothing", "store", "mall", "purchase", "buy", "bought",
-              "shoes", "accessories", "fashion", "retail", "amazon", "online shopping",
-              "electronics", "gadget", "phone", "laptop"], "Shopping"),
-
-            // Entertainment - leisure and fun activities
-            (["movie", "cinema", "concert", "entertainment", "fun", "games", "theatre",
-              "sports", "gym", "fitness", "netflix", "streaming", "spotify", "music",
-              "hobby", "recreation", "amusement", "park"], "Entertainment"),
-
-            // Bills & Utilities - recurring expenses
-            (["bill", "bills", "rent", "utility", "utilities", "electricity", "water",
-              "internet", "phone", "subscription", "insurance", "mortgage", "loan",
-              "payment", "recurring", "monthly", "annual"], "Bills & Utilities"),
-
-            // Healthcare - medical expenses
-            (["healthcare", "health", "doctor", "hospital", "medicine", "medical",
-              "pharmacy", "clinic", "prescription", "dentist", "therapy", "checkup",
-              "emergency", "surgery", "treatment"], "Healthcare"),
-
-            // Education - learning and development
-            (["education", "school", "course", "training", "books", "learning", "tuition",
-              "college", "university", "class", "workshop", "seminar", "certification",
-              "textbook", "supplies", "fees"], "Education")
-        ]
-
-        var category: String = "Other"
-        for (keywords, categoryName) in categoryKeywords {
-            if keywords.contains(where: { lowercased.contains($0) }) {
-                category = categoryName
-                break
-            }
-        }
-
-        // Extract merchant
-        var merchant: String?
-        let merchantPattern = #"(?:at|from)\s+([a-zA-Z\s]+?)(?:\s|$)"#
-        let merchantRegex = try? NSRegularExpression(pattern: merchantPattern, options: [])
-        if let match = merchantRegex?.firstMatch(in: lowercased, options: [], range: range) {
-            merchant = String(command[Range(match.range(at: 1), in: command)!]).trimmingCharacters(in: .whitespaces)
-        }
-
-        return (amount: amount, currency: currency, category: category, merchant: merchant)
-    }
-
-    /// Extract written numbers like "twenty-five dollars", "one hundred", "two thousand"
-    /// Handles compound numbers and multipliers (hundred, thousand)
-    private func extractWrittenAmount(from command: String) -> Double? {
-        let ones: [String: Int] = [
-            "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
-            "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
-            "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19
-        ]
-
-        let tens: [String: Int] = [
-            "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
-            "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90
-        ]
-
-        // Extract potential amount substring (words between action word and currency/category)
-        let actionPattern = "(spent|spend|paid|pay|cost)\\s+([\\w\\s]+?)\\s+(dollars?|dirhams?|aed|euros?|pounds?|for|on|at)"
-        if let regex = try? NSRegularExpression(pattern: actionPattern, options: .caseInsensitive),
-           let match = regex.firstMatch(in: command, options: [], range: NSRange(location: 0, length: command.count)),
-           let amountRange = Range(match.range(at: 2), in: command) {
-            let amountText = String(command[amountRange]).lowercased()
-            return parseWrittenNumber(from: amountText, ones: ones, tens: tens)
-        }
-
-        // Fallback: try to parse the whole command
-        return parseWrittenNumber(from: command, ones: ones, tens: tens)
-    }
-
-    private func parseWrittenNumber(from text: String, ones: [String: Int], tens: [String: Int]) -> Double? {
-        let words = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
-        var total = 0
-        var current = 0
-
-        for word in words {
-            let cleanWord = word.lowercased()
-
-            if let value = ones[cleanWord] {
-                current += value
-            } else if let value = tens[cleanWord] {
-                current += value
-            } else if cleanWord == "hundred" {
-                if current == 0 { current = 1 } // "hundred" alone means "one hundred"
-                current *= 100
-            } else if cleanWord == "thousand" {
-                if current == 0 { current = 1 } // "thousand" alone means "one thousand"
-                current *= 1000
-                total += current
-                current = 0
-            }
-        }
-
-        total += current
-        return total > 0 && total <= 999999 ? Double(total) : nil
-    }
-    
     // MARK: - Speech Recognition Functions
-    
+
     private func setupSpeechRecognition() {
         // Don't do anything if we don't have proper Info.plist setup
         guard Bundle.main.object(forInfoDictionaryKey: "NSSpeechRecognitionUsageDescription") != nil else {
@@ -613,28 +459,28 @@ struct ContentView: View {
         // Check if recognizer is available
         guard recognizer.isAvailable else {
             showPermissionAlert(
-                title: "Service Temporarily Unavailable",
-                message: "Speech recognition is temporarily unavailable. Please try again in a few moments."
+                title: LocalizedStrings.permissionTitleServiceUnavailable,
+                message: LocalizedStrings.permissionMessageTempUnavailable
             )
             return
         }
-        
+
         // Check permissions
         guard speechPermissionGranted && microphonePermissionGranted else {
             if !speechPermissionGranted && !microphonePermissionGranted {
                 showPermissionAlert(
-                    title: "Permissions Required",
-                    message: "Voice recording requires both Speech Recognition and Microphone permissions. Please grant these permissions in Settings > Privacy & Security."
+                    title: LocalizedStrings.permissionTitleRequired,
+                    message: LocalizedStrings.permissionMessageBothRequired
                 )
             } else if !speechPermissionGranted {
                 showPermissionAlert(
-                    title: "Speech Recognition Permission Required",
-                    message: "Please grant Speech Recognition permission in Settings > Privacy & Security > Speech Recognition to use voice features."
+                    title: LocalizedStrings.permissionTitleSpeechRequired,
+                    message: LocalizedStrings.permissionMessageSpeechRequired
                 )
             } else {
                 showPermissionAlert(
-                    title: "Microphone Permission Required",
-                    message: "Please grant Microphone permission in Settings > Privacy & Security > Microphone to use voice features."
+                    title: LocalizedStrings.permissionTitleMicRequired,
+                    message: LocalizedStrings.permissionMessageMicRequired
                 )
             }
             return
@@ -702,9 +548,11 @@ struct ContentView: View {
             
             // Handle completion (either final result or error)
             if isFinal || error != nil {
-                // Stop audio processing first
-                self.audioEngine.stop()
-                inputNode.removeTap(onBus: 0)
+                // Stop audio processing if still running
+                if self.audioEngine.isRunning {
+                    self.audioEngine.stop()
+                    inputNode.removeTap(onBus: 0)
+                }
                 self.recognitionTask?.cancel()
                 self.recognitionTask = nil
                 
@@ -767,8 +615,16 @@ struct ContentView: View {
         print("🎙️ Manual stop requested")
         silenceTimer?.invalidate()
         silenceTimer = nil
-        recognitionTask?.finish() // Gracefully finish instead of cancel
-        cleanupRecording()
+
+        // Stop the audio engine first, before finishing the recognition task
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+
+        // Now gracefully finish the recognition task
+        // This will trigger the completion handler which will call cleanupRecording()
+        recognitionTask?.finish()
     }
     
     private func cleanupRecording() {
@@ -792,59 +648,70 @@ struct ContentView: View {
     }
     
     private func processVoiceTranscription(_ transcription: String) {
-        print("🧠 Processing transcription: '\(transcription)'")
-        
+        print(LocalizedStrings.debugProcessingTranscription(transcription))
+
         // Validate input
         guard !transcription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            siriMessage = "No speech detected. Please try speaking clearly."
+            siriMessage = LocalizedStrings.voiceRecognitionSpeakClearly
             isErrorMessage = true
             showingSiriSuccess = true
             return
         }
-        
-        // Use the existing NLP processing function
-        let extractedData = extractExpenseData(from: transcription)
-        
+
+        // Use VoiceCommandParser for NLP processing
+        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(transcription)
+
         // Debug output
-        print("🔍 Extracted - Amount: \(extractedData.amount ?? 0), Currency: \(extractedData.currency ?? "none"), Category: \(extractedData.category ?? "none")")
-        
+        #if DEBUG
+        print(LocalizedStrings.debugExtracted(
+            amount: String(extractedData.amount ?? 0),
+            currency: extractedData.currency ?? "none",
+            category: extractedData.category ?? "none"
+        ))
+        #endif
+
         if let amount = extractedData.amount,
            let category = extractedData.category {
-            
+
             Task {
                 do {
                     let repository = ExpenseRepository()
                     let expenseData = ExpenseData(
                         amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? "USD",
+                        currency: extractedData.currency ?? AppConstants.Currency.defaultCurrency,
                         category: category,
                         merchant: extractedData.merchant,
-                        notes: "Added via voice recognition",
+                        notes: LocalizedStrings.expenseAddedViaVoice,
                         transactionDate: Date(),
-                        source: "voice_recognition",
+                        source: AppConstants.ExpenseSource.voiceRecognition,
                         voiceTranscript: transcription
                     )
-                    
+
                     _ = try await repository.addExpense(expenseData)
-                    
+
                     await MainActor.run {
-                        siriMessage = "✅ Voice expense added successfully!\n💰 Amount: \(extractedData.currency ?? "")$\(amount)\n📂 Category: \(category)\n🎙️ From: '\(transcription)'"
+                        siriMessage = LocalizedStrings.expenseAddedSuccess(
+                            currency: extractedData.currency ?? "",
+                            amount: String(amount),
+                            category: category,
+                            transcript: transcription
+                        )
                         showingSiriSuccess = true
                         Task {
                             await viewModel.loadExpenses()
                         }
                     }
-                    
+
                 } catch {
                     await MainActor.run {
-                        siriMessage = "❌ Failed to save expense: \(error.localizedDescription)"
+                        siriMessage = LocalizedStrings.expenseFailedToSave(error.localizedDescription)
                         isErrorMessage = true
                         showingSiriSuccess = true
                     }
                 }
             }
         } else {
-            siriMessage = "❌ Could not understand: '\(transcription)'\n\nTry saying: 'I just spent 20 dollars for tea'"
+            siriMessage = LocalizedStrings.expenseCouldNotUnderstand(transcription)
             isErrorMessage = true
             showingSiriSuccess = true
         }
@@ -1003,7 +870,7 @@ struct ExpenseRowView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(expense.category ?? "Unknown")
+                    Text(expense.category ?? LocalizedStrings.categoryUnknown)
                         .font(.headline)
                     Spacer()
                     Text(formatAmount(expense.amount) + " " + (expense.currency ?? ""))
@@ -1022,7 +889,7 @@ struct ExpenseRowView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    if expense.source == "voice_siri" {
+                    if expense.source == AppConstants.ExpenseSource.voiceSiri {
                         Image(systemName: "mic.fill")
                             .font(.caption)
                             .foregroundColor(.blue)

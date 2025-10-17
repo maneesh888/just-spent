@@ -2,6 +2,14 @@ import Foundation
 import Intents
 import IntentsUI
 
+// MARK: - ⚠️ DISABLED - Requires Intent Definition File
+// This file requires a JustSpent.intentdefinition file to be created with:
+// - LogExpenseIntent custom intent
+// - ViewExpensesIntent custom intent
+// - ExpenseCategory enum
+// See: ios-siri-integration.md for setup instructions
+
+/*
 class ShortcutsManager {
     static let shared = ShortcutsManager()
     
@@ -242,3 +250,4 @@ extension ShortcutsManager {
         }
     }
 }
+*/

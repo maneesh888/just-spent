@@ -41,12 +41,12 @@ final class ExpenseRepositoryTests: XCTestCase {
         // Given
         let expenseData = ExpenseData(
             amount: NSDecimalNumber(value: 25.50),
-            currency: "USD",
+            currency: AppConstants.Currency.usd,
             category: "Food & Dining",
             merchant: "Coffee Shop",
             notes: "Morning coffee",
             transactionDate: Date(),
-            source: "manual",
+            source: AppConstants.ExpenseSource.manual,
             voiceTranscript: nil
         )
         
@@ -55,10 +55,10 @@ final class ExpenseRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertEqual(result.amount, NSDecimalNumber(value: 25.50))
-        XCTAssertEqual(result.currency, "USD")
+        XCTAssertEqual(result.currency, AppConstants.Currency.usd)
         XCTAssertEqual(result.category, "Food & Dining")
         XCTAssertEqual(result.merchant, "Coffee Shop")
-        XCTAssertEqual(result.source, "manual")
+        XCTAssertEqual(result.source, AppConstants.ExpenseSource.manual)
     }
     
     func testGetAllExpensesReturnsEmptyInitially() throws {
@@ -82,12 +82,12 @@ final class ExpenseRepositoryTests: XCTestCase {
         // Given
         let expenseData = ExpenseData(
             amount: NSDecimalNumber(value: 15.00),
-            currency: "USD",
+            currency: AppConstants.Currency.usd,
             category: "Transport",
             merchant: nil,
             notes: nil,
             transactionDate: Date(),
-            source: "manual",
+            source: AppConstants.ExpenseSource.manual,
             voiceTranscript: nil
         )
         
@@ -113,23 +113,23 @@ final class ExpenseRepositoryTests: XCTestCase {
         // Given
         let foodExpense = ExpenseData(
             amount: NSDecimalNumber(value: 20.00),
-            currency: "USD",
+            currency: AppConstants.Currency.usd,
             category: "Food & Dining",
             merchant: "Restaurant",
             notes: nil,
             transactionDate: Date(),
-            source: "manual",
+            source: AppConstants.ExpenseSource.manual,
             voiceTranscript: nil
         )
-        
+
         let transportExpense = ExpenseData(
             amount: NSDecimalNumber(value: 50.00),
-            currency: "USD",
+            currency: AppConstants.Currency.usd,
             category: "Transport",
             merchant: "Gas Station",
             notes: nil,
             transactionDate: Date(),
-            source: "manual",
+            source: AppConstants.ExpenseSource.manual,
             voiceTranscript: nil
         )
         
@@ -155,22 +155,22 @@ final class ExpenseRepositoryTests: XCTestCase {
         // Given
         let expenseData = ExpenseData(
             amount: NSDecimalNumber(value: 30.00),
-            currency: "AED",
+            currency: AppConstants.Currency.aed,
             category: "Grocery",
             merchant: "Supermarket",
             notes: "Weekly shopping",
             transactionDate: Date(),
-            source: "voice_siri",
+            source: AppConstants.ExpenseSource.voiceSiri,
             voiceTranscript: "I just spent 30 dirhams on groceries at the supermarket"
         )
-        
+
         // When
         let result = try await repository.addExpense(expenseData)
-        
+
         // Then
-        XCTAssertEqual(result.source, "voice_siri")
+        XCTAssertEqual(result.source, AppConstants.ExpenseSource.voiceSiri)
         XCTAssertEqual(result.voiceTranscript, "I just spent 30 dirhams on groceries at the supermarket")
-        XCTAssertEqual(result.currency, "AED")
+        XCTAssertEqual(result.currency, AppConstants.Currency.aed)
     }
 }
 
