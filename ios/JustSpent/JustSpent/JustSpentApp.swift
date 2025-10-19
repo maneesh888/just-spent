@@ -5,10 +5,28 @@ import NaturalLanguage
 struct JustSpentApp: App {
     let persistenceController = PersistenceController.shared
 
+    // App lifecycle management
+    @StateObject private var lifecycleManager = AppLifecycleManager()
+    @StateObject private var autoRecordingCoordinator: AutoRecordingCoordinator
+
+    // Scene phase for lifecycle detection
+    @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        // Create lifecycle manager first
+        let lifecycle = AppLifecycleManager()
+        _lifecycleManager = StateObject(wrappedValue: lifecycle)
+
+        // Create auto-recording coordinator with dependency
+        _autoRecordingCoordinator = StateObject(wrappedValue: AutoRecordingCoordinator(lifecycleManager: lifecycle))
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(lifecycleManager)
+                .environmentObject(autoRecordingCoordinator)
                 .onContinueUserActivity(AppConstants.UserActivityType.logExpense) { userActivity in
                     handleSiriExpense(userActivity)
                 }
@@ -21,6 +39,38 @@ struct JustSpentApp: App {
                 .onOpenURL { url in
                     handleIncomingURL(url)
                 }
+                .onChange(of: scenePhase) { oldPhase, newPhase in
+                    handleScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
+                }
+        }
+    }
+
+    // MARK: - Scene Phase Handling
+
+    private func handleScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
+        let newAppState = AppState(from: newPhase)
+
+        #if DEBUG
+        print("📱 Scene phase changed: \(oldPhase) → \(newPhase) (AppState: \(newAppState))")
+        #endif
+
+        // Update lifecycle manager
+        lifecycleManager.updateAppState(newAppState)
+
+        // Handle foreground transition
+        if lifecycleManager.didBecomeActive {
+            #if DEBUG
+            print("🔄 App returned to foreground - checking auto-recording conditions")
+            #endif
+            // Note: Auto-recording trigger happens in ContentView via coordinator
+            // ContentView observes lifecycleManager and coordinator states
+        }
+
+        // Also trigger on initial active state (first launch or app start)
+        if newAppState == .active {
+            #if DEBUG
+            print("🔄 App is now active - ContentView will check auto-recording")
+            #endif
         }
     }
     

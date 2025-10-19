@@ -8,13 +8,20 @@ import AVFoundation
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
+
+    // Direct CoreData fetch for reliable initial load and auto-updates
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
+        animation: .default)
+    private var expenses: FetchedResults<Expense>
+
     @StateObject private var viewModel = ExpenseListViewModel()
     @State private var showingSiriSuccess = false
     @State private var siriMessage = ""
     @State private var isErrorMessage = false // Track if current message is an error
     @State private var showingVoiceInput = false
     @State private var voiceInputText = ""
-    
+
     // Speech Recognition States
     @State private var isRecording = false
     @State private var speechRecognizer: SFSpeechRecognizer?
@@ -23,20 +30,38 @@ struct ContentView: View {
     @State private var speechPermissionGranted = false
     @State private var microphonePermissionGranted = false
     @State private var speechRecognitionAvailable = false
-    
+
     // Auto-stop detection states
     @State private var silenceTimer: Timer?
     @State private var lastSpeechTime = Date()
     @State private var hasDetectedSpeech = false
     @State private var silenceThreshold = AppConstants.VoiceRecording.silenceThreshold
     @State private var minimumSpeechDuration = AppConstants.VoiceRecording.minimumSpeechDuration
-    
+
     // Permission UI states
     @State private var showingPermissionAlert = false
     @State private var permissionAlertTitle = ""
     @State private var permissionAlertMessage = ""
     @State private var permissionsChecked = false
-    
+
+    // Auto-recording integration
+    @EnvironmentObject var lifecycleManager: AppLifecycleManager
+    @EnvironmentObject var autoRecordingCoordinator: AutoRecordingCoordinator
+
+    // Computed properties for total spending
+    private var totalSpending: Double {
+        expenses.reduce(0) { total, expense in
+            total + (expense.amount?.doubleValue ?? 0)
+        }
+    }
+
+    private var formattedTotalSpending: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter.string(from: NSNumber(value: totalSpending)) ?? "$0.00"
+    }
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -57,7 +82,7 @@ struct ContentView: View {
                             Text(LocalizedStrings.totalLabel)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Text(viewModel.formattedTotalSpending)
+                            Text(formattedTotalSpending)
                                 .font(.title2)
                                 .fontWeight(.semibold)
                         }
@@ -65,7 +90,7 @@ struct ContentView: View {
                     .padding()
                     
                     // Content
-                    if viewModel.expenses.isEmpty {
+                    if expenses.isEmpty {
                         VStack(spacing: 20) {
                             Spacer()
                             
@@ -123,7 +148,7 @@ struct ContentView: View {
                         .padding()
                     } else {
                         List {
-                            ForEach(viewModel.expenses, id: \.id) { expense in
+                            ForEach(expenses, id: \.id) { expense in
                                 ExpenseRowView(expense: expense)
                             }
                             .onDelete(perform: deleteExpenses)
@@ -253,6 +278,12 @@ struct ContentView: View {
                 if permissionsChecked {
                     checkCurrentPermissions()
                 }
+
+                // Auto-recording disabled for app launch/foreground
+                // (kept for future widget support)
+                // DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                //     triggerAutoRecordingIfNeeded()
+                // }
             }
             .onAppear {
                 // Delay setup to ensure Info.plist is loaded
@@ -264,6 +295,40 @@ struct ContentView: View {
                         // Refresh permission status in case user changed them in Settings
                         checkCurrentPermissions()
                     }
+
+                    // Auto-recording disabled for app launch
+                    // (kept for future widget support)
+                    // #if DEBUG
+                    // print("📱 onAppear: Checking auto-recording conditions")
+                    // print("   - First Launch: \(lifecycleManager.isFirstLaunch)")
+                    // print("   - App State: \(lifecycleManager.appState)")
+                    // print("   - Speech Permission: \(speechPermissionGranted)")
+                    // print("   - Mic Permission: \(microphonePermissionGranted)")
+                    // print("   - Recognition Available: \(speechRecognitionAvailable)")
+                    // #endif
+                    // triggerAutoRecordingIfNeeded()
+                }
+            }
+            .onChange(of: autoRecordingCoordinator.shouldStartRecording) { oldValue, newValue in
+                // Observe auto-recording coordinator trigger
+                if newValue && !isRecording {
+                    #if DEBUG
+                    print("🎙️ Auto-recording triggered by coordinator")
+                    #endif
+                    startRecording()
+                }
+            }
+            .onChange(of: lifecycleManager.appState) { oldState, newState in
+                // Cancel recording when app goes to background
+                if newState == .background && isRecording {
+                    #if DEBUG
+                    print("🛑 App went to background while recording - cancelling recording without saving")
+                    #endif
+                    cleanupRecording()
+                    // Reset UI state
+                    siriMessage = ""
+                    showingSiriSuccess = false
+                    isErrorMessage = false
                 }
             }
             .alert(permissionAlertTitle, isPresented: $showingPermissionAlert) {
@@ -279,7 +344,7 @@ struct ContentView: View {
     
     private func deleteExpenses(offsets: IndexSet) {
         for index in offsets {
-            let expense = viewModel.expenses[index]
+            let expense = expenses[index]
             Task {
                 await viewModel.deleteExpense(expense)
             }
@@ -631,11 +696,16 @@ struct ContentView: View {
         // Clean up UI and audio session
         isRecording = false
         hasDetectedSpeech = false
-        
+
         // Cancel silence timer
         silenceTimer?.invalidate()
         silenceTimer = nil
-        
+
+        // Notify auto-recording coordinator if this was an auto-recording session
+        if lifecycleManager.isAutoRecording {
+            autoRecordingCoordinator.autoRecordingDidComplete()
+        }
+
         // Reset audio session
         let audioSession = AVAudioSession.sharedInstance()
         do {
@@ -643,7 +713,7 @@ struct ContentView: View {
         } catch {
             print("❌ Failed to deactivate audio session: \(error)")
         }
-        
+
         print("🎙️ Recording stopped")
     }
     
@@ -717,8 +787,23 @@ struct ContentView: View {
         }
     }
     
+    // MARK: - Auto-Recording Integration
+
+    /**
+     * Trigger auto-recording check through coordinator
+     * Coordinator will verify all conditions before attempting to trigger
+     */
+    private func triggerAutoRecordingIfNeeded() {
+        autoRecordingCoordinator.triggerAutoRecordingIfNeeded(
+            isRecordingActive: isRecording,
+            speechPermissionGranted: speechPermissionGranted,
+            microphonePermissionGranted: microphonePermissionGranted,
+            speechRecognitionAvailable: speechRecognitionAvailable
+        )
+    }
+
     // MARK: - Permission Management Functions
-    
+
     private func requestInitialPermissions() {
         permissionsChecked = true
         
@@ -775,6 +860,11 @@ struct ContentView: View {
     private func handleInitialPermissionResults(speechGranted: Bool, micGranted: Bool) {
         if speechGranted && micGranted {
             print("✅ All permissions granted at launch")
+            // Mark first launch as complete if this was first time
+            if lifecycleManager.isFirstLaunch {
+                lifecycleManager.completeFirstLaunch()
+                print("✅ First launch completed - auto-recording will be available next time")
+            }
             // No need to show any alert, everything is ready
         } else {
             // Don't show alerts at launch - just log the status
@@ -921,8 +1011,13 @@ struct ExpenseRowView: View {
 }
 
 #Preview {
-    ContentView()
+    let lifecycle = AppLifecycleManager()
+    let coordinator = AutoRecordingCoordinator(lifecycleManager: lifecycle)
+
+    return ContentView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        .environmentObject(lifecycle)
+        .environmentObject(coordinator)
 }
 
 // MARK: - Add to Siri Delegate

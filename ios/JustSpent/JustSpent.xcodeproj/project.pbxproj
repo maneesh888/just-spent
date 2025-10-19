@@ -23,6 +23,8 @@
 		9F7362392EA2F88D00D50166 /* VoiceCommandParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73621E2EA2F88D00D50166 /* VoiceCommandParser.swift */; };
 		9F73623A2EA2F8FE00D50166 /* ShortcutsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362332EA2F88D00D50166 /* ShortcutsManager.swift */; };
 		9F73623D2EA30B2400D50166 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9F73623B2EA30B2400D50166 /* Localizable.strings */; };
+		9F73623F2EA442FD00D50166 /* AppLifecycleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73623E2EA442FD00D50166 /* AppLifecycleManager.swift */; };
+		9F7362412EA4431900D50166 /* AutoRecordingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362402EA4431900D50166 /* AutoRecordingCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +45,8 @@
 		9F7362202EA2F88D00D50166 /* LocalizedStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedStrings.swift; sourceTree = "<group>"; };
 		9F7362332EA2F88D00D50166 /* ShortcutsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsManager.swift; sourceTree = "<group>"; };
 		9F73623B2EA30B2400D50166 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
+		9F73623E2EA442FD00D50166 /* AppLifecycleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLifecycleManager.swift; sourceTree = "<group>"; };
+		9F7362402EA4431900D50166 /* AutoRecordingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoRecordingCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,7 +129,9 @@
 		9F7362102E99668800D50166 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				9F7362402EA4431900D50166 /* AutoRecordingCoordinator.swift */,
 				9F73620F2E99668800D50166 /* ExpenseRepository.swift */,
+				9F73623E2EA442FD00D50166 /* AppLifecycleManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -415,10 +421,12 @@
 				9F7362392EA2F88D00D50166 /* VoiceCommandParser.swift in Sources */,
 				9F7362152E99668800D50166 /* PersistenceController.swift in Sources */,
 				9F7362162E99668800D50166 /* ExpenseRepository.swift in Sources */,
+				9F73623F2EA442FD00D50166 /* AppLifecycleManager.swift in Sources */,
 				9F7362172E99668800D50166 /* ExpenseError.swift in Sources */,
 				3D8A9E1C2C9F4B2E00123456 /* ContentView.swift in Sources */,
 				3D8A9E1A2C9F4B2E00123456 /* JustSpentApp.swift in Sources */,
 				9F73621A2EA2F85A00D50166 /* ExpenseError.swift in Sources */,
+				9F7362412EA4431900D50166 /* AutoRecordingCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

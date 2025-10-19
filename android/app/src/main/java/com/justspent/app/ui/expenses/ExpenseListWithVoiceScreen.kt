@@ -26,12 +26,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.justspent.app.voice.RecordingState
 import com.justspent.app.ui.voice.VoiceExpenseViewModel
+import com.justspent.app.lifecycle.AppLifecycleManager
+import com.justspent.app.lifecycle.AppState
+import com.justspent.app.voice.AutoRecordingCoordinator
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseListWithVoiceScreen(
     hasAudioPermission: Boolean,
     onRequestPermission: () -> Unit,
+    lifecycleManager: AppLifecycleManager,
+    autoRecordingCoordinator: AutoRecordingCoordinator,
     expenseViewModel: ExpenseListViewModel = hiltViewModel(),
     voiceViewModel: VoiceExpenseViewModel = hiltViewModel()
 ) {
@@ -40,8 +46,53 @@ fun ExpenseListWithVoiceScreen(
 
     val voiceUiState by voiceViewModel.uiState.collectAsStateWithLifecycle()
 
+    // Auto-recording trigger from coordinator
+    val shouldStartRecording by autoRecordingCoordinator.shouldStartRecording.collectAsStateWithLifecycle()
+    val voiceRecordingManager = voiceViewModel.voiceRecordingManager
+    val recordingState by voiceRecordingManager.recordingState.collectAsStateWithLifecycle()
+    val isRecording = recordingState is RecordingState.Recording
+
+    val scope = rememberCoroutineScope()
+
     var showVoiceResultDialog by remember { mutableStateOf(false) }
-    var voiceResult by remember { mutableStateOf("") }
+    var voiceResult by remember { mutableStateOf("")}
+
+    // Auto-recording disabled for app launch/foreground
+    // (kept for future widget support)
+    // val didBecomeActive by lifecycleManager.didBecomeActive.collectAsStateWithLifecycle()
+    // LaunchedEffect(didBecomeActive) {
+    //     if (didBecomeActive) {
+    //         android.util.Log.d("ExpenseListWithVoiceScreen", "📱 App became active - checking auto-recording conditions")
+    //         autoRecordingCoordinator.triggerAutoRecordingIfNeeded(isRecording)
+    //         lifecycleManager.consumeForegroundTransition()
+    //     }
+    // }
+
+    // Handle auto-recording trigger
+    LaunchedEffect(shouldStartRecording) {
+        if (shouldStartRecording && !isRecording && hasAudioPermission) {
+            android.util.Log.d("ExpenseListWithVoiceScreen", "🎙️ Auto-recording triggered by coordinator")
+            voiceViewModel.startVoiceRecording()
+        }
+    }
+
+    // Monitor recording completion for auto-recording cleanup
+    LaunchedEffect(recordingState) {
+        if (recordingState is RecordingState.Idle && lifecycleManager.isAutoRecording.value) {
+            android.util.Log.d("ExpenseListWithVoiceScreen", "✅ Auto-recording completed, notifying coordinator")
+            autoRecordingCoordinator.autoRecordingDidComplete()
+        }
+    }
+
+    // Cancel recording when app goes to background
+    val appState by lifecycleManager.appState.collectAsStateWithLifecycle()
+    LaunchedEffect(appState) {
+        if (appState == AppState.BACKGROUND && isRecording) {
+            android.util.Log.d("ExpenseListWithVoiceScreen", "🛑 App went to background while recording - cancelling without saving")
+            voiceRecordingManager.stopRecording()
+            voiceViewModel.resetState()
+        }
+    }
 
     // Handle voice result
     LaunchedEffect(voiceUiState.isProcessed) {
@@ -64,7 +115,8 @@ fun ExpenseListWithVoiceScreen(
             VoiceRecordingFAB(
                 hasAudioPermission = hasAudioPermission,
                 onRequestPermission = onRequestPermission,
-                voiceViewModel = voiceViewModel
+                voiceViewModel = voiceViewModel,
+                isRecording = isRecording
             )
         },
         floatingActionButtonPosition = FabPosition.End
@@ -439,12 +491,12 @@ fun ExpenseListWithVoiceScreen(
 private fun VoiceRecordingFAB(
     hasAudioPermission: Boolean,
     onRequestPermission: () -> Unit,
-    voiceViewModel: VoiceExpenseViewModel
+    voiceViewModel: VoiceExpenseViewModel,
+    isRecording: Boolean
 ) {
     val voiceRecordingManager = voiceViewModel.voiceRecordingManager
     val recordingState by voiceRecordingManager.recordingState.collectAsStateWithLifecycle()
 
-    val isRecording = recordingState is RecordingState.Recording
     val hasDetectedSpeech = (recordingState as? RecordingState.Recording)?.hasDetectedSpeech ?: false
 
     // Animation for pulsing effect
