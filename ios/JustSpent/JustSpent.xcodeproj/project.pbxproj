@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,19 +12,7 @@
 		3D8A9E1E2C9F4B3000123456 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */; };
 		3D8A9E212C9F4B3000123456 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */; };
 		9F7362092E99665C00D50166 /* JustSpent.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362072E99665C00D50166 /* JustSpent.xcdatamodeld */; };
-		9F7362132E99668800D50166 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F73620D2E99668800D50166 /* Preview Assets.xcassets */; };
-		9F7362142E99668800D50166 /* ExpenseListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362112E99668800D50166 /* ExpenseListViewModel.swift */; };
 		9F7362152E99668800D50166 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73620C2E99668800D50166 /* PersistenceController.swift */; };
-		9F7362162E99668800D50166 /* ExpenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73620F2E99668800D50166 /* ExpenseRepository.swift */; };
-		9F7362172E99668800D50166 /* ExpenseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73620A2E99668800D50166 /* ExpenseError.swift */; };
-		9F73621A2EA2F85A00D50166 /* ExpenseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362182EA2F85A00D50166 /* ExpenseError.swift */; };
-		9F7362362EA2F88D00D50166 /* LocalizedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362202EA2F88D00D50166 /* LocalizedStrings.swift */; };
-		9F7362382EA2F88D00D50166 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73621B2EA2F88D00D50166 /* AppConstants.swift */; };
-		9F7362392EA2F88D00D50166 /* VoiceCommandParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73621E2EA2F88D00D50166 /* VoiceCommandParser.swift */; };
-		9F73623A2EA2F8FE00D50166 /* ShortcutsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362332EA2F88D00D50166 /* ShortcutsManager.swift */; };
-		9F73623D2EA30B2400D50166 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9F73623B2EA30B2400D50166 /* Localizable.strings */; };
-		9F73623F2EA442FD00D50166 /* AppLifecycleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73623E2EA442FD00D50166 /* AppLifecycleManager.swift */; };
-		9F7362412EA4431900D50166 /* AutoRecordingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362402EA4431900D50166 /* AutoRecordingCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,20 +22,22 @@
 		3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9F7362082E99665C00D50166 /* JustSpent.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = JustSpent.xcdatamodel; sourceTree = "<group>"; };
-		9F73620A2E99668800D50166 /* ExpenseError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseError.swift; sourceTree = "<group>"; };
 		9F73620C2E99668800D50166 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
-		9F73620D2E99668800D50166 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		9F73620F2E99668800D50166 /* ExpenseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseRepository.swift; sourceTree = "<group>"; };
-		9F7362112E99668800D50166 /* ExpenseListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseListViewModel.swift; sourceTree = "<group>"; };
-		9F7362182EA2F85A00D50166 /* ExpenseError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseError.swift; sourceTree = "<group>"; };
-		9F73621B2EA2F88D00D50166 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
-		9F73621E2EA2F88D00D50166 /* VoiceCommandParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceCommandParser.swift; sourceTree = "<group>"; };
-		9F7362202EA2F88D00D50166 /* LocalizedStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedStrings.swift; sourceTree = "<group>"; };
-		9F7362332EA2F88D00D50166 /* ShortcutsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsManager.swift; sourceTree = "<group>"; };
-		9F73623B2EA30B2400D50166 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
-		9F73623E2EA442FD00D50166 /* AppLifecycleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLifecycleManager.swift; sourceTree = "<group>"; };
-		9F7362402EA4431900D50166 /* AutoRecordingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoRecordingCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9F7362492EA581ED00D50166 /* SiriKit */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SiriKit; sourceTree = "<group>"; };
+		9F73624F2EA583B200D50166 /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
+		9F7362532EA583D100D50166 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+		9F73625A2EA583D100D50166 /* Services */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Services; sourceTree = "<group>"; };
+		9F73625C2EA583D100D50166 /* ViewModels */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewModels; sourceTree = "<group>"; };
+		9F73626B2EA5841400D50166 /* Common */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Common; sourceTree = "<group>"; };
+		9F73626F2EA5841400D50166 /* Data */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Data; sourceTree = "<group>"; };
+		9F7362732EA5841400D50166 /* Domain */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Domain; sourceTree = "<group>"; };
+		9F7362792EA5841400D50166 /* Presentation */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Presentation; sourceTree = "<group>"; };
+		9F73627C2EA5841400D50166 /* Siri */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Siri; sourceTree = "<group>"; };
+		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		3D8A9E132C9F4B2E00123456 /* Frameworks */ = {
@@ -79,25 +69,23 @@
 		3D8A9E182C9F4B2E00123456 /* JustSpent */ = {
 			isa = PBXGroup;
 			children = (
-				9F7362212EA2F88D00D50166 /* Common */,
-				9F7362252EA2F88D00D50166 /* Data */,
-				9F7362292EA2F88D00D50166 /* Domain */,
-				9F73622F2EA2F88D00D50166 /* Presentation */,
-				9F7362322EA2F88D00D50166 /* Siri */,
-				9F7362342EA2F88D00D50166 /* SiriKit */,
-				9F7362352EA2F88D00D50166 /* Views */,
+				9F7362492EA581ED00D50166 /* SiriKit */,
 				3D8A9E192C9F4B2E00123456 /* JustSpentApp.swift */,
 				3D8A9E1B2C9F4B2E00123456 /* ContentView.swift */,
 				3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */,
 				3D8A9E1F2C9F4B3000123456 /* Preview Content */,
 				9F7362072E99665C00D50166 /* JustSpent.xcdatamodeld */,
-				9F73620B2E99668800D50166 /* Models */,
 				9F73620C2E99668800D50166 /* PersistenceController.swift */,
-				9F73620E2E99668800D50166 /* Preview Content */,
-				9F7362102E99668800D50166 /* Services */,
-				9F7362122E99668800D50166 /* ViewModels */,
-				9F7362192EA2F85A00D50166 /* Models */,
-				9F73623C2EA30B2400D50166 /* Resources */,
+				9F73624F2EA583B200D50166 /* Models */,
+				9F7362532EA583D100D50166 /* Resources */,
+				9F73625A2EA583D100D50166 /* Services */,
+				9F73625C2EA583D100D50166 /* ViewModels */,
+				9F73626B2EA5841400D50166 /* Common */,
+				9F73626F2EA5841400D50166 /* Data */,
+				9F7362732EA5841400D50166 /* Domain */,
+				9F7362792EA5841400D50166 /* Presentation */,
+				9F73627C2EA5841400D50166 /* Siri */,
+				9F7362822EA5841400D50166 /* Views */,
 			);
 			path = JustSpent;
 			sourceTree = "<group>";
@@ -108,237 +96,6 @@
 				3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		9F73620B2E99668800D50166 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				9F73620A2E99668800D50166 /* ExpenseError.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		9F73620E2E99668800D50166 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				9F73620D2E99668800D50166 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		9F7362102E99668800D50166 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362402EA4431900D50166 /* AutoRecordingCoordinator.swift */,
-				9F73620F2E99668800D50166 /* ExpenseRepository.swift */,
-				9F73623E2EA442FD00D50166 /* AppLifecycleManager.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
-		9F7362122E99668800D50166 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362112E99668800D50166 /* ExpenseListViewModel.swift */,
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		9F7362192EA2F85A00D50166 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362182EA2F85A00D50166 /* ExpenseError.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		9F73621C2EA2F88D00D50166 /* Constants */ = {
-			isa = PBXGroup;
-			children = (
-				9F73621B2EA2F88D00D50166 /* AppConstants.swift */,
-			);
-			path = Constants;
-			sourceTree = "<group>";
-		};
-		9F73621D2EA2F88D00D50166 /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Extensions;
-			sourceTree = "<group>";
-		};
-		9F73621F2EA2F88D00D50166 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				9F73621E2EA2F88D00D50166 /* VoiceCommandParser.swift */,
-			);
-			path = Utilities;
-			sourceTree = "<group>";
-		};
-		9F7362212EA2F88D00D50166 /* Common */ = {
-			isa = PBXGroup;
-			children = (
-				9F73621C2EA2F88D00D50166 /* Constants */,
-				9F73621D2EA2F88D00D50166 /* Extensions */,
-				9F73621F2EA2F88D00D50166 /* Utilities */,
-				9F7362202EA2F88D00D50166 /* LocalizedStrings.swift */,
-			);
-			path = Common;
-			sourceTree = "<group>";
-		};
-		9F7362222EA2F88D00D50166 /* CoreData */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = CoreData;
-			sourceTree = "<group>";
-		};
-		9F7362232EA2F88D00D50166 /* Persistence */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Persistence;
-			sourceTree = "<group>";
-		};
-		9F7362242EA2F88D00D50166 /* Repositories */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Repositories;
-			sourceTree = "<group>";
-		};
-		9F7362252EA2F88D00D50166 /* Data */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362222EA2F88D00D50166 /* CoreData */,
-				9F7362232EA2F88D00D50166 /* Persistence */,
-				9F7362242EA2F88D00D50166 /* Repositories */,
-			);
-			path = Data;
-			sourceTree = "<group>";
-		};
-		9F7362262EA2F88D00D50166 /* Interfaces */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Interfaces;
-			sourceTree = "<group>";
-		};
-		9F7362272EA2F88D00D50166 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		9F7362282EA2F88D00D50166 /* UseCases */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = UseCases;
-			sourceTree = "<group>";
-		};
-		9F7362292EA2F88D00D50166 /* Domain */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362262EA2F88D00D50166 /* Interfaces */,
-				9F7362272EA2F88D00D50166 /* Models */,
-				9F7362282EA2F88D00D50166 /* UseCases */,
-			);
-			path = Domain;
-			sourceTree = "<group>";
-		};
-		9F73622A2EA2F88D00D50166 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		9F73622B2EA2F88D00D50166 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		9F73622C2EA2F88D00D50166 /* Expenses */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Expenses;
-			sourceTree = "<group>";
-		};
-		9F73622D2EA2F88D00D50166 /* Voice */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Voice;
-			sourceTree = "<group>";
-		};
-		9F73622E2EA2F88D00D50166 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				9F73622B2EA2F88D00D50166 /* Components */,
-				9F73622C2EA2F88D00D50166 /* Expenses */,
-				9F73622D2EA2F88D00D50166 /* Voice */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		9F73622F2EA2F88D00D50166 /* Presentation */ = {
-			isa = PBXGroup;
-			children = (
-				9F73622A2EA2F88D00D50166 /* ViewModels */,
-				9F73622E2EA2F88D00D50166 /* Views */,
-			);
-			path = Presentation;
-			sourceTree = "<group>";
-		};
-		9F7362302EA2F88D00D50166 /* Intent */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Intent;
-			sourceTree = "<group>";
-		};
-		9F7362312EA2F88D00D50166 /* Shortcuts */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Shortcuts;
-			sourceTree = "<group>";
-		};
-		9F7362322EA2F88D00D50166 /* Siri */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362302EA2F88D00D50166 /* Intent */,
-				9F7362312EA2F88D00D50166 /* Shortcuts */,
-			);
-			path = Siri;
-			sourceTree = "<group>";
-		};
-		9F7362342EA2F88D00D50166 /* SiriKit */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362332EA2F88D00D50166 /* ShortcutsManager.swift */,
-			);
-			path = SiriKit;
-			sourceTree = "<group>";
-		};
-		9F7362352EA2F88D00D50166 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		9F73623C2EA30B2400D50166 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				9F73623B2EA30B2400D50166 /* Localizable.strings */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -355,6 +112,19 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9F7362492EA581ED00D50166 /* SiriKit */,
+				9F73624F2EA583B200D50166 /* Models */,
+				9F7362532EA583D100D50166 /* Resources */,
+				9F73625A2EA583D100D50166 /* Services */,
+				9F73625C2EA583D100D50166 /* ViewModels */,
+				9F73626B2EA5841400D50166 /* Common */,
+				9F73626F2EA5841400D50166 /* Data */,
+				9F7362732EA5841400D50166 /* Domain */,
+				9F7362792EA5841400D50166 /* Presentation */,
+				9F73627C2EA5841400D50166 /* Siri */,
+				9F7362822EA5841400D50166 /* Views */,
 			);
 			name = JustSpent;
 			productName = JustSpent;
@@ -400,8 +170,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D8A9E212C9F4B3000123456 /* Preview Assets.xcassets in Resources */,
-				9F73623D2EA30B2400D50166 /* Localizable.strings in Resources */,
-				9F7362132E99668800D50166 /* Preview Assets.xcassets in Resources */,
 				3D8A9E1E2C9F4B3000123456 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -414,19 +182,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				9F7362092E99665C00D50166 /* JustSpent.xcdatamodeld in Sources */,
-				9F7362142E99668800D50166 /* ExpenseListViewModel.swift in Sources */,
-				9F7362362EA2F88D00D50166 /* LocalizedStrings.swift in Sources */,
-				9F73623A2EA2F8FE00D50166 /* ShortcutsManager.swift in Sources */,
-				9F7362382EA2F88D00D50166 /* AppConstants.swift in Sources */,
-				9F7362392EA2F88D00D50166 /* VoiceCommandParser.swift in Sources */,
 				9F7362152E99668800D50166 /* PersistenceController.swift in Sources */,
-				9F7362162E99668800D50166 /* ExpenseRepository.swift in Sources */,
-				9F73623F2EA442FD00D50166 /* AppLifecycleManager.swift in Sources */,
-				9F7362172E99668800D50166 /* ExpenseError.swift in Sources */,
 				3D8A9E1C2C9F4B2E00123456 /* ContentView.swift in Sources */,
 				3D8A9E1A2C9F4B2E00123456 /* JustSpentApp.swift in Sources */,
-				9F73621A2EA2F85A00D50166 /* ExpenseError.swift in Sources */,
-				9F7362412EA4431900D50166 /* AutoRecordingCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

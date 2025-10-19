@@ -48,297 +48,250 @@ struct ContentView: View {
     @EnvironmentObject var lifecycleManager: AppLifecycleManager
     @EnvironmentObject var autoRecordingCoordinator: AutoRecordingCoordinator
 
-    // Computed properties for total spending
-    private var totalSpending: Double {
-        expenses.reduce(0) { total, expense in
-            total + (expense.amount?.doubleValue ?? 0)
-        }
+    // User preferences for currency
+    @StateObject private var userPreferences = UserPreferences.shared
+
+    // MARK: - Currency Detection
+
+    /// Get distinct currencies from expenses
+    private var activeCurrencies: [Currency] {
+        let currencyCodes = Set(expenses.compactMap { $0.currency })
+        return currencyCodes.compactMap { Currency.from(isoCode: $0) }
+            .sorted { $0.displayName < $1.displayName }
     }
 
-    private var formattedTotalSpending: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
-        return formatter.string(from: NSNumber(value: totalSpending)) ?? "$0.00"
+    /// Determine if we should show tabs (multiple currencies) or single list
+    private var shouldShowTabs: Bool {
+        return activeCurrencies.count > 1
     }
 
     var body: some View {
+        ZStack {
+            // MARK: - Main Content View Based on Currency Count
+            Group {
+                if expenses.isEmpty {
+                    // Empty state (without floating button)
+                    emptyStateViewContent
+                } else if shouldShowTabs {
+                    // Multiple currencies → Tabbed interface
+                    MultiCurrencyTabbedView(currencies: activeCurrencies)
+                        .environment(\.managedObjectContext, viewContext)
+                } else if let currency = activeCurrencies.first {
+                    // Single currency → Simple list view
+                    SingleCurrencyView(currency: currency)
+                        .environment(\.managedObjectContext, viewContext)
+                } else {
+                    // Fallback to empty state (shouldn't happen, but safety)
+                    emptyStateViewContent
+                }
+            }
+
+            // MARK: - Floating Voice Button (Always Visible)
+            FloatingVoiceButton(
+                isRecording: $isRecording,
+                hasDetectedSpeech: $hasDetectedSpeech,
+                speechRecognitionAvailable: $speechRecognitionAvailable,
+                speechPermissionGranted: $speechPermissionGranted,
+                microphonePermissionGranted: $microphonePermissionGranted,
+                onStartRecording: startRecording,
+                onStopRecording: stopRecording,
+                onPermissionAlert: {
+                    showPermissionAlert(
+                        title: LocalizedStrings.permissionTitleVoiceUnavailable,
+                        message: LocalizedStrings.permissionMessageUnavailable
+                    )
+                }
+            )
+        }
+        .alert(isErrorMessage ? LocalizedStrings.voiceRecognitionErrorTitle : LocalizedStrings.voiceRecognitionSuccessTitle, isPresented: $showingSiriSuccess) {
+            Button(LocalizedStrings.buttonOK) {
+                isErrorMessage = false
+            }
+            if isErrorMessage {
+                Button(LocalizedStrings.buttonRetry) {
+                    retryVoiceRecording()
+                }
+            }
+        } message: {
+            Text(siriMessage)
+        }
+        .alert(LocalizedStrings.voiceRecognitionEntryTitle, isPresented: $showingVoiceInput) {
+            TextField(LocalizedStrings.voiceEnterExpense, text: $voiceInputText)
+            Button(LocalizedStrings.buttonProcess) {
+                if !voiceInputText.isEmpty {
+                    processVoiceInput(voiceInputText)
+                    voiceInputText = ""
+                }
+            }
+            Button(LocalizedStrings.buttonCancel, role: .cancel) {
+                voiceInputText = ""
+            }
+        } message: {
+            Text(LocalizedStrings.voiceEnterNaturally)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(AppConstants.Notification.siriExpenseReceived))) { notification in
+            if let message = notification.userInfo?["message"] as? String {
+                siriMessage = message
+                showingSiriSuccess = true
+                // Refresh the list
+                Task {
+                    await viewModel.loadExpenses()
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(AppConstants.Notification.voiceExpenseRequested))) { notification in
+            showingVoiceInput = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            // Refresh permissions when app returns from background (e.g., from Settings)
+            if permissionsChecked {
+                checkCurrentPermissions()
+            }
+
+            // Auto-recording disabled for app launch/foreground
+            // (kept for future widget support)
+            // DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            //     triggerAutoRecordingIfNeeded()
+            // }
+        }
+        .onAppear {
+            // Delay setup to ensure Info.plist is loaded
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                setupSpeechRecognition()
+                if !permissionsChecked {
+                    requestInitialPermissions()
+                } else {
+                    // Refresh permission status in case user changed them in Settings
+                    checkCurrentPermissions()
+                }
+
+                // Auto-recording disabled for app launch
+                // (kept for future widget support)
+                // #if DEBUG
+                // print("📱 onAppear: Checking auto-recording conditions")
+                // print("   - First Launch: \(lifecycleManager.isFirstLaunch)")
+                // print("   - App State: \(lifecycleManager.appState)")
+                // print("   - Speech Permission: \(speechPermissionGranted)")
+                // print("   - Mic Permission: \(microphonePermissionGranted)")
+                // print("   - Recognition Available: \(speechRecognitionAvailable)")
+                // #endif
+                // triggerAutoRecordingIfNeeded()
+            }
+        }
+        .onChange(of: autoRecordingCoordinator.shouldStartRecording) { oldValue, newValue in
+            // Observe auto-recording coordinator trigger
+            if newValue && !isRecording {
+                #if DEBUG
+                print("🎙️ Auto-recording triggered by coordinator")
+                #endif
+                startRecording()
+            }
+        }
+        .onChange(of: lifecycleManager.appState) { oldState, newState in
+            // Cancel recording when app goes to background
+            if newState == .background && isRecording {
+                #if DEBUG
+                print("🛑 App went to background while recording - cancelling recording without saving")
+                #endif
+                cleanupRecording()
+                // Reset UI state
+                siriMessage = ""
+                showingSiriSuccess = false
+                isErrorMessage = false
+            }
+        }
+        .alert(permissionAlertTitle, isPresented: $showingPermissionAlert) {
+            Button(LocalizedStrings.buttonGoToSettings) {
+                openAppSettings()
+            }
+            Button(LocalizedStrings.buttonCancel, role: .cancel) { }
+        } message: {
+            Text(permissionAlertMessage)
+        }
+    }
+
+    // MARK: - Empty State View Content
+
+    private var emptyStateViewContent: some View {
         NavigationView {
-            ZStack {
-                VStack {
-                    // Header
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(LocalizedStrings.appTitle)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                            Text(LocalizedStrings.appSubtitle)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
+            VStack {
+                // Header
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(LocalizedStrings.appTitle)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Text(LocalizedStrings.appSubtitle)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding()
 
-                        VStack(alignment: .trailing) {
-                            Text(LocalizedStrings.totalLabel)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text(formattedTotalSpending)
+                // Empty state content
+                VStack(spacing: 20) {
+                    Spacer()
+
+                    // Permission-aware icon and messaging
+                    if speechRecognitionAvailable && speechPermissionGranted && microphonePermissionGranted {
+                        Image(systemName: "mic.circle")
+                            .font(.system(size: 60))
+                            .foregroundColor(.blue)
+
+                        VStack(spacing: 12) {
+                            Text(LocalizedStrings.emptyStateNoExpenses)
                                 .font(.title2)
-                                .fontWeight(.semibold)
+                                .foregroundColor(.secondary)
+
+                            Text(LocalizedStrings.emptyStateTapVoiceButton)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
                         }
-                    }
-                    .padding()
-                    
-                    // Content
-                    if expenses.isEmpty {
-                        VStack(spacing: 20) {
-                            Spacer()
-                            
-                            // Permission-aware icon and messaging
-                            if speechRecognitionAvailable && speechPermissionGranted && microphonePermissionGranted {
-                                Image(systemName: "mic.circle")
-                                    .font(.system(size: 60))
-                                    .foregroundColor(.blue)
-                                
-                                VStack(spacing: 12) {
-                                    Text(LocalizedStrings.emptyStateNoExpenses)
-                                        .font(.title2)
-                                        .foregroundColor(.secondary)
-
-                                    Text(LocalizedStrings.emptyStateTapVoiceButton)
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal)
-                                }
-                            } else {
-                                Image(systemName: speechRecognitionAvailable ? "mic.slash.circle" : "exclamationmark.triangle")
-                                    .font(.system(size: 60))
-                                    .foregroundColor(.orange)
-                                
-                                VStack(spacing: 12) {
-                                    Text(LocalizedStrings.emptyStatePermissionsNeeded)
-                                        .font(.title2)
-                                        .foregroundColor(.secondary)
-
-                                    if !speechRecognitionAvailable {
-                                        Text(LocalizedStrings.emptyStateRecognitionUnavailable)
-                                            .font(.body)
-                                            .foregroundColor(.secondary)
-                                            .multilineTextAlignment(.center)
-                                            .padding(.horizontal)
-                                    } else {
-                                        Text(LocalizedStrings.emptyStateGrantPermissions)
-                                            .font(.body)
-                                            .foregroundColor(.secondary)
-                                            .multilineTextAlignment(.center)
-                                            .padding(.horizontal)
-
-                                        Button(LocalizedStrings.buttonGrantPermissions) {
-                                            openAppSettings()
-                                        }
-                                        .buttonStyle(.borderedProminent)
-                                        .padding(.top, 8)
-                                    }
-                                }
-                            }
-                            
-                            Spacer()
-                        }
-                        .padding()
                     } else {
-                        List {
-                            ForEach(expenses, id: \.id) { expense in
-                                ExpenseRowView(expense: expense)
+                        Image(systemName: speechRecognitionAvailable ? "mic.slash.circle" : "exclamationmark.triangle")
+                            .font(.system(size: 60))
+                            .foregroundColor(.orange)
+
+                        VStack(spacing: 12) {
+                            Text(LocalizedStrings.emptyStatePermissionsNeeded)
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+
+                            if !speechRecognitionAvailable {
+                                Text(LocalizedStrings.emptyStateRecognitionUnavailable)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            } else {
+                                Text(LocalizedStrings.emptyStateGrantPermissions)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+
+                                Button(LocalizedStrings.buttonGrantPermissions) {
+                                    openAppSettings()
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .padding(.top, 8)
                             }
-                            .onDelete(perform: deleteExpenses)
                         }
-                        .padding(.bottom, 100) // Add padding to ensure list doesn't overlap floating button
                     }
-                    
+
+                    Spacer()
+
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.red)
                             .padding()
                     }
                 }
-                
-                // Floating Action Button
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        
-                        VStack(spacing: 8) {
-                            // Listening indicator (when recording)
-                            if isRecording {
-                                VStack(spacing: 4) {
-                                    HStack {
-                                        Circle()
-                                            .fill(hasDetectedSpeech ? Color.green : Color.red)
-                                            .frame(width: 8, height: 8)
-                                            .scaleEffect(isRecording ? 1.0 : 0.5)
-                                            .animation(.easeInOut(duration: 0.5).repeatForever(), value: isRecording)
-                                        Text(hasDetectedSpeech ? LocalizedStrings.voiceProcessing : LocalizedStrings.voiceListening)
-                                            .foregroundColor(hasDetectedSpeech ? .green : .red)
-                                            .font(.caption)
-                                            .fontWeight(.medium)
-                                    }
-
-                                    // Auto-stop indicator
-                                    Text(LocalizedStrings.voiceWillStopAuto)
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                        .multilineTextAlignment(.center)
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .cornerRadius(20)
-                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                            }
-                            
-                            // Main floating button
-                            Button(action: {
-                                if isRecording {
-                                    stopRecording()
-                                } else {
-                                    // Extra safety check before any speech recognition
-                                    guard speechRecognitionAvailable else {
-                                        showPermissionAlert(
-                                            title: LocalizedStrings.permissionTitleVoiceUnavailable,
-                                            message: LocalizedStrings.permissionMessageUnavailable
-                                        )
-                                        return
-                                    }
-                                    startRecording()
-                                }
-                            }) {
-                                Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                                    .font(.system(size: 24, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .frame(width: 60, height: 60)
-                                    .background(isRecording ? Color.red : Color.blue)
-                                    .clipShape(Circle())
-                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                                    .scaleEffect(isRecording ? 1.1 : 1.0)
-                                    .animation(.easeInOut(duration: 0.2), value: isRecording)
-                            }
-                            .disabled(!speechRecognitionAvailable || (!speechPermissionGranted || !microphonePermissionGranted))
-                            .opacity((speechRecognitionAvailable && speechPermissionGranted && microphonePermissionGranted) ? 1.0 : 0.6)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.bottom, 34) // Safe area bottom padding
-                }
             }
             .navigationBarHidden(true)
-            .alert(isErrorMessage ? LocalizedStrings.voiceRecognitionErrorTitle : LocalizedStrings.voiceRecognitionSuccessTitle, isPresented: $showingSiriSuccess) {
-                Button(LocalizedStrings.buttonOK) {
-                    isErrorMessage = false
-                }
-                if isErrorMessage {
-                    Button(LocalizedStrings.buttonRetry) {
-                        retryVoiceRecording()
-                    }
-                }
-            } message: {
-                Text(siriMessage)
-            }
-            .alert(LocalizedStrings.voiceRecognitionEntryTitle, isPresented: $showingVoiceInput) {
-                TextField(LocalizedStrings.voiceEnterExpense, text: $voiceInputText)
-                Button(LocalizedStrings.buttonProcess) {
-                    if !voiceInputText.isEmpty {
-                        processVoiceInput(voiceInputText)
-                        voiceInputText = ""
-                    }
-                }
-                Button(LocalizedStrings.buttonCancel, role: .cancel) {
-                    voiceInputText = ""
-                }
-            } message: {
-                Text(LocalizedStrings.voiceEnterNaturally)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(AppConstants.Notification.siriExpenseReceived))) { notification in
-                if let message = notification.userInfo?["message"] as? String {
-                    siriMessage = message
-                    showingSiriSuccess = true
-                    // Refresh the list
-                    Task {
-                        await viewModel.loadExpenses()
-                    }
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(AppConstants.Notification.voiceExpenseRequested))) { notification in
-                showingVoiceInput = true
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                // Refresh permissions when app returns from background (e.g., from Settings)
-                if permissionsChecked {
-                    checkCurrentPermissions()
-                }
-
-                // Auto-recording disabled for app launch/foreground
-                // (kept for future widget support)
-                // DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                //     triggerAutoRecordingIfNeeded()
-                // }
-            }
-            .onAppear {
-                // Delay setup to ensure Info.plist is loaded
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    setupSpeechRecognition()
-                    if !permissionsChecked {
-                        requestInitialPermissions()
-                    } else {
-                        // Refresh permission status in case user changed them in Settings
-                        checkCurrentPermissions()
-                    }
-
-                    // Auto-recording disabled for app launch
-                    // (kept for future widget support)
-                    // #if DEBUG
-                    // print("📱 onAppear: Checking auto-recording conditions")
-                    // print("   - First Launch: \(lifecycleManager.isFirstLaunch)")
-                    // print("   - App State: \(lifecycleManager.appState)")
-                    // print("   - Speech Permission: \(speechPermissionGranted)")
-                    // print("   - Mic Permission: \(microphonePermissionGranted)")
-                    // print("   - Recognition Available: \(speechRecognitionAvailable)")
-                    // #endif
-                    // triggerAutoRecordingIfNeeded()
-                }
-            }
-            .onChange(of: autoRecordingCoordinator.shouldStartRecording) { oldValue, newValue in
-                // Observe auto-recording coordinator trigger
-                if newValue && !isRecording {
-                    #if DEBUG
-                    print("🎙️ Auto-recording triggered by coordinator")
-                    #endif
-                    startRecording()
-                }
-            }
-            .onChange(of: lifecycleManager.appState) { oldState, newState in
-                // Cancel recording when app goes to background
-                if newState == .background && isRecording {
-                    #if DEBUG
-                    print("🛑 App went to background while recording - cancelling recording without saving")
-                    #endif
-                    cleanupRecording()
-                    // Reset UI state
-                    siriMessage = ""
-                    showingSiriSuccess = false
-                    isErrorMessage = false
-                }
-            }
-            .alert(permissionAlertTitle, isPresented: $showingPermissionAlert) {
-                Button(LocalizedStrings.buttonGoToSettings) {
-                    openAppSettings()
-                }
-                Button(LocalizedStrings.buttonCancel, role: .cancel) { }
-            } message: {
-                Text(permissionAlertMessage)
-            }
         }
     }
     
