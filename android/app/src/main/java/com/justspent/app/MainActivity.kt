@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.justspent.app.lifecycle.AppLifecycleManager
 import com.justspent.app.permissions.PermissionManager
-import com.justspent.app.ui.expenses.ExpenseListWithVoiceScreen
+import com.justspent.app.ui.MainContentScreen
 import com.justspent.app.ui.theme.JustSpentTheme
 import com.justspent.app.voice.AutoRecordingCoordinator
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ExpenseListWithVoiceScreen(
+                    MainContentScreen(
                         hasAudioPermission = hasAudioPermission,
                         onRequestPermission = {
                             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
