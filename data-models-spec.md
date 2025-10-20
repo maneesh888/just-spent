@@ -3,6 +3,126 @@
 ## Overview
 This document defines the complete data model architecture for Just Spent, ensuring consistency across iOS and Android platforms while maintaining platform-specific optimizations.
 
+## 💱 Multi-Currency UI Architecture
+
+### Tabbed Interface Design
+
+**Core Principle:** Each currency gets its own isolated tab with identical UI structure.
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────┐
+│  [AED] [USD] [EUR] [GBP] [INR] [SAR]  ← Scrollable Tab Bar
+├─────────────────────────────────────────────────┤
+│  Total: AED 5,234.50                  ← Per-Currency Total
+├─────────────────────────────────────────────────┤
+│  📝 AED 150.00 - Grocery                        │
+│  📝 AED 50.00 - Food & Dining                   │
+│  📝 AED 200.00 - Transportation                 │
+│  ...                                            │
+│                                                 │
+│  [+] Voice Button (Shared)            ← Floating Action
+└─────────────────────────────────────────────────┘
+```
+
+**Key Features:**
+- **Conditional UI:** Tabs only shown when multiple currencies exist
+- **Single Currency:** Simple list view (no tabs) when only one currency
+- **Multiple Currencies:** Tabbed interface with currency switcher at top
+- **Universal Support:** Any ISO 4217 currency (not limited to 6 predefined)
+- **Dynamic Tab Creation:** Tabs appear when first expense in that currency is added
+- **Unified Component:** Same ExpenseListView/ExpenseListScreen for all currencies
+- **Currency Filtering:** Each view queries `WHERE currency = 'XXX'`
+
+### Onboarding Flow
+
+**First Launch Sequence:**
+```
+App Launch
+    ↓
+Check hasCompletedOnboarding
+    ↓
+    ├─ false → Show CurrencyOnboardingView
+    │           ↓
+    │       User selects currency
+    │           ↓
+    │       Save to UserPreferences
+    │           ↓
+    │       Set hasCompletedOnboarding = true
+    │           ↓
+    │       Navigate to main app
+    │
+    └─ true → Show main ContentView with tabs
+```
+
+**Onboarding Requirements:**
+- **Mandatory:** Cannot access main app until completed
+- **One-time:** Only shown on first launch
+- **Persistent:** Preference saved to UserDefaults/DataStore
+- **Visual:** Large currency symbols, clear selection UI
+- **Informative:** Helper text explaining default currency purpose
+
+### Currency Detection & Tab Management
+
+**Voice Command Flow:**
+```
+Voice: "I spent 50 dirhams on groceries"
+    ↓
+VoiceCurrencyDetector.extractAmountAndCurrency()
+    ↓
+Detected: amount=50, currency=AED
+    ↓
+Query: Does AED tab exist?
+    ├─ Yes → Navigate to AED tab, add expense
+    └─ No  → Create AED tab, add expense
+```
+
+**Default Currency Fallback:**
+```
+Voice: "I spent 50 on groceries" (no currency mentioned)
+    ↓
+VoiceCurrencyDetector.detectCurrency()
+    ↓
+No currency detected → Use default currency from UserPreferences
+    ↓
+Add expense to default currency tab
+```
+
+### Data Queries Per Tab
+
+**iOS (Core Data):**
+```swift
+// Fetch expenses for specific currency tab
+func fetchExpenses(for currency: Currency) -> NSFetchRequest<Expense> {
+    let request: NSFetchRequest<Expense> = Expense.fetchRequest()
+    request.predicate = NSPredicate(format: "currency == %@", currency.code)
+    request.sortDescriptors = [NSSortDescriptor(key: "transactionDate", ascending: false)]
+    return request
+}
+
+// Calculate total for currency tab
+func calculateTotal(for currency: Currency) -> Decimal {
+    let request: NSFetchRequest<Expense> = Expense.fetchRequest()
+    request.predicate = NSPredicate(format: "currency == %@", currency.code)
+    // Sum amounts...
+}
+```
+
+**Android (Room):**
+```kotlin
+// Fetch expenses for specific currency tab
+@Query("SELECT * FROM expenses WHERE currency = :currency ORDER BY transactionDate DESC")
+fun getExpensesByCurrency(currency: String): Flow<List<Expense>>
+
+// Calculate total for currency tab
+@Query("SELECT SUM(amount) FROM expenses WHERE currency = :currency")
+fun getTotalByCurrency(currency: String): Flow<BigDecimal>
+
+// Get distinct currencies (for tab generation)
+@Query("SELECT DISTINCT currency FROM expenses ORDER BY currency")
+fun getDistinctCurrencies(): Flow<List<String>>
+```
+
 ## Core Data Models
 
 ### 1. Expense Model

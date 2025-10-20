@@ -64,31 +64,51 @@ just-spent/
 
 ### Core Components
 
-#### 1. Voice Processing Pipeline
+#### 1. Multi-Currency Tabbed UI Architecture
+- **Design Pattern:** Separate tab per currency (no "All" tab)
+- **Tab Bar:** Scrollable horizontal tab bar supporting 6 currencies (AED, USD, EUR, GBP, INR, SAR)
+- **Dynamic Tabs:** Auto-generated based on expense currencies in database
+- **Unified UI:** Each tab uses same expense list + total component
+- **Onboarding First:** Mandatory default currency selection on first launch
+
+**Currency Flow:**
+1. First launch → Onboarding screen → Select default currency → Mark complete
+2. Voice command → Auto-detect currency → Create tab if new → Add to appropriate tab
+3. No currency in voice → Use default currency → Add to default tab
+4. Manual entry → Select currency → Add to appropriate tab
+
+#### 2. Voice Processing Pipeline
 - **Input:** Voice command via Siri/Google Assistant
 - **Processing:** Natural Language Understanding (NLU)
-- **Extraction:** Amount, Category, Description
-- **Storage:** Local SQLite + Cloud Sync
+- **Extraction:** Amount, **Currency**, Category, Description
+- **Currency Detection:** Parse currency keywords/symbols ("dirhams" → AED, "$" → USD)
+- **Fallback:** Use default currency when not specified
+- **Storage:** Local SQLite + Cloud Sync with currency field
 
-#### 2. AI Components
+#### 3. AI Components
 - **Intent Recognition:** Identify expense-related commands
-- **Entity Extraction:** Parse amount, category, merchant
+- **Entity Extraction:** Parse amount, **currency**, category, merchant
+- **Currency Classification:** Detect currency from voice keywords and symbols
 - **Category Classification:** Auto-categorize expenses
 - **Pattern Learning:** Improve categorization over time
 
-#### 3. Platform Integration
+#### 4. Platform Integration
 
 **iOS Integration:**
 - SiriKit Intents Extension
 - App Groups for data sharing
 - Shortcuts app integration
 - Core Data for persistence
+- SwiftUI tabbed navigation
+- UserDefaults for onboarding state
 
 **Android Integration:**
 - Google Assistant App Actions
 - Voice Access API
 - Room Database
 - WorkManager for background tasks
+- Jetpack Compose tabbed navigation
+- DataStore for onboarding state
 
 ## Development Phases
 

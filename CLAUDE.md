@@ -68,18 +68,25 @@ Reference: @comprehensive-test-plan.md
 
 ## 🚀 Current Sprint Tasks
 
-### This Week Priority
-- [ ] Initialize iOS Xcode project with Core Data
-- [ ] Create basic Expense entity
-- [ ] Implement CRUD repository pattern
-- [ ] Build simple SwiftUI expense list
+### Multi-Currency Tabbed UI Implementation
+1. ✅ Currency onboarding screens (iOS & Android)
+2. ✅ Onboarding completion flags in UserPreferences
+3. 🔄 **IN PROGRESS**: Onboarding navigation logic on app launch
+4. ⏳ Currency tab bar component (iOS & Android)
+5. ⏳ Dynamic tab generation based on expenses
+6. ⏳ Per-currency expense filtering
+7. ⏳ Per-tab total calculation
+8. ⏳ Tab view integration into ContentView
+9. ⏳ Empty states and edge cases
+10. ⏳ Complete tabbed currency flow testing
 
 ### Code Generation Requests
 When asking Claude Code:
-- "Generate iOS Core Data Expense model with voice transcript field"
-- "Create MVVM expense repository with error handling"
-- "Build SwiftUI expense list with navigation"
-- "Generate comprehensive unit tests for expense model"
+- "Implement onboarding navigation in JustSpentApp.swift on launch"
+- "Create scrollable currency tab bar for SwiftUI"
+- "Build per-currency expense filtering logic"
+- "Generate dynamic tab creation based on expense currencies"
+- "Create currency-specific total calculation views"
 
 ## 🔧 Development Patterns
 
@@ -127,12 +134,40 @@ enum ExpenseError: LocalizedError {
 - Validate all user inputs
 - Voice transcript retention: 7 days max
 
+## 💱 Multi-Currency Architecture
+
+### Conditional UI Design
+- **Single Currency → Single List** (no tabs when only one currency exists)
+- **Multiple Currencies → Tabbed Interface** (tabs appear when 2+ currencies exist)
+- **Universal Currency Support** - Any ISO 4217 currency via voice (not limited to 6)
+- **Predefined + Dynamic** - 6 common currencies (AED, USD, EUR, GBP, INR, SAR) + any additional detected
+- **Dynamic tab creation** when new currency detected from voice
+- **Same UI per currency**: expense list + total at top
+
+### Currency Flow
+1. **First Launch**: Onboarding → Request Permissions → Select Default Currency
+2. **Single Currency**: Show simple list (no tabs)
+3. **Multiple Currencies**: Show tabbed interface with currency switcher
+4. **Voice Detection**: Auto-detect currency from voice ("50 dirhams" → AED)
+5. **Universal Support**: Detect ANY currency ("100 kuna" → create HRK tab)
+6. **Fallback**: Use default currency if none specified in voice
+
+### Onboarding Requirements
+- **Step 1: Welcome** - App introduction
+- **Step 2: Permissions** - Siri/Assistant, Microphone (required), Notifications (optional)
+- **Step 3: Currency Selection** - Choose from 6 predefined currencies
+- **Must complete** before main app access
+- Save to UserPreferences/DataStore with `hasCompletedOnboarding` flag
+
 ## 📱 UI/UX Principles
 
 - Voice-first design philosophy
+- Multi-currency tabbed interface
+- Currency-specific expense isolation
 - 3-tap max for manual operations
 - Instant confirmation for voice commands
 - Accessibility (VoiceOver) from day 1
+- Onboarding-first user experience
 
 ## 🎯 Success Metrics
 
