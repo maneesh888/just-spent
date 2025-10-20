@@ -104,15 +104,16 @@ struct CurrencyExpenseListView: View {
     }
 
     private func deleteExpenses(offsets: IndexSet) {
-        for index in offsets {
-            let expense = expenses[index]
-            viewContext.delete(expense)
-        }
+        withAnimation {
+            offsets.map { expenses[$0] }.forEach { expense in
+                viewContext.delete(expense)
+            }
 
-        do {
-            try viewContext.save()
-        } catch {
-            print("❌ Error deleting expense: \(error.localizedDescription)")
+            do {
+                try viewContext.save()
+            } catch {
+                print("❌ Error deleting expense: \(error.localizedDescription)")
+            }
         }
     }
 }
