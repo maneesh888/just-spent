@@ -108,6 +108,7 @@ fun CurrencyExpenseListScreen(
  */
 @Composable
 private fun EmptyCurrencyState(currency: Currency) {
+    @Suppress("UNUSED_PARAMETER")
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -164,11 +165,6 @@ private fun CurrencyExpenseRow(
     SwipeToDismiss(
         state = dismissState,
         background = {
-            val color = when (dismissState.dismissDirection) {
-                DismissDirection.StartToEnd, DismissDirection.EndToStart ->
-                    MaterialTheme.colorScheme.errorContainer
-                else -> Color.Transparent
-            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()

@@ -64,7 +64,7 @@ private fun CurrencyTabBar(
             edgePadding = 16.dp,
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            indicator = { tabPositions ->
+            indicator = { _ ->
                 if (currencies.indexOf(selectedCurrency) >= 0) {
                     TabRowDefaults.Indicator(
                         modifier = Modifier.fillMaxWidth(),

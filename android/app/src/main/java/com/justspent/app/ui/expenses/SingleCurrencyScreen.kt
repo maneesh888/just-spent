@@ -28,7 +28,7 @@ fun SingleCurrencyScreen(currency: Currency) {
                 )
             )
         }
-    ) { paddingValues ->
+    ) { _ ->
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
