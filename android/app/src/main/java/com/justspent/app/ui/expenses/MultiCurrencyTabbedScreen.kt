@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.justspent.app.data.model.Currency
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 
 /**
  * Tabbed interface for multiple currency expense tracking
@@ -80,14 +81,16 @@ private fun CurrencyTabBar(
     ) {
         ScrollableTabRow(
             selectedTabIndex = currencies.indexOf(selectedCurrency).coerceAtLeast(0),
-            edgePadding = 16.dp,
+            edgePadding = 0.dp,
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            indicator = { _ ->
-                if (currencies.indexOf(selectedCurrency) >= 0) {
+            indicator = { tabPositions ->
+                val selectedIndex = currencies.indexOf(selectedCurrency)
+                if (selectedIndex >= 0 && selectedIndex < tabPositions.size) {
                     TabRowDefaults.Indicator(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.primary
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
+                        color = MaterialTheme.colorScheme.primary,
+                        height = 3.dp
                     )
                 }
             }
@@ -115,33 +118,24 @@ private fun CurrencyTab(
     Tab(
         selected = isSelected,
         onClick = onClick,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        modifier = Modifier.padding(horizontal = 8.dp),
+        selectedContentColor = MaterialTheme.colorScheme.primary,
+        unselectedContentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        Column(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
+        Row(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = currency.symbol,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = currency.code,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = currency.symbol,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            )
+            Text(
+                text = currency.code,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            )
         }
     }
 }
