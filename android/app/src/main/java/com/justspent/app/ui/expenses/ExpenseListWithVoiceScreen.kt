@@ -56,6 +56,7 @@ fun ExpenseListWithVoiceScreen(
 
     var showVoiceResultDialog by remember { mutableStateOf(false) }
     var voiceResult by remember { mutableStateOf("")}
+    var lastProcessedExpense by remember { mutableStateOf<String?>(null) }
 
     // Auto-recording disabled for app launch/foreground
     // (kept for future widget support)
@@ -95,9 +96,12 @@ fun ExpenseListWithVoiceScreen(
     }
 
     // Handle voice result
-    LaunchedEffect(voiceUiState.isProcessed) {
-        if (voiceUiState.isProcessed && voiceUiState.processedExpense != null) {
+    LaunchedEffect(voiceUiState.isProcessed, voiceUiState.processedExpense) {
+        if (voiceUiState.isProcessed &&
+            voiceUiState.processedExpense != null &&
+            voiceUiState.processedExpense != lastProcessedExpense) {
             voiceResult = voiceUiState.processedExpense!!
+            lastProcessedExpense = voiceUiState.processedExpense
             showVoiceResultDialog = true
             // Expenses will auto-reload via Flow
         }
