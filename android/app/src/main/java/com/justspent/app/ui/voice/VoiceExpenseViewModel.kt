@@ -215,14 +215,15 @@ class VoiceExpenseViewModel @Inject constructor(
     }
     
     /**
-     * Retry the last voice command
+     * Retry voice recording
+     * Resets error state and starts a new voice recording session
      */
     fun retry() {
-        lastRawCommand?.let { command ->
-            processRawVoiceCommand(command)
-        } ?: lastVoiceCommand?.let { command ->
-            processVoiceCommand(command.amount, command.category, command.merchant, command.note)
-        }
+        // Reset error state first to dismiss dialog
+        _uiState.value = VoiceExpenseUiState()
+
+        // Start fresh voice recording session
+        startVoiceRecording()
     }
     
     /**

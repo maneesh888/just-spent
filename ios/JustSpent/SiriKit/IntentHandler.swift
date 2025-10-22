@@ -135,13 +135,18 @@ class LogExpenseIntentHandler: NSObject, LogExpenseIntentHandling {
     }
     
     func resolveCurrency(for intent: LogExpenseIntent, with completion: @escaping (INStringResolutionResult) -> Void) {
-        let currency = intent.currency ?? "USD"
-        let supportedCurrencies = ["USD", "AED", "EUR", "GBP", "INR", "SAR"]
-        
-        if supportedCurrencies.contains(currency) {
-            completion(.success(with: currency))
+        let currencyString = intent.currency ?? "USD"
+
+        // Try to detect currency from string using Currency model
+        if let detectedCurrency = Currency.detectFromText(currencyString) {
+            completion(.success(with: detectedCurrency.rawValue))
+        } else if let validCurrency = Currency.from(isoCode: currencyString) {
+            // Valid ISO code provided
+            completion(.success(with: validCurrency.rawValue))
         } else {
-            completion(.success(with: "USD")) // Default to USD
+            // Fallback to user's default currency or USD
+            let defaultCurrency = UserPreferences.shared.getCurrentCurrency()
+            completion(.success(with: defaultCurrency.rawValue))
         }
     }
     

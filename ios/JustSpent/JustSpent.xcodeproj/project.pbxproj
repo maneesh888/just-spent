@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,11 +12,7 @@
 		3D8A9E1E2C9F4B3000123456 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */; };
 		3D8A9E212C9F4B3000123456 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */; };
 		9F7362092E99665C00D50166 /* JustSpent.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362072E99665C00D50166 /* JustSpent.xcdatamodeld */; };
-		9F7362132E99668800D50166 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F73620D2E99668800D50166 /* Preview Assets.xcassets */; };
-		9F7362142E99668800D50166 /* ExpenseListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7362112E99668800D50166 /* ExpenseListViewModel.swift */; };
 		9F7362152E99668800D50166 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73620C2E99668800D50166 /* PersistenceController.swift */; };
-		9F7362162E99668800D50166 /* ExpenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73620F2E99668800D50166 /* ExpenseRepository.swift */; };
-		9F7362172E99668800D50166 /* ExpenseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F73620A2E99668800D50166 /* ExpenseError.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,12 +22,22 @@
 		3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9F7362082E99665C00D50166 /* JustSpent.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = JustSpent.xcdatamodel; sourceTree = "<group>"; };
-		9F73620A2E99668800D50166 /* ExpenseError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseError.swift; sourceTree = "<group>"; };
 		9F73620C2E99668800D50166 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
-		9F73620D2E99668800D50166 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		9F73620F2E99668800D50166 /* ExpenseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseRepository.swift; sourceTree = "<group>"; };
-		9F7362112E99668800D50166 /* ExpenseListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseListViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9F7362492EA581ED00D50166 /* SiriKit */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SiriKit; sourceTree = "<group>"; };
+		9F73624F2EA583B200D50166 /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
+		9F7362532EA583D100D50166 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+		9F73625A2EA583D100D50166 /* Services */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Services; sourceTree = "<group>"; };
+		9F73625C2EA583D100D50166 /* ViewModels */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewModels; sourceTree = "<group>"; };
+		9F73626B2EA5841400D50166 /* Common */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Common; sourceTree = "<group>"; };
+		9F73626F2EA5841400D50166 /* Data */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Data; sourceTree = "<group>"; };
+		9F7362732EA5841400D50166 /* Domain */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Domain; sourceTree = "<group>"; };
+		9F7362792EA5841400D50166 /* Presentation */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Presentation; sourceTree = "<group>"; };
+		9F73627C2EA5841400D50166 /* Siri */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Siri; sourceTree = "<group>"; };
+		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		3D8A9E132C9F4B2E00123456 /* Frameworks */ = {
@@ -63,16 +69,23 @@
 		3D8A9E182C9F4B2E00123456 /* JustSpent */ = {
 			isa = PBXGroup;
 			children = (
+				9F7362492EA581ED00D50166 /* SiriKit */,
 				3D8A9E192C9F4B2E00123456 /* JustSpentApp.swift */,
 				3D8A9E1B2C9F4B2E00123456 /* ContentView.swift */,
 				3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */,
 				3D8A9E1F2C9F4B3000123456 /* Preview Content */,
 				9F7362072E99665C00D50166 /* JustSpent.xcdatamodeld */,
-				9F73620B2E99668800D50166 /* Models */,
 				9F73620C2E99668800D50166 /* PersistenceController.swift */,
-				9F73620E2E99668800D50166 /* Preview Content */,
-				9F7362102E99668800D50166 /* Services */,
-				9F7362122E99668800D50166 /* ViewModels */,
+				9F73624F2EA583B200D50166 /* Models */,
+				9F7362532EA583D100D50166 /* Resources */,
+				9F73625A2EA583D100D50166 /* Services */,
+				9F73625C2EA583D100D50166 /* ViewModels */,
+				9F73626B2EA5841400D50166 /* Common */,
+				9F73626F2EA5841400D50166 /* Data */,
+				9F7362732EA5841400D50166 /* Domain */,
+				9F7362792EA5841400D50166 /* Presentation */,
+				9F73627C2EA5841400D50166 /* Siri */,
+				9F7362822EA5841400D50166 /* Views */,
 			);
 			path = JustSpent;
 			sourceTree = "<group>";
@@ -83,38 +96,6 @@
 				3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		9F73620B2E99668800D50166 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				9F73620A2E99668800D50166 /* ExpenseError.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		9F73620E2E99668800D50166 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				9F73620D2E99668800D50166 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		9F7362102E99668800D50166 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				9F73620F2E99668800D50166 /* ExpenseRepository.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
-		9F7362122E99668800D50166 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				9F7362112E99668800D50166 /* ExpenseListViewModel.swift */,
-			);
-			path = ViewModels;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -131,6 +112,19 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9F7362492EA581ED00D50166 /* SiriKit */,
+				9F73624F2EA583B200D50166 /* Models */,
+				9F7362532EA583D100D50166 /* Resources */,
+				9F73625A2EA583D100D50166 /* Services */,
+				9F73625C2EA583D100D50166 /* ViewModels */,
+				9F73626B2EA5841400D50166 /* Common */,
+				9F73626F2EA5841400D50166 /* Data */,
+				9F7362732EA5841400D50166 /* Domain */,
+				9F7362792EA5841400D50166 /* Presentation */,
+				9F73627C2EA5841400D50166 /* Siri */,
+				9F7362822EA5841400D50166 /* Views */,
 			);
 			name = JustSpent;
 			productName = JustSpent;
@@ -176,7 +170,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D8A9E212C9F4B3000123456 /* Preview Assets.xcassets in Resources */,
-				9F7362132E99668800D50166 /* Preview Assets.xcassets in Resources */,
 				3D8A9E1E2C9F4B3000123456 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -189,10 +182,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9F7362092E99665C00D50166 /* JustSpent.xcdatamodeld in Sources */,
-				9F7362142E99668800D50166 /* ExpenseListViewModel.swift in Sources */,
 				9F7362152E99668800D50166 /* PersistenceController.swift in Sources */,
-				9F7362162E99668800D50166 /* ExpenseRepository.swift in Sources */,
-				9F7362172E99668800D50166 /* ExpenseError.swift in Sources */,
 				3D8A9E1C2C9F4B2E00123456 /* ContentView.swift in Sources */,
 				3D8A9E1A2C9F4B2E00123456 /* JustSpentApp.swift in Sources */,
 			);

@@ -23,7 +23,8 @@
       "Bash(./gradle-8.2/bin/gradle:*)",
       "Bash(adb:*)",
       "Bash(tee:*)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(git restore ios/JustSpent/JustSpent/ContentView.swift)"
     ],
     "deny": [],
     "ask": []

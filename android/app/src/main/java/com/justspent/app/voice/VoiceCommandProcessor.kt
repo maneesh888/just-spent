@@ -97,26 +97,60 @@ class VoiceCommandProcessor @Inject constructor() {
     }
     
     /**
-     * Extract written numbers like "twenty-five dollars"
+     * Extract written numbers like "twenty-five dollars", "one hundred", "two thousand"
+     * Handles compound numbers and multipliers (hundred, thousand)
      */
     private fun extractWrittenAmount(command: String): BigDecimal? {
-        val writtenNumbers = mapOf(
+        val ones = mapOf(
             "zero" to 0, "one" to 1, "two" to 2, "three" to 3, "four" to 4, "five" to 5,
             "six" to 6, "seven" to 7, "eight" to 8, "nine" to 9, "ten" to 10,
             "eleven" to 11, "twelve" to 12, "thirteen" to 13, "fourteen" to 14, "fifteen" to 15,
-            "sixteen" to 16, "seventeen" to 17, "eighteen" to 18, "nineteen" to 19, "twenty" to 20,
-            "thirty" to 30, "forty" to 40, "fifty" to 50, "sixty" to 60, "seventy" to 70,
-            "eighty" to 80, "ninety" to 90, "hundred" to 100, "thousand" to 1000
+            "sixteen" to 16, "seventeen" to 17, "eighteen" to 18, "nineteen" to 19
         )
-        
-        // Simple implementation for common cases
-        writtenNumbers.forEach { (word, value) ->
-            if (command.contains(word)) {
-                return BigDecimal(value)
+
+        val tens = mapOf(
+            "twenty" to 20, "thirty" to 30, "forty" to 40, "fifty" to 50,
+            "sixty" to 60, "seventy" to 70, "eighty" to 80, "ninety" to 90
+        )
+
+        val multipliers = mapOf(
+            "hundred" to 100,
+            "thousand" to 1000
+        )
+
+        // Extract potential amount substring (words between action word and currency/category)
+        val amountPattern = Regex("""(?:spent|spend|paid|pay|cost)\s+([\w\s]+?)\s+(?:dollars?|dirhams?|aed|euros?|pounds?|for|on|at)""", RegexOption.IGNORE_CASE)
+        val amountMatch = amountPattern.find(command)
+        val amountText = amountMatch?.groupValues?.get(1)?.trim()?.lowercase() ?: command.lowercase()
+
+        val words = amountText.split(Regex("""\s+"""))
+        var total = 0
+        var current = 0
+
+        for (word in words) {
+            when {
+                ones.containsKey(word) -> {
+                    current += ones[word]!!
+                }
+                tens.containsKey(word) -> {
+                    current += tens[word]!!
+                }
+                word == "hundred" -> {
+                    if (current == 0) current = 1 // "hundred" alone means "one hundred"
+                    current *= 100
+                }
+                word == "thousand" -> {
+                    if (current == 0) current = 1 // "thousand" alone means "one thousand"
+                    current *= 1000
+                    total += current
+                    current = 0
+                }
             }
         }
-        
-        return null
+
+        total += current
+
+        return if (total > 0 && total <= MAX_AMOUNT) BigDecimal(total) else null
     }
     
     /**
@@ -145,40 +179,53 @@ class VoiceCommandProcessor @Inject constructor() {
     
     /**
      * Extract expense category from command
-     * Matches iOS implementation from ContentView.swift:396-414
+     * Enhanced with broader keyword coverage
      */
     private fun extractCategory(command: String): String {
         val categoryMappings = mapOf(
-            // Food & Dining - matches iOS exactly
+            // Food & Dining - comprehensive food-related keywords
             listOf("food", "tea", "coffee", "lunch", "dinner", "breakfast", "restaurant",
-                   "meal", "drink", "cafe", "dining", "eat", "ate", "snack") to "Food & Dining",
+                   "meal", "drink", "cafe", "dining", "eat", "ate", "snack", "brunch",
+                   "takeout", "takeaway", "delivery", "pizza", "burger", "sandwich",
+                   "sushi", "dessert", "ice cream", "bakery", "starbucks", "mcdonald") to "Food & Dining",
 
-            // Grocery - matches iOS
-            listOf("grocery", "groceries", "supermarket", "market", "food shopping") to "Grocery",
+            // Grocery - food shopping related
+            listOf("grocery", "groceries", "supermarket", "market", "food shopping",
+                   "vegetables", "fruits", "produce", "walmart", "carrefour", "lulu") to "Grocery",
 
-            // Transportation - matches iOS
+            // Transportation - comprehensive transport and fuel keywords
             listOf("gas", "fuel", "taxi", "uber", "transport", "transportation", "parking",
-                   "petrol", "toll", "careem") to "Transportation",
+                   "petrol", "toll", "careem", "lyft", "metro", "subway", "train", "bus",
+                   "diesel", "station", "refuel", "fill up", "car", "vehicle", "ride",
+                   "trip", "travel", "flight", "airline", "ticket") to "Transportation",
 
-            // Shopping - matches iOS
-            listOf("shopping", "clothes", "clothing", "store", "mall", "purchase", "buy", "bought") to "Shopping",
+            // Shopping - retail and purchases
+            listOf("shopping", "clothes", "clothing", "store", "mall", "purchase", "buy", "bought",
+                   "shoes", "accessories", "fashion", "retail", "amazon", "online shopping",
+                   "electronics", "gadget", "phone", "laptop") to "Shopping",
 
-            // Entertainment - matches iOS
-            listOf("movie", "cinema", "concert", "entertainment", "fun", "games", "theatre") to "Entertainment",
+            // Entertainment - leisure and fun activities
+            listOf("movie", "cinema", "concert", "entertainment", "fun", "games", "theatre",
+                   "sports", "gym", "fitness", "netflix", "streaming", "spotify", "music",
+                   "hobby", "recreation", "amusement", "park") to "Entertainment",
 
-            // Bills & Utilities - matches iOS
+            // Bills & Utilities - recurring expenses
             listOf("bill", "bills", "rent", "utility", "utilities", "electricity", "water",
-                   "internet", "phone", "subscription") to "Bills & Utilities",
+                   "internet", "phone", "subscription", "insurance", "mortgage", "loan",
+                   "payment", "recurring", "monthly", "annual") to "Bills & Utilities",
 
-            // Healthcare
+            // Healthcare - medical expenses
             listOf("healthcare", "health", "doctor", "hospital", "medicine", "medical",
-                   "pharmacy", "clinic") to "Healthcare",
+                   "pharmacy", "clinic", "prescription", "dentist", "therapy", "checkup",
+                   "emergency", "surgery", "treatment") to "Healthcare",
 
-            // Education
-            listOf("education", "school", "course", "training", "books", "learning", "tuition") to "Education"
+            // Education - learning and development
+            listOf("education", "school", "course", "training", "books", "learning", "tuition",
+                   "college", "university", "class", "workshop", "seminar", "certification",
+                   "textbook", "supplies", "fees") to "Education"
         )
 
-        // Match iOS behavior: check in priority order (Food & Dining first)
+        // Check in priority order (Food & Dining first)
         for ((keywords, category) in categoryMappings) {
             if (keywords.any { command.contains(it) }) {
                 return category
@@ -311,7 +358,7 @@ class VoiceCommandProcessor @Inject constructor() {
     }
     
     private fun hasExpenseActionWords(command: String): Boolean {
-        val actionWords = listOf("spent", "paid", "cost", "bought", "purchase")
+        val actionWords = listOf("spent", "spend", "paid", "pay", "cost", "bought", "purchase", "buy")
         return actionWords.any { command.contains(it) }
     }
     
