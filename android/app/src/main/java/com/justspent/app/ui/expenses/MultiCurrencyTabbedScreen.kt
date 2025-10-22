@@ -15,6 +15,7 @@ import com.justspent.app.data.model.Currency
  * @param currencies List of currencies with expenses
  * @param defaultCurrency User's preferred default currency
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MultiCurrencyTabbedScreen(
     currencies: List<Currency>,
@@ -32,16 +33,34 @@ fun MultiCurrencyTabbedScreen(
 
     var selectedCurrency by remember { mutableStateOf(initialCurrency) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Currency Tab Bar
-        CurrencyTabBar(
-            currencies = sortedCurrencies,
-            selectedCurrency = selectedCurrency,
-            onCurrencySelected = { selectedCurrency = it }
-        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Just Spent")
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Currency Tab Bar
+            CurrencyTabBar(
+                currencies = sortedCurrencies,
+                selectedCurrency = selectedCurrency,
+                onCurrencySelected = { selectedCurrency = it }
+            )
 
-        // Selected Currency Expense List
-        CurrencyExpenseListScreen(currency = selectedCurrency)
+            // Selected Currency Expense List
+            CurrencyExpenseListScreen(currency = selectedCurrency)
+        }
     }
 }
 
