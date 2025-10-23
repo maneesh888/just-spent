@@ -5,17 +5,23 @@ This document defines the complete data model architecture for Just Spent, ensur
 
 ## 💱 Multi-Currency UI Architecture
 
+**For complete UI design specifications, see @ui-design-spec.md**
+
 ### Tabbed Interface Design
 
 **Core Principle:** Each currency gets its own isolated tab with identical UI structure.
 
+**IMPORTANT:** Total is displayed in the **header card** (not per-tab), and updates dynamically when switching tabs.
+
 **Architecture:**
 ```
 ┌─────────────────────────────────────────────────┐
-│  [AED] [USD] [EUR] [GBP] [INR] [SAR]  ← Scrollable Tab Bar
-├─────────────────────────────────────────────────┤
-│  Total: AED 5,234.50                  ← Per-Currency Total
-├─────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────┐  │
+│  │  HEADER CARD                              │  │
+│  │  Just Spent        Total: AED 5,234.50    │  │  ← Single Total (Updates on Tab Switch)
+│  └───────────────────────────────────────────┘  │
+│  [AED] [USD] [EUR] [GBP] [INR] [SAR]           │  ← Scrollable Tab Bar
+│  ─────                                          │
 │  📝 AED 150.00 - Grocery                        │
 │  📝 AED 50.00 - Food & Dining                   │
 │  📝 AED 200.00 - Transportation                 │
@@ -33,6 +39,8 @@ This document defines the complete data model architecture for Just Spent, ensur
 - **Dynamic Tab Creation:** Tabs appear when first expense in that currency is added
 - **Unified Component:** Same ExpenseListView/ExpenseListScreen for all currencies
 - **Currency Filtering:** Each view queries `WHERE currency = 'XXX'`
+- **Dynamic Total:** Calculated in header card, updates when switching tabs
+- **Consistent Formatting:** All amounts use 1,234.56 format (. decimal, , grouping)
 
 ### Onboarding Flow
 
@@ -100,11 +108,11 @@ func fetchExpenses(for currency: Currency) -> NSFetchRequest<Expense> {
     return request
 }
 
-// Calculate total for currency tab
+// Calculate total for currency (displayed in header card)
 func calculateTotal(for currency: Currency) -> Decimal {
     let request: NSFetchRequest<Expense> = Expense.fetchRequest()
     request.predicate = NSPredicate(format: "currency == %@", currency.code)
-    // Sum amounts...
+    // Sum amounts and format using CurrencyFormatter
 }
 ```
 
@@ -114,13 +122,16 @@ func calculateTotal(for currency: Currency) -> Decimal {
 @Query("SELECT * FROM expenses WHERE currency = :currency ORDER BY transactionDate DESC")
 fun getExpensesByCurrency(currency: String): Flow<List<Expense>>
 
-// Calculate total for currency tab
+// Calculate total for currency (displayed in header card)
 @Query("SELECT SUM(amount) FROM expenses WHERE currency = :currency")
 fun getTotalByCurrency(currency: String): Flow<BigDecimal>
 
 // Get distinct currencies (for tab generation)
 @Query("SELECT DISTINCT currency FROM expenses ORDER BY currency")
 fun getDistinctCurrencies(): Flow<List<String>>
+
+// Note: Total is calculated in screen composable using CurrencyFormatter
+// for consistent formatting (1,234.56 with . decimal and , grouping)
 ```
 
 ## Core Data Models
