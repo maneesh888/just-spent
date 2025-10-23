@@ -15,8 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.justspent.app.data.model.Currency
 import com.justspent.app.data.model.Expense
-import com.justspent.app.utils.CurrencyFormatter
-import java.math.BigDecimal
 
 /**
  * Reusable expense list screen filtered by currency
@@ -38,66 +36,24 @@ fun CurrencyExpenseListScreen(
         expenses.filter { it.currency == currency.code }
     }
 
-    // Calculate total for this currency
-    val total = remember(currencyExpenses) {
-        currencyExpenses.fold(BigDecimal.ZERO) { acc, expense ->
-            acc.add(expense.amount)
-        }
-    }
-
-    val formattedTotal = CurrencyFormatter.format(
-        amount = total,
-        currency = currency,
-        showSymbol = true,
-        showCode = false
-    )
-
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Total Header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp
+    // Expense List
+    if (currencyExpenses.isEmpty()) {
+        // Empty state for this currency
+        EmptyCurrencyState(currency = currency)
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Total",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            items(
+                items = currencyExpenses,
+                key = { expense -> expense.id }
+            ) { expense ->
+                CurrencyExpenseRow(
+                    expense = expense,
+                    currency = currency,
+                    onDelete = { viewModel.deleteExpense(expense) }
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formattedTotal,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        // Expense List
-        if (currencyExpenses.isEmpty()) {
-            // Empty state for this currency
-            EmptyCurrencyState(currency = currency)
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(
-                    items = currencyExpenses,
-                    key = { expense -> expense.id }
-                ) { expense ->
-                    CurrencyExpenseRow(
-                        expense = expense,
-                        currency = currency,
-                        onDelete = { viewModel.deleteExpense(expense) }
-                    )
-                }
             }
         }
     }
