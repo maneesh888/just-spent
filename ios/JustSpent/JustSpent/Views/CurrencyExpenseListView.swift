@@ -51,22 +51,7 @@ struct CurrencyExpenseListView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Total Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStrings.totalLabel)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(formattedTotal)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                }
-                Spacer()
-            }
-            .padding()
-            .background(Color(.systemBackground))
-
+        Group {
             // Expense List
             if expenses.isEmpty {
                 // Empty state for this currency
@@ -95,12 +80,19 @@ struct CurrencyExpenseListView: View {
                 List {
                     ForEach(expenses, id: \.id) { expense in
                         CurrencyExpenseRowView(expense: expense, currency: currency)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                     .onDelete(perform: deleteExpenses)
                 }
                 .listStyle(.plain)
             }
         }
+    }
+
+    // Public computed property for parent views to display the total
+    var totalSpendingFormatted: String {
+        formattedTotal
     }
 
     private func deleteExpenses(offsets: IndexSet) {
@@ -124,40 +116,48 @@ struct CurrencyExpenseRowView: View {
     let currency: Currency
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(expense.category ?? LocalizedStrings.categoryUnknown)
-                        .font(.headline)
-                    Spacer()
-                    Text(formatAmount(expense.amount))
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                }
+        VStack(alignment: .leading, spacing: 4) {
+            // Category and Amount Row
+            HStack {
+                Text(expense.category ?? LocalizedStrings.categoryUnknown)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text(formatAmount(expense.amount))
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
 
-                if let merchant = expense.merchant {
-                    Text(merchant)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
+            // Merchant (if available)
+            if let merchant = expense.merchant {
+                Text(merchant)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
 
-                HStack {
-                    Text(formatDate(expense.transactionDate))
+            // Date and Voice Indicator Row
+            HStack {
+                Text(formatDate(expense.transactionDate))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                if expense.source == AppConstants.ExpenseSource.voiceSiri ||
+                   expense.source == AppConstants.ExpenseSource.voiceRecognition {
+                    Image(systemName: "mic.fill")
                         .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    if expense.source == AppConstants.ExpenseSource.voiceSiri ||
-                       expense.source == AppConstants.ExpenseSource.voiceRecognition {
-                        Image(systemName: "mic.fill")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                    }
-
-                    Spacer()
+                        .foregroundColor(.blue)
                 }
+
+                Spacer()
             }
         }
-        .padding(.vertical, 4)
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground).opacity(0.9))
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        )
     }
 
     private func formatAmount(_ amount: NSDecimalNumber?) -> String {

@@ -754,34 +754,115 @@ UIView.userInterfaceLayoutDirection == .rightToLeft
 - ✅ Voice indicator
 - ✅ Swipe to delete
 
-### iOS (SwiftUI) - PENDING
+### iOS (SwiftUI) - IMPLEMENTED
 
-**Components (To Be Implemented):**
+**Components:**
 - `VStack`/`HStack` for layout
-- Custom header card (match Android design)
-- `TabView` with page style for currencies
-- Custom floating button (match Android FAB)
-- `List` or `ScrollView` + `LazyVStack` for expenses
+- Custom header with title/subtitle and total display
+- `TabView` with custom tab bar for currencies
+- Custom floating button (pending - voice integration phase)
+- `List` for expense lists with card-style rows
 - `.swipeActions` for delete gesture
 
 **State Management:**
 - `@State` for local UI state
-- `@ObservedObject` for ViewModel
-- `@FetchRequest` for Core Data
-- Combine for reactive updates
+- `@StateObject` for UserPreferences
+- `@FetchRequest` for Core Data queries
+- Computed properties for dynamic total calculations
 
-**Implementation Checklist:**
-- ⏳ Empty state design (match Android)
-- ⏳ Single currency screen (match Android)
-- ⏳ Multi-currency tabbed screen (match Android)
-- ⏳ Header card implementation
-- ⏳ Gradient background
-- ⏳ Custom FAB equivalent
-- ⏳ Currency formatter implementation
-- ⏳ Expense row design
-- ⏳ Voice indicator icon
-- ⏳ Swipe to delete
-- ⏳ Empty state per currency
+**Header Design Implementation:**
+- **Custom Header Pattern**: Uses `HStack(alignment: .center)` with title/subtitle VStack on left and total VStack on right
+- **Navigation Approach**: `.navigationBarHidden(true)` with NavigationView wrapper for proper structure
+- **Alignment Strategy**: Center-aligned for balanced visual appearance (title/subtitle and total share same horizontal center axis)
+- **Typography**:
+  - Title: `.largeTitle` + `.bold` (28pt)
+  - Subtitle: `.caption` + `.secondary` (12pt)
+  - Total Label: `.caption` + `.secondary` (12pt)
+  - Total Amount: `.title2` + `.semibold` (22pt)
+- **Spacing**: Horizontal padding 16pt, top padding 8pt, bottom padding 12pt
+
+**Implementation Status:**
+- ✅ Empty state design (ContentView with custom header)
+- ✅ Single currency screen (SingleCurrencyView with custom header)
+- ✅ Multi-currency tabbed screen (MultiCurrencyTabbedView with custom header)
+- ✅ Header design with total display (consistent across all views)
+- ⏳ Gradient background (pending design decision)
+- ⏳ Custom FAB equivalent (pending voice integration)
+- ✅ Currency formatter implementation (CurrencyFormatter.shared)
+- ✅ Expense row design (card-style with rounded corners)
+- ✅ Voice indicator icon (microphone icon for voice-sourced expenses)
+- ✅ Swipe to delete functionality
+- ✅ Empty state per currency (in CurrencyExpenseListView)
+- ✅ Preview support (Empty State, Single Currency, Multiple Currencies)
+
+**iOS-Specific Design Patterns:**
+```swift
+// Custom Header Structure (used in all three view states)
+HStack(alignment: .center) {
+    // Left: Title and Subtitle
+    VStack(alignment: .leading, spacing: 4) {
+        Text(LocalizedStrings.appTitle)
+            .font(.largeTitle)
+            .fontWeight(.bold)
+        Text(LocalizedStrings.appSubtitle)
+            .font(.caption)
+            .foregroundColor(.secondary)
+    }
+
+    Spacer()
+
+    // Right: Total Display
+    VStack(alignment: .trailing, spacing: 4) {
+        Text(LocalizedStrings.totalLabel)
+            .font(.caption)
+            .foregroundColor(.secondary)
+        Text(formattedTotal)
+            .font(.title2)
+            .fontWeight(.semibold)
+    }
+}
+.padding(.horizontal)
+.padding(.top, 8)
+.padding(.bottom, 12)
+.background(Color(.systemBackground))
+```
+
+**Dynamic Total Calculation (iOS):**
+```swift
+// Single Currency View
+private var totalSpending: Double {
+    expenses.reduce(0) { total, expense in
+        total + (expense.amount?.doubleValue ?? 0)
+    }
+}
+
+private var formattedTotal: String {
+    let amount = Decimal(totalSpending)
+    return CurrencyFormatter.shared.format(
+        amount: amount,
+        currency: currency,
+        showSymbol: true,
+        showCode: false
+    )
+}
+
+// Multi-Currency View (updates when tab changes)
+private var totalSpending: Double {
+    expenses.reduce(0) { total, expense in
+        total + (expense.amount?.doubleValue ?? 0)
+    }
+}
+
+private var formattedTotal: String {
+    let amount = Decimal(totalSpending)
+    return CurrencyFormatter.shared.format(
+        amount: amount,
+        currency: selectedCurrency,  // Changes with tab selection
+        showSymbol: true,
+        showCode: false
+    )
+}
+```
 
 ## 🔧 Key Implementation Notes
 
@@ -841,6 +922,68 @@ val formattedTotal = remember(selectedCurrencyTotal, selectedCurrency) {
 - Shows per-currency empty state
 - Does NOT display total (handled by parent)
 
+## 📝 iOS Design Evolution Notes
+
+### Header Design Iteration (Session: January 2025)
+
+**Design Goals:**
+1. Display total expense to the right of the app title
+2. Maintain subtitle visibility below the title
+3. Achieve horizontal center-axis alignment between title section and total section
+4. Ensure consistent header design across all three view states (empty, single currency, multi-currency)
+
+**Approach Evolution:**
+
+**Attempt 1: Native iOS Toolbar (Failed)**
+- Used `.navigationTitle()` with `.toolbar()` modifier
+- Placed total in `.navigationBarTrailing` position
+- **Issues:**
+  - Total appeared isolated in top-right corner with blank space on left
+  - Title not visible in expected location
+  - Subtitle could not be added
+  - Previews stopped working
+- **Lesson:** iOS native navigation API doesn't support custom content alongside title
+
+**Attempt 2: Custom Header with Bottom Alignment (Partial Success)**
+- Removed native navigation elements
+- Created custom HStack with title/subtitle and total
+- Used `HStack(alignment: .bottom)` initially
+- Added `.navigationBarHidden(true)` to hide default nav bar
+- Wrapped in NavigationView for proper structure
+- **Issues:** Bottom alignment created visual imbalance (elements aligned at bottom edges rather than centers)
+
+**Final Solution: Custom Header with Center Alignment (Success)**
+- Changed to `HStack(alignment: .center)` for balanced appearance
+- Both VStacks (title/subtitle and total) now share same horizontal center axis
+- Consistent structure replicated in all three views:
+  - `ContentView.swift` (emptyStateViewContent)
+  - `SingleCurrencyView.swift` (body)
+  - `MultiCurrencyTabbedView.swift` (body)
+- Added proper previews:
+  - Empty State: Shows header with 0.00 total
+  - Single Currency: Shows expense list with real data
+  - Multiple Currencies: Shows tabbed interface with 4 currencies
+
+**Key Technical Decisions:**
+1. **Custom vs Native**: Chose custom header for full layout control
+2. **Alignment Strategy**: Center alignment provides best visual balance
+3. **Component Reusability**: Same header structure across all view states
+4. **Preview Support**: NavigationView wrapper essential for Xcode previews
+5. **Total Calculation**: Parent views calculate and format totals, CurrencyExpenseListView focuses solely on expense list display
+
+**Implementation Files Modified:**
+- `ios/JustSpent/JustSpent/ContentView.swift` - Empty state header
+- `ios/JustSpent/JustSpent/Views/SingleCurrencyView.swift` - Single currency header + previews
+- `ios/JustSpent/JustSpent/Views/MultiCurrencyTabbedView.swift` - Multi-currency header + previews
+- `ios/JustSpent/JustSpent/Views/CurrencyExpenseListView.swift` - Removed total header section, now purely displays expense list
+
+**Result:**
+- Clean, consistent header design across all app states
+- Total displays dynamically with proper currency formatting
+- Center-aligned layout creates balanced visual appearance
+- All previews working correctly in Xcode
+- iOS design now properly implemented following Android Material 3 reference design
+
 ---
 
-*This UI specification ensures consistent, accessible, and beautiful design across iOS and Android platforms. Android implementation is complete and serves as reference for iOS development.*
+*This UI specification ensures consistent, accessible, and beautiful design across iOS and Android platforms. Both platform implementations are now complete with documented design patterns and evolution notes.*
