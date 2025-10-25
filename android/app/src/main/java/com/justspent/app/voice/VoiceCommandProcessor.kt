@@ -1,6 +1,7 @@
 package com.justspent.app.voice
 
 import com.justspent.app.data.model.ExpenseData
+import com.justspent.app.utils.NumberPhraseParser
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -57,24 +58,38 @@ class VoiceCommandProcessor @Inject constructor() {
     
     /**
      * Extract monetary amount from voice command
+     * Uses NumberPhraseParser for comprehensive number phrase recognition
      */
     private fun extractAmount(command: String): BigDecimal {
-        // Patterns for different amount formats
+        // Patterns for different amount formats (ordered by specificity)
+        // FIXED: Changed \d{1,3} to \d+ to handle any number of digits (e.g., 1000, 25000, etc.)
         val patterns = listOf(
-            // $25.50, $25, $1,234.56
-            Regex("""\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)"""),
-            // 25.50 dollars, 25 dollars, 1,234.56 dollars
-            Regex("""(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*dollars?"""),
-            // 25.50 AED, 25 AED, 1,234.56 AED
-            Regex("""(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:AED|aed|dirhams?)"""),
-            // 25.50 euros, 25 euros
-            Regex("""(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*euros?"""),
-            // 25.50 pounds, 25 pounds
-            Regex("""(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*pounds?"""),
-            // Plain numbers: 25.50, 25, 1,234.56
-            Regex("""(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)""")
+            // Currency symbol formats: $25.50, $25, $1,234.56, $1000
+            Regex("""\$(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+
+            // With currency name and decimals: 25.50 dollars, 1,234.56 dollars, 1000.50 dirhams
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*dollars?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*(?:AED|aed|dirhams?)""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*euros?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*pounds?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*rupees?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*riyals?""", RegexOption.IGNORE_CASE),
+
+            // With currency name (whole numbers): 25 dollars, 1000 dirhams, 1,234 dollars
+            Regex("""(\d+(?:,\d{3})*)\s*dollars?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*)\s*(?:AED|aed|dirhams?)""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*)\s*euros?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*)\s*pounds?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*)\s*rupees?""", RegexOption.IGNORE_CASE),
+            Regex("""(\d+(?:,\d{3})*)\s*riyals?""", RegexOption.IGNORE_CASE),
+
+            // Plain numbers with decimals: 25.50, 1000.56, 1,234.56
+            Regex("""(\d+(?:,\d{3})*\.\d{1,2})"""),
+
+            // Plain whole numbers: 25, 1000, 1,234
+            Regex("""(\d+(?:,\d{3})*)""")
         )
-        
+
         for (pattern in patterns) {
             val match = pattern.find(command)
             if (match != null) {
@@ -89,68 +104,16 @@ class VoiceCommandProcessor @Inject constructor() {
                 }
             }
         }
-        
-        // Try to extract written numbers (twenty-five, fifty, etc.)
-        extractWrittenAmount(command)?.let { return it }
-        
-        throw IllegalArgumentException("Invalid or missing amount")
-    }
-    
-    /**
-     * Extract written numbers like "twenty-five dollars", "one hundred", "two thousand"
-     * Handles compound numbers and multipliers (hundred, thousand)
-     */
-    private fun extractWrittenAmount(command: String): BigDecimal? {
-        val ones = mapOf(
-            "zero" to 0, "one" to 1, "two" to 2, "three" to 3, "four" to 4, "five" to 5,
-            "six" to 6, "seven" to 7, "eight" to 8, "nine" to 9, "ten" to 10,
-            "eleven" to 11, "twelve" to 12, "thirteen" to 13, "fourteen" to 14, "fifteen" to 15,
-            "sixteen" to 16, "seventeen" to 17, "eighteen" to 18, "nineteen" to 19
-        )
 
-        val tens = mapOf(
-            "twenty" to 20, "thirty" to 30, "forty" to 40, "fifty" to 50,
-            "sixty" to 60, "seventy" to 70, "eighty" to 80, "ninety" to 90
-        )
-
-        val multipliers = mapOf(
-            "hundred" to 100,
-            "thousand" to 1000
-        )
-
-        // Extract potential amount substring (words between action word and currency/category)
-        val amountPattern = Regex("""(?:spent|spend|paid|pay|cost)\s+([\w\s]+?)\s+(?:dollars?|dirhams?|aed|euros?|pounds?|for|on|at)""", RegexOption.IGNORE_CASE)
-        val amountMatch = amountPattern.find(command)
-        val amountText = amountMatch?.groupValues?.get(1)?.trim()?.lowercase() ?: command.lowercase()
-
-        val words = amountText.split(Regex("""\s+"""))
-        var total = 0
-        var current = 0
-
-        for (word in words) {
-            when {
-                ones.containsKey(word) -> {
-                    current += ones[word]!!
-                }
-                tens.containsKey(word) -> {
-                    current += tens[word]!!
-                }
-                word == "hundred" -> {
-                    if (current == 0) current = 1 // "hundred" alone means "one hundred"
-                    current *= 100
-                }
-                word == "thousand" -> {
-                    if (current == 0) current = 1 // "thousand" alone means "one thousand"
-                    current *= 1000
-                    total += current
-                    current = 0
-                }
+        // Use NumberPhraseParser for comprehensive written number extraction
+        // Handles "two thousand", "five lakh", "two point five million", etc.
+        NumberPhraseParser.extractAmountFromCommand(command)?.let { parsedAmount ->
+            if (parsedAmount >= BigDecimal(MIN_AMOUNT) && parsedAmount <= BigDecimal(MAX_AMOUNT)) {
+                return parsedAmount
             }
         }
 
-        total += current
-
-        return if (total > 0 && total <= MAX_AMOUNT) BigDecimal(total) else null
+        throw IllegalArgumentException("Invalid or missing amount")
     }
     
     /**
