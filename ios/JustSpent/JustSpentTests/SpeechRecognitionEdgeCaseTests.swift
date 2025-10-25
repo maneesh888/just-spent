@@ -82,8 +82,8 @@ class SpeechRecognitionEdgeCaseTests: XCTestCase {
         
         for (input, expectedCurrency, expectedAmount) in multiCurrencyInputs {
             let extractedData = extractExpenseData(from: input)
-            
-            XCTAssertEqual(extractedData.amount, expectedAmount, accuracy: 0.01,
+
+            XCTAssertEqual(extractedData.amount ?? 0, expectedAmount, accuracy: 0.01,
                           "Should extract correct amount for: '\(input)'")
             
             if extractedData.currency == expectedCurrency {
