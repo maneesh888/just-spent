@@ -35,21 +35,42 @@ class VoiceCommandParser {
         var amount: Double?
         var currency: String = AppConstants.Currency.defaultCurrency
 
-        // Try numeric patterns first
+        // Try numeric patterns first (prioritize for performance)
         let patterns = [
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:dirhams?|aed)"#, "AED"),
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:dollars?|usd|\$)"#, "USD"),
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:euros?|eur|€)"#, "EUR"),
-            (#"(\d+(?:\.\d{1,2})?)\s*(?:pounds?|gbp|£)"#, "GBP"),
-            (#"(\d+(?:\.\d{1,2})?)"#, "USD") // Default fallback for just numbers
+            // Currency symbol formats: $25.50, $25, $1,234.56, $1000
+            (#"\$(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "USD"),
+
+            // With currency name and decimals: 25.50 dollars, 1,234.56 dollars, 1000.50 dirhams
+            (#"(\d+(?:,\d{3})*\.\d{1,2})\s*dollars?"#, "USD"),
+            (#"(\d+(?:,\d{3})*\.\d{1,2})\s*(?:AED|aed|dirhams?)"#, "AED"),
+            (#"(\d+(?:,\d{3})*\.\d{1,2})\s*euros?"#, "EUR"),
+            (#"(\d+(?:,\d{3})*\.\d{1,2})\s*pounds?"#, "GBP"),
+            (#"(\d+(?:,\d{3})*\.\d{1,2})\s*rupees?"#, "INR"),
+            (#"(\d+(?:,\d{3})*\.\d{1,2})\s*riyals?"#, "SAR"),
+
+            // With currency name (whole numbers): 25 dollars, 1000 dirhams, 1,234 dollars
+            (#"(\d+(?:,\d{3})*)\s*dollars?"#, "USD"),
+            (#"(\d+(?:,\d{3})*)\s*(?:AED|aed|dirhams?)"#, "AED"),
+            (#"(\d+(?:,\d{3})*)\s*euros?"#, "EUR"),
+            (#"(\d+(?:,\d{3})*)\s*pounds?"#, "GBP"),
+            (#"(\d+(?:,\d{3})*)\s*rupees?"#, "INR"),
+            (#"(\d+(?:,\d{3})*)\s*riyals?"#, "SAR"),
+
+            // Plain numbers with decimals: 25.50, 1000.56, 1,234.56
+            (#"(\d+(?:,\d{3})*\.\d{1,2})"#, "USD"),
+
+            // Plain whole numbers: 25, 1000, 1,234
+            (#"(\d+(?:,\d{3})*)"#, "USD")
         ]
 
         let range = NSRange(location: 0, length: command.count)
 
         for (pattern, curr) in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
-               let match = regex.firstMatch(in: lowercased, options: [], range: range) {
-                let amountStr = String(lowercased[Range(match.range(at: 1), in: lowercased)!])
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+               let match = regex.firstMatch(in: lowercased, options: [], range: range),
+               let matchRange = Range(match.range(at: 1), in: lowercased) {
+                let amountStr = String(lowercased[matchRange])
+                    .replacingOccurrences(of: ",", with: "")
                 if let parsedAmount = Double(amountStr) {
                     amount = parsedAmount
                     currency = curr
@@ -58,9 +79,11 @@ class VoiceCommandParser {
             }
         }
 
-        // If numeric parsing failed, try written numbers
-        if amount == nil {
-            amount = extractWrittenAmount(from: lowercased)
+        // Use NumberPhraseParser for comprehensive written number extraction
+        // Handles "two thousand", "five lakh", "two point five million", etc.
+        if amount == nil,
+           let parsedAmount = NumberPhraseParser.shared.extractAmountFromCommand(command) {
+            amount = parsedAmount
             // Detect currency from context
             currency = detectCurrency(from: lowercased)
         }
@@ -80,61 +103,6 @@ class VoiceCommandParser {
     }
 
     // MARK: - Private Methods
-
-    /// Extract written numbers like "twenty-five dollars", "one hundred"
-    private func extractWrittenAmount(from command: String) -> Double? {
-        let ones: [String: Int] = [
-            "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
-            "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
-            "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19
-        ]
-
-        let tens: [String: Int] = [
-            "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
-            "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90
-        ]
-
-        // Extract potential amount substring
-        let actionPattern = "(spent|spend|paid|pay|cost)\\s+([\\w\\s]+?)\\s+(dollars?|dirhams?|aed|euros?|pounds?|for|on|at)"
-        if let regex = try? NSRegularExpression(pattern: actionPattern, options: .caseInsensitive),
-           let match = regex.firstMatch(in: command, options: [], range: NSRange(location: 0, length: command.count)),
-           let amountRange = Range(match.range(at: 2), in: command) {
-            let amountText = String(command[amountRange]).lowercased()
-            return parseWrittenNumber(from: amountText, ones: ones, tens: tens)
-        }
-
-        // Fallback: try to parse the whole command
-        return parseWrittenNumber(from: command, ones: ones, tens: tens)
-    }
-
-    /// Parse written number words into numeric value
-    private func parseWrittenNumber(from text: String, ones: [String: Int], tens: [String: Int]) -> Double? {
-        let words = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
-        var total = 0
-        var current = 0
-
-        for word in words {
-            let cleanWord = word.lowercased()
-
-            if let value = ones[cleanWord] {
-                current += value
-            } else if let value = tens[cleanWord] {
-                current += value
-            } else if cleanWord == "hundred" {
-                if current == 0 { current = 1 }
-                current *= 100
-            } else if cleanWord == "thousand" {
-                if current == 0 { current = 1 }
-                current *= 1000
-                total += current
-                current = 0
-            }
-        }
-
-        total += current
-        return total > 0 && total <= 999999 ? Double(total) : nil
-    }
 
     /// Detect currency from context words in the command
     private func detectCurrency(from command: String) -> String {

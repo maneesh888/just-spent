@@ -10,7 +10,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.justspent.app.data.model.Currency
 import com.justspent.app.lifecycle.AppLifecycleManager
 import com.justspent.app.lifecycle.AppState
-import com.justspent.app.ui.components.FloatingVoiceButton
 import com.justspent.app.ui.expenses.*
 import com.justspent.app.ui.voice.ExtractedVoiceData
 import com.justspent.app.ui.voice.VoiceExpenseViewModel
@@ -98,37 +97,45 @@ fun MainContentScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Main Content - Conditional UI Rendering
-        when {
-            expenses.isEmpty() -> {
-                // Empty State
-                ExpenseListWithVoiceScreen(
-                    hasAudioPermission = hasAudioPermission,
-                    onRequestPermission = onRequestPermission,
-                    lifecycleManager = lifecycleManager,
-                    autoRecordingCoordinator = autoRecordingCoordinator
-                )
-            }
-
-            shouldShowTabs -> {
-                // Multiple Currencies → Tabbed Interface
-                MultiCurrencyTabbedScreen(
-                    currencies = activeCurrencies,
-                    defaultCurrency = defaultCurrency
-                )
-            }
-
-            else -> {
-                // Single Currency → Simple List View
-                val currency = activeCurrencies.firstOrNull() ?: Currency.AED
-                SingleCurrencyScreen(currency = currency)
-            }
+    // Main Content - Conditional UI Rendering
+    when {
+        expenses.isEmpty() -> {
+            // Empty State
+            ExpenseListWithVoiceScreen(
+                hasAudioPermission = hasAudioPermission,
+                onRequestPermission = onRequestPermission,
+                lifecycleManager = lifecycleManager,
+                autoRecordingCoordinator = autoRecordingCoordinator
+            )
         }
 
-        // Floating Voice Button (Always Visible)
-        if (expenses.isNotEmpty()) {
-            FloatingVoiceButton(
+        shouldShowTabs -> {
+            // Multiple Currencies → Tabbed Interface
+            MultiCurrencyTabbedScreen(
+                currencies = activeCurrencies,
+                defaultCurrency = defaultCurrency,
+                isRecording = isRecording,
+                hasDetectedSpeech = hasDetectedSpeech,
+                hasAudioPermission = hasAudioPermission,
+                onStartRecording = {
+                    if (hasAudioPermission) {
+                        voiceViewModel.startVoiceRecording()
+                    } else {
+                        onRequestPermission()
+                    }
+                },
+                onStopRecording = {
+                    voiceRecordingManager.stopRecording()
+                },
+                onPermissionRequest = onRequestPermission
+            )
+        }
+
+        else -> {
+            // Single Currency → Simple List View
+            val currency = activeCurrencies.firstOrNull() ?: Currency.AED
+            SingleCurrencyScreen(
+                currency = currency,
                 isRecording = isRecording,
                 hasDetectedSpeech = hasDetectedSpeech,
                 hasAudioPermission = hasAudioPermission,

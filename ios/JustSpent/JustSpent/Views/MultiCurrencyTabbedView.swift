@@ -17,21 +17,77 @@ struct MultiCurrencyTabbedView: View {
     @StateObject private var userPreferences = UserPreferences.shared
     @State private var selectedCurrency: Currency
 
+    // Fetch expenses for selected currency
+    @FetchRequest private var expenses: FetchedResults<Expense>
+
     init(currencies: [Currency]) {
         self.currencies = currencies.sorted { $0.displayName < $1.displayName }
 
         // Set initial selection to default currency if available, otherwise first
         let defaultCurrency = UserPreferences.shared.defaultCurrency
+        let initialCurrency: Currency
         if let defaultIndex = currencies.firstIndex(of: defaultCurrency) {
-            _selectedCurrency = State(initialValue: currencies[defaultIndex])
+            initialCurrency = currencies[defaultIndex]
         } else {
-            _selectedCurrency = State(initialValue: currencies.first ?? .aed)
+            initialCurrency = currencies.first ?? .aed
         }
+        _selectedCurrency = State(initialValue: initialCurrency)
+
+        // Initialize FetchRequest with initial currency filter
+        let predicate = NSPredicate(format: "currency == %@", initialCurrency.rawValue)
+        _expenses = FetchRequest<Expense>(
+            sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
+            predicate: predicate,
+            animation: .default
+        )
+    }
+
+    private var totalSpending: Double {
+        expenses.reduce(0) { total, expense in
+            total + (expense.amount?.doubleValue ?? 0)
+        }
+    }
+
+    private var formattedTotal: String {
+        let amount = Decimal(totalSpending)
+        return CurrencyFormatter.shared.format(
+            amount: amount,
+            currency: selectedCurrency,
+            showSymbol: true,
+            showCode: false
+        )
     }
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // Custom header with title and total
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(LocalizedStrings.appTitle)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Text(LocalizedStrings.appSubtitle)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(LocalizedStrings.totalLabel)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(formattedTotal)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .background(Color(.systemBackground))
+
                 // Currency tabs - scrollable horizontal selector
                 CurrencyTabBar(
                     currencies: currencies,
@@ -42,8 +98,7 @@ struct MultiCurrencyTabbedView: View {
                 // Selected currency expense list
                 CurrencyExpenseListView(currency: selectedCurrency)
             }
-            .navigationTitle(LocalizedStrings.appTitle)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarHidden(true)
         }
     }
 }
@@ -119,12 +174,12 @@ struct CurrencyTab: View {
 
 // MARK: - Preview
 
-#Preview("Multiple Currencies") {
-    MultiCurrencyTabbedView(currencies: [.aed, .usd, .eur, .gbp])
+#Preview("Single Currency") {
+    SingleCurrencyView(currency: .aed)
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
 
-#Preview("Two Currencies") {
-    MultiCurrencyTabbedView(currencies: [.aed, .usd])
+#Preview("Multiple Currencies") {
+    MultiCurrencyTabbedView(currencies: [.aed, .usd, .eur, .gbp])
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }

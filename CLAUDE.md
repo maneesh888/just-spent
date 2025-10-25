@@ -5,10 +5,21 @@
 
 ## 🎯 Current Context
 
-**Status**: Documentation → Implementation transition  
-**Phase**: Foundation (Week 1-2)  
-**Priority**: iOS Xcode project + Core Data setup  
+**Status**: Android Multi-Currency UI Complete → iOS Implementation
+**Phase**: Foundation (Week 1-2)
+**Priority**: iOS implementation matching Android design
 **Developer**: Solo, iOS expertise, Android learning
+
+**Recent Completion:**
+- ✅ Android multi-currency tabbed UI fully implemented
+- ✅ Dynamic total calculation per currency
+- ✅ Consistent currency formatting (. decimal, , grouping)
+- ✅ Header card design with gradient background
+- ✅ FAB with recording indicator
+- ✅ Comprehensive UI design documentation
+
+**Reference Documents:**
+- @ui-design-spec.md - Complete Android UI implementation details
 
 ## 🏗️ Architecture Quick Reference
 
@@ -68,25 +79,42 @@ Reference: @comprehensive-test-plan.md
 
 ## 🚀 Current Sprint Tasks
 
-### Multi-Currency Tabbed UI Implementation
-1. ✅ Currency onboarding screens (iOS & Android)
+### Multi-Currency Tabbed UI Implementation (Android)
+1. ✅ Currency onboarding screens
 2. ✅ Onboarding completion flags in UserPreferences
-3. 🔄 **IN PROGRESS**: Onboarding navigation logic on app launch
-4. ⏳ Currency tab bar component (iOS & Android)
-5. ⏳ Dynamic tab generation based on expenses
-6. ⏳ Per-currency expense filtering
-7. ⏳ Per-tab total calculation
-8. ⏳ Tab view integration into ContentView
-9. ⏳ Empty states and edge cases
-10. ⏳ Complete tabbed currency flow testing
+3. ✅ Onboarding navigation logic on app launch
+4. ✅ Currency tab bar component (ScrollableTabRow)
+5. ✅ Dynamic tab generation based on expenses
+6. ✅ Per-currency expense filtering
+7. ✅ Per-currency total calculation in header
+8. ✅ Tab view integration into MainContentScreen
+9. ✅ Empty states and edge cases
+10. ✅ Complete tabbed currency flow
+11. ✅ Consistent currency formatting (CurrencyFormatter)
+12. ✅ Comprehensive UI documentation
 
-### Code Generation Requests
+### Next: iOS Implementation
+Reference @ui-design-spec.md for complete design specifications.
+
+**iOS Tasks (Priority Order):**
+1. ⏳ Implement CurrencyFormatter utility (match Android)
+2. ⏳ Create header card with dynamic total
+3. ⏳ Add gradient background
+4. ⏳ Implement custom FAB equivalent
+5. ⏳ Build expense row design
+6. ⏳ Create empty state screen
+7. ⏳ Implement single currency screen
+8. ⏳ Build multi-currency tabbed interface
+9. ⏳ Add voice indicator icon
+10. ⏳ Implement swipe to delete
+
+### Code Generation Requests (iOS)
 When asking Claude Code:
-- "Implement onboarding navigation in JustSpentApp.swift on launch"
-- "Create scrollable currency tab bar for SwiftUI"
-- "Build per-currency expense filtering logic"
-- "Generate dynamic tab creation based on expense currencies"
-- "Create currency-specific total calculation views"
+- "Implement CurrencyFormatter utility in Swift matching Android design"
+- "Create header card with gradient background for SwiftUI"
+- "Build custom FAB with recording indicator in SwiftUI"
+- "Implement scrollable currency tabs for SwiftUI"
+- "Create dynamic total calculation matching Android pattern"
 
 ## 🔧 Development Patterns
 
@@ -166,8 +194,13 @@ enum ExpenseError: LocalizedError {
 - Currency-specific expense isolation
 - 3-tap max for manual operations
 - Instant confirmation for voice commands
-- Accessibility (VoiceOver) from day 1
+- Accessibility (VoiceOver/TalkBack) from day 1
 - Onboarding-first user experience
+- Consistent currency formatting: 1,234.56 (all currencies)
+- Dynamic total in header (updates with tab changes)
+- Gradient background (blue → purple, subtle)
+
+**Design Reference:** See @ui-design-spec.md for complete specifications
 
 ## 🎯 Success Metrics
 

@@ -108,22 +108,15 @@ sealed class Currency(
 
     /**
      * Decimal separator character
+     * Always uses "." (Western/English format) for consistency across all currencies
      */
-    val decimalSeparator: String
-        get() = when (this) {
-            is EUR -> ","
-            else -> "."
-        }
+    val decimalSeparator: String = "."
 
     /**
      * Thousands grouping separator
+     * Always uses "," (Western/English format) for consistency across all currencies
      */
-    val groupingSeparator: String
-        get() = when (this) {
-            is EUR -> "."
-            is INR -> ","
-            else -> ","
-        }
+    val groupingSeparator: String = ","
 
     // MARK: - Companion Object (Static Utilities)
 

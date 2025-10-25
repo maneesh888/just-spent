@@ -79,6 +79,8 @@ struct FloatingVoiceButton: View {
                             .scaleEffect(isRecording ? 1.1 : 1.0)
                             .animation(.easeInOut(duration: 0.2), value: isRecording)
                     }
+                    .accessibilityIdentifier("voice_recording_button")
+                    .accessibilityLabel(isRecording ? "Stop recording" : "Start voice recording")
                     .disabled(!speechRecognitionAvailable || (!speechPermissionGranted || !microphonePermissionGranted))
                     .opacity((speechRecognitionAvailable && speechPermissionGranted && microphonePermissionGranted) ? 1.0 : 0.6)
                 }

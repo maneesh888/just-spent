@@ -215,9 +215,9 @@ struct ContentView: View {
     private var emptyStateViewContent: some View {
         NavigationView {
             VStack {
-                // Header
-                HStack {
-                    VStack(alignment: .leading) {
+                // Header with title and total
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStrings.appTitle)
                             .font(.largeTitle)
                             .fontWeight(.bold)
@@ -225,9 +225,27 @@ struct ContentView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+
                     Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(LocalizedStrings.totalLabel)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(CurrencyFormatter.shared.format(
+                            amount: 0,
+                            currency: userPreferences.defaultCurrency,
+                            showSymbol: true,
+                            showCode: false
+                        ))
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .background(Color(.systemBackground))
 
                 // Empty state content
                 VStack(spacing: 20) {
@@ -291,7 +309,6 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationBarHidden(true)
         }
     }
     

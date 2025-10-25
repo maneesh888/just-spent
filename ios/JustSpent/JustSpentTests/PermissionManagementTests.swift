@@ -67,65 +67,56 @@ class PermissionManagementTests: XCTestCase {
     
     // MARK: - Permission Request Flow Tests
     
-    func testSpeechPermissionRequest() throws {
-        // Given
-        let expectation = XCTestExpectation(description: "Speech permission request")
-        var receivedStatus: SFSpeechRecognizerAuthorizationStatus?
-        
-        // When
-        SFSpeechRecognizer.requestAuthorization { status in
-            receivedStatus = status
-            expectation.fulfill()
-        }
-        
-        // Then
-        wait(for: [expectation], timeout: 5.0)
-        XCTAssertNotNil(receivedStatus, "Should receive authorization status")
-        XCTAssertTrue([.authorized, .denied, .restricted].contains(receivedStatus!),
-                     "Status should be determined after request")
+    // NOTE: Manual Testing Required
+    // This test requires actual system permission dialogs which cannot be automated
+    // Run this test manually on a physical device to verify permission request flow
+    func testSpeechPermissionRequest_Manual() throws {
+        throw XCTSkip("This test requires manual testing on a physical device")
+
+        /* Manual Test Instructions:
+         1. Reset app permissions in Settings
+         2. Launch app on physical device
+         3. Trigger voice recording feature
+         4. Verify speech recognition permission dialog appears
+         5. Grant or deny permission
+         6. Verify app handles response correctly
+         */
     }
     
-    func testMicrophonePermissionRequest() throws {
-        // Given
-        let expectation = XCTestExpectation(description: "Microphone permission request")
-        var permissionGranted: Bool?
-        
-        // When
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            permissionGranted = granted
-            expectation.fulfill()
-        }
-        
-        // Then
-        wait(for: [expectation], timeout: 5.0)
-        XCTAssertNotNil(permissionGranted, "Should receive permission response")
+    // NOTE: Manual Testing Required
+    // This test requires actual system permission dialogs which cannot be automated
+    // Run this test manually on a physical device to verify permission request flow
+    func testMicrophonePermissionRequest_Manual() throws {
+        throw XCTSkip("This test requires manual testing on a physical device")
+
+        /* Manual Test Instructions:
+         1. Reset app permissions in Settings
+         2. Launch app on physical device
+         3. Trigger voice recording feature
+         4. Verify microphone permission dialog appears
+         5. Grant or deny permission
+         6. Verify app handles response correctly
+         */
     }
     
-    func testSequentialPermissionRequests() throws {
-        // Given
-        let speechExpectation = XCTestExpectation(description: "Speech permission")
-        let microphoneExpectation = XCTestExpectation(description: "Microphone permission")
-        
-        var speechGranted = false
-        var microphoneGranted = false
-        
-        // When - Request speech permission first
-        SFSpeechRecognizer.requestAuthorization { status in
-            speechGranted = (status == .authorized)
-            speechExpectation.fulfill()
-            
-            // Then request microphone permission
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                microphoneGranted = granted
-                microphoneExpectation.fulfill()
-            }
-        }
-        
-        // Then
-        wait(for: [speechExpectation, microphoneExpectation], timeout: 10.0)
-        // Both permissions are required for voice functionality
-        let voiceFeatureAvailable = speechGranted && microphoneGranted
-        XCTAssertNotNil(voiceFeatureAvailable, "Voice feature availability should be determined")
+    // NOTE: Manual Testing Required
+    // This test requires actual system permission dialogs which cannot be automated
+    // Run this test manually on a physical device to verify permission request flow
+    func testSequentialPermissionRequests_Manual() throws {
+        throw XCTSkip("This test requires manual testing on a physical device")
+
+        /* Manual Test Instructions:
+         1. Reset all app permissions in Settings
+         2. Launch app on physical device for first time
+         3. Trigger voice recording feature
+         4. Verify speech recognition permission dialog appears first
+         5. Grant or deny speech permission
+         6. Verify microphone permission dialog appears second
+         7. Grant or deny microphone permission
+         8. Verify app handles both permission states correctly
+         9. Test both permissions granted scenario
+         10. Test one or both permissions denied scenario
+         */
     }
     
     // MARK: - Permission Alert Tests

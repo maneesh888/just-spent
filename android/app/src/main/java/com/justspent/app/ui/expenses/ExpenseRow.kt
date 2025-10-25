@@ -11,11 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.justspent.app.data.model.Currency
 import com.justspent.app.data.model.Expense
+import com.justspent.app.utils.CurrencyFormatter
 import kotlinx.datetime.LocalDateTime
 import java.math.BigDecimal
-import java.text.NumberFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,15 +153,14 @@ fun ExpenseRow(
     }
 }
 
-private fun formatAmount(amount: BigDecimal, currency: String): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
-    return when (currency.uppercase()) {
-        "AED" -> "AED ${String.format("%.2f", amount)}"
-        "USD" -> formatter.format(amount)
-        "EUR" -> "€${String.format("%.2f", amount)}"
-        "GBP" -> "£${String.format("%.2f", amount)}"
-        else -> "$currency ${String.format("%.2f", amount)}"
-    }
+private fun formatAmount(amount: BigDecimal, currencyCode: String): String {
+    val currency = Currency.fromCode(currencyCode) ?: Currency.USD
+    return CurrencyFormatter.format(
+        amount = amount,
+        currency = currency,
+        showSymbol = true,
+        showCode = false
+    )
 }
 
 private fun formatDate(dateTime: LocalDateTime): String {
