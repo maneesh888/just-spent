@@ -115,19 +115,24 @@ class VoiceRecordingTests: XCTestCase {
         XCTAssertFalse(isRecording, "Recording state should be false when stopped")
     }
     
+    #if !targetEnvironment(simulator)
     func testAudioEngineConfiguration() throws {
+        // NOTE: This test requires actual audio hardware
+        // which is not available in iOS Simulator
+
         // Given
         let audioEngine = AVAudioEngine()
-        
+
         // When
         let inputNode = audioEngine.inputNode
         let outputFormat = inputNode.outputFormat(forBus: 0)
-        
+
         // Then
         XCTAssertNotNil(inputNode, "Audio engine should have input node")
         XCTAssertNotNil(outputFormat, "Input node should have output format")
         XCTAssertGreaterThan(outputFormat.sampleRate, 0, "Sample rate should be greater than 0")
     }
+    #endif
     
     // MARK: - Voice Input Processing Tests
     
@@ -228,34 +233,6 @@ class VoiceRecordingTests: XCTestCase {
         }
         
         // Then - performance should be acceptable for real-time processing
-    }
-}
-
-// MARK: - Mock Objects
-
-class MockSpeechRecognizer {
-    var isAvailable = true
-    var mockError: Error?
-    var mockResult: String = "I just spent 20 dollars on coffee"
-    
-    func simulateRecognition() -> String {
-        return mockResult
-    }
-    
-    func simulateError() -> Error? {
-        return mockError
-    }
-}
-
-class MockAudioEngine {
-    var isRunning = false
-    
-    func simulateStart() {
-        isRunning = true
-    }
-    
-    func simulateStop() {
-        isRunning = false
     }
 }
 
