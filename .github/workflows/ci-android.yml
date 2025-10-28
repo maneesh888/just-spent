@@ -26,7 +26,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -50,7 +50,7 @@ jobs:
 
       - name: Upload Unit Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-unit-test-results
           path: android/app/build/reports/tests/testDebugUnitTest/
@@ -85,7 +85,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -108,14 +108,14 @@ jobs:
 
       - name: Upload UI Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-ui-test-results
           path: android/app/build/reports/androidTests/connected/
 
       - name: Upload UI Test Screenshots
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-ui-test-screenshots
           path: android/app/build/outputs/androidTest-results/
