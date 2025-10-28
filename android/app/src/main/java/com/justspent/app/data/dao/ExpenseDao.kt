@@ -44,4 +44,7 @@ interface ExpenseDao {
     
     @Query("SELECT DISTINCT category FROM expenses WHERE user_id = :userId ORDER BY category ASC")
     fun getDistinctCategories(userId: String = "default_user"): Flow<List<String>>
+
+    @Query("DELETE FROM expenses")
+    suspend fun deleteAllExpenses()
 }
