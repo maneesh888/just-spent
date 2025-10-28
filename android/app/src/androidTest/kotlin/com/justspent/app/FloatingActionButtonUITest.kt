@@ -212,7 +212,7 @@ class FloatingActionButtonUITest {
         micFab.assertExists()
 
         // Recording indicators should disappear
-        try {
+        val hasListeningText = try {
             composeTestRule.onNodeWithText("Listening...").assertExists()
             true
         } catch (e: AssertionError) {

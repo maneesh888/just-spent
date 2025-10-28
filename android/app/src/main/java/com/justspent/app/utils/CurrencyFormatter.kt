@@ -76,18 +76,37 @@ object CurrencyFormatter {
      */
     fun parse(string: String, currency: Currency): BigDecimal? {
         return try {
-            // Remove common currency symbols and whitespace
-            var cleanedString = string
-            Currency.all.forEach { curr ->
-                cleanedString = cleanedString.replace(curr.symbol, "")
-                cleanedString = cleanedString.replace(curr.code, "")
-            }
-            cleanedString = cleanedString.trim()
-                .replace(",", "")  // Remove grouping separators
-                .replace(" ", "")
+            // Start with trimmed string
+            var cleanedString = string.trim()
 
-            BigDecimal(cleanedString).setScale(currency.decimalPlaces, RoundingMode.HALF_UP)
-        } catch (e: Exception) {
+            // Remove grouping separators first (commas and spaces)
+            cleanedString = cleanedString.replace(",", "")
+            cleanedString = cleanedString.replace(" ", "")
+
+            // Remove all known currency symbols (hardcoded for safety)
+            val symbols = listOf("د.إ", "$", "€", "£", "₹", "﷼")
+            symbols.forEach { symbol ->
+                cleanedString = cleanedString.replace(symbol, "")
+            }
+
+            // Remove all known currency codes
+            val codes = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
+            codes.forEach { code ->
+                cleanedString = cleanedString.replace(code, "", ignoreCase = true)
+            }
+
+            // Final cleanup - remove any remaining whitespace
+            cleanedString = cleanedString.trim()
+
+            // Ensure we have a valid number string
+            if (cleanedString.isEmpty()) {
+                return null
+            }
+
+            // Parse to BigDecimal and set proper scale
+            val value = BigDecimal(cleanedString)
+            value.setScale(currency.decimalPlaces, RoundingMode.HALF_UP)
+        } catch (e: NumberFormatException) {
             null
         }
     }
