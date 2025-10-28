@@ -2,6 +2,7 @@
 
 @just-spent-master-plan.md
 @data-models-spec.md
+@TESTING-GUIDE.md
 
 ## 🎯 Current Context
 
@@ -69,13 +70,29 @@ source: ExpenseSource, voiceTranscript: String?
 
 ## 🧪 Testing Standards
 
-Reference: @comprehensive-test-plan.md
+Reference: @comprehensive-test-plan.md, @TESTING-GUIDE.md
 
 ### Coverage Targets
 - Unit Tests: 85% minimum
 - Voice Integration: All patterns tested
 - Performance: <1.5s voice processing
 - Security: OWASP Mobile Top 10 compliance
+
+### Running Tests
+**iOS:**
+```bash
+cd ios/JustSpent
+xcodebuild test -project JustSpent.xcodeproj -scheme JustSpent \
+  -destination 'platform=iOS Simulator,name=iPhone 16'
+```
+
+**Android:**
+```bash
+cd android
+./test.sh unit    # Unit tests only
+./test.sh ui      # UI tests (requires emulator)
+./test.sh all     # All tests
+```
 
 ## 🚀 Current Sprint Tasks
 

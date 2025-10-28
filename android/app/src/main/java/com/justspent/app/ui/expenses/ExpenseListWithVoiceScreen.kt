@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -142,7 +143,8 @@ fun ExpenseListWithVoiceScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .testTag("header_card"),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
@@ -219,7 +221,8 @@ fun ExpenseListWithVoiceScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(32.dp),
+                            .padding(32.dp)
+                            .testTag("empty_state"),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -237,7 +240,9 @@ fun ExpenseListWithVoiceScreen(
                                 Icon(
                                     imageVector = if (hasAudioPermission) Icons.Default.Mic else Icons.Default.Add,
                                     contentDescription = "Voice Input",
-                                    modifier = Modifier.size(60.dp),
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .testTag("empty_state_icon"),
                                     tint = if (hasAudioPermission)
                                         MaterialTheme.colorScheme.primary
                                     else
@@ -247,9 +252,10 @@ fun ExpenseListWithVoiceScreen(
                                 Spacer(modifier = Modifier.height(20.dp))
 
                                 Text(
-                                    text = "No expenses yet",
+                                    text = "No Expenses Yet",
                                     style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.testTag("empty_state_title")
                                 )
 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -262,7 +268,8 @@ fun ExpenseListWithVoiceScreen(
                                     },
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.testTag("empty_state_help_text")
                                 )
 
                                 if (hasAudioPermission) {
@@ -574,10 +581,11 @@ private fun VoiceRecordingFAB(
             modifier = Modifier
                 .size(if (isRecording) 66.dp else 60.dp)
                 .scale(if (isRecording) scale else 1f)
+                .testTag("voice_fab")
         ) {
             Icon(
                 imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
-                contentDescription = if (isRecording) "Stop Recording" else "Start Recording",
+                contentDescription = if (isRecording) "Stop voice recording" else "Voice recording button",
                 modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.onPrimary
             )
