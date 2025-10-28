@@ -18,9 +18,19 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
+
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Enable multidex for tests
+        multiDexEnabled = true
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        animationsDisabled = true
     }
 
     buildTypes {
@@ -33,11 +43,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -117,7 +127,11 @@ dependencies {
     testImplementation("androidx.room:room-testing:2.6.1")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("com.google.truth:truth:1.1.4")
+    testImplementation("org.robolectric:robolectric:4.11.1")
     
+    // Multidex
+    implementation("androidx.multidex:multidex:2.0.1")
+
     // Android Test
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -127,6 +141,7 @@ dependencies {
     androidTestImplementation("androidx.room:room-testing:2.6.1")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.48")
     kspAndroidTest("com.google.dagger:hilt-android-compiler:2.48")
+    androidTestUtil("androidx.test:orchestrator:1.4.2")
     
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
