@@ -66,11 +66,10 @@ jobs:
 
   ui-tests:
     name: Android UI Tests
-    # IMPORTANT: Use macos-13 (Intel) instead of macos-latest (Apple Silicon/ARM)
-    # - macos-latest uses ARM64 which cannot run x86_64 emulators with hardware acceleration
-    # - macos-13 uses Intel x86_64 which supports hardware-accelerated x86_64 emulation
-    # - This provides 3-5x faster emulator boot times compared to ARM64 emulation
-    runs-on: macos-13
+    # Using macos-latest (Apple Silicon M1/M2) to match local development environment
+    # - Native ARM64 emulation for consistency with developer machines
+    # - arm64-v8a emulator images for native performance
+    runs-on: macos-latest
     timeout-minutes: 45
 
     steps:
@@ -116,76 +115,35 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-30-x86_64-macos-intel-nexus6  # API 30 most stable for CI
+          key: avd-34-arm64-macos-latest-pixel6  # API 34 with ARM64 for Apple Silicon
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30  # API 30 (Android 11) - most stable in CI environments
-          target: default
-          arch: x86_64
-          profile: Nexus 6  # Simpler device profile for better stability
+          api-level: 34  # API 34 (Android 14) - matches targetSdk
+          target: google_apis
+          arch: arm64-v8a  # Native ARM64 for Apple Silicon
+          profile: pixel_6
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096 -partition-size 4096
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
-
-      - name: Enable KVM (for Linux runners)
-        if: runner.os == 'Linux'
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Free up disk space (prevent resource exhaustion)
-        run: |
-          # Remove unnecessary files to ensure enough disk space
-          rm -rf ~/Library/Android/sdk/system-images/android-31 || true
-          rm -rf ~/Library/Android/sdk/system-images/android-32 || true
-          rm -rf ~/Library/Android/sdk/system-images/android-33 || true
-          rm -rf ~/Library/Android/sdk/system-images/android-34 || true
-          df -h
 
       - name: Run instrumented tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30  # API 30 (Android 11) - most stable in CI environments
-          target: default  # Use default target (no Google APIs) for stability
-          arch: x86_64  # Hardware-accelerated on Intel macOS runners
-          profile: Nexus 6  # Simpler device profile for better stability
+          api-level: 34  # API 34 (Android 14) - matches targetSdk
+          target: google_apis
+          arch: arm64-v8a  # Native ARM64 for Apple Silicon
+          profile: pixel_6
           force-avd-creation: false
-          emulator-boot-timeout: 900  # 15 minutes timeout (generous for first boot)
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048 -accel on
+          emulator-boot-timeout: 600  # 10 minutes timeout for boot
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096 -partition-size 4096
           disable-animations: true
           disable-spellchecker: true
           disable-linux-hw-accel: false
-          script: |
-            # Additional stability measures
-            echo "Emulator booted, adding extra stability wait..."
-            sleep 15
-
-            # Verify emulator is responsive
-            echo "Checking emulator status..."
-            adb devices -l
-            adb shell getprop ro.build.version.release
-            adb shell getprop ro.product.model
-
-            # Disable additional animations
-            adb shell settings put global window_animation_scale 0.0
-            adb shell settings put global transition_animation_scale 0.0
-            adb shell settings put global animator_duration_scale 0.0
-
-            # Final stability wait
-            sleep 5
-
-            # Run tests with retry on failure
-            echo "Starting test execution..."
-            cd android && ./gradlew connectedDebugAndroidTest --stacktrace || {
-              echo "First attempt failed, retrying once..."
-              sleep 10
-              ./gradlew connectedDebugAndroidTest --stacktrace
-            }
+          script: cd android && ./gradlew connectedDebugAndroidTest --stacktrace
 
       - name: Upload UI Test Results
         if: always()
