@@ -382,6 +382,7 @@ on:
 - **Google APIs target** - Full Android feature set available for comprehensive testing
 - **AVD caching** - Speeds up subsequent runs after initial boot
 - **Explicit ADB commands** - `adb wait-for-device` ensures proper device detection
+- **Runtime permissions** - Microphone permissions granted via ADB before tests run
 
 **Architecture Choice**: Using `ubuntu-latest` with KVM + API 28:
 - Linux runners provide superior emulator stability compared to macOS

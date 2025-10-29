@@ -143,6 +143,15 @@ jobs:
           script: |
             adb wait-for-device
             adb shell input keyevent 82
+
+            # Grant runtime permissions for voice recording
+            adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
+            adb shell pm grant com.justspent.app android.permission.MODIFY_AUDIO_SETTINGS
+
+            # Verify permissions were granted
+            echo "Checking granted permissions:"
+            adb shell dumpsys package com.justspent.app | grep permission
+
             cd android && ./gradlew connectedDebugAndroidTest --stacktrace
 
       - name: Upload UI Test Results
