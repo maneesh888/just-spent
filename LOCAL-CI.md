@@ -375,19 +375,19 @@ on:
 | **Failure Rate** | ~5% | ~10% (improved with emulator optimizations) |
 
 **Note**: GitHub Actions configuration optimized for reliability:
-- **Apple Silicon runners** (`macos-latest`) - Matches local development environment (M1/M2)
-- **ARM64 emulation** (`arm64-v8a`) - Native ARM performance for Apple Silicon
+- **Ubuntu runners** (`ubuntu-latest`) - Best stability for Android emulator
+- **KVM hardware acceleration** - Near-native performance for x86_64 emulation
 - **API Level 34 (Android 14)** - Matches app's targetSdk and compileSdk
 - **Pixel 6 device profile** - Modern device profile for realistic testing
 - **Google APIs target** - Full Android feature set available for comprehensive testing
 - **AVD caching** - Speeds up subsequent runs after initial boot
 - **Minimal emulator options** - Only essential flags to avoid ADB connection issues
-- **ADB server reset** - Ensures clean state before emulator launch
 
-**Architecture Choice**: Using `macos-latest` (Apple Silicon M1/M2):
-- Native ARM64 emulation matches local development machines
-- Consistent environment between local and CI testing
-- Modern infrastructure with latest macOS features
+**Architecture Choice**: Using `ubuntu-latest` with KVM:
+- Linux runners provide superior emulator stability compared to macOS
+- KVM hardware acceleration delivers near-native performance
+- Recommended by android-emulator-runner maintainers
+- Significantly more reliable than macOS runners for Android emulator
 
 ### Resource Usage
 
