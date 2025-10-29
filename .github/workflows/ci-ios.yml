@@ -80,7 +80,6 @@ jobs:
 
       - name: Convert xcresult to coverage report
         if: always()
-        continue-on-error: true
         working-directory: ios/JustSpent
         run: |
           # Convert unit test coverage

@@ -45,7 +45,6 @@ jobs:
         run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Generate Code Coverage Report
-        continue-on-error: true
         working-directory: android
         run: ./gradlew jacocoTestReport
 
@@ -97,7 +96,6 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Run instrumented tests on Android emulator
-        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
