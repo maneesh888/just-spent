@@ -24,7 +24,19 @@
       "Bash(adb:*)",
       "Bash(tee:*)",
       "Read(//private/tmp/**)",
-      "Bash(git restore ios/JustSpent/JustSpent/ContentView.swift)"
+      "Bash(git restore ios/JustSpent/JustSpent/ContentView.swift)",
+      "Bash(git checkout:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh run view:*)",
+      "Bash(cat:*)",
+      "Bash(./test.sh:*)",
+      "Bash(for i in {1..6})",
+      "Bash(do sleep 30)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(gh api:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []
