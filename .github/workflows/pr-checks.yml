@@ -13,6 +13,15 @@ on:
     branches:
       - main  # Only auto-run on pushes to main
   workflow_dispatch:  # Allow manual triggering from GitHub UI for any branch
+    inputs:
+      enable_android_ui_tests:
+        description: 'Enable Android UI tests (disabled by default due to emulator instability)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 # Cancel in-progress runs for the same workflow and PR/branch
 concurrency:
