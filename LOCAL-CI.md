@@ -376,9 +376,12 @@ on:
 
 **Note**: GitHub Actions failure rate was previously ~30% due to Android emulator timeout issues. This has been significantly improved with optimizations including:
 - **Intel macOS runners** (`macos-13`) for x86_64 hardware acceleration
+- **API Level 33** (more stable than 34 in CI environments)
 - **AVD caching** for faster subsequent runs
 - **Increased boot timeout** (10 minutes)
-- **Memory allocation** (4GB RAM, 4GB partition)
+- **Reduced memory allocation** (2GB RAM, 2GB partition - prevents resource exhaustion)
+- **ADB server reset** before emulator launch
+- **Post-boot stability wait** (15 seconds) for full system readiness
 
 **Architecture Note**: We use `macos-13` (Intel) instead of `macos-latest` (Apple Silicon) because:
 - Apple Silicon (ARM64) cannot run x86_64 Android emulators with hardware acceleration
