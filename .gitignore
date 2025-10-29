@@ -67,3 +67,6 @@ yarn-error.log*
 
 # Claude Code
 .claude/settings.local.json
+
+# Local CI results
+.ci-results/

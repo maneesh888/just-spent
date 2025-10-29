@@ -94,6 +94,78 @@ cd android
 ./test.sh all     # All tests
 ```
 
+## 🔄 CI/CD - Hybrid Approach
+
+Reference: @LOCAL-CI.md for complete documentation
+
+### Quick Start
+```bash
+# First time setup
+./scripts/install-hooks.sh
+
+# Run local CI checks
+./local-ci.sh --all          # Full: build + all tests (~5-10 min)
+./local-ci.sh --all --quick  # Fast: build + unit tests (~2-3 min)
+./local-ci.sh --ios          # iOS only
+./local-ci.sh --android      # Android only
+```
+
+### Strategy: Hybrid CI/CD
+
+**Local CI** (for development):
+- Runs on your Mac for instant feedback
+- 3-5x faster than GitHub Actions (5-10 min vs 11-12 min)
+- Pre-commit hook prevents breaking changes
+- Generates HTML reports + macOS notifications
+- Zero cost, no network dependency
+
+**GitHub Actions** (for production):
+- Runs automatically on `main` branch only
+- Safety net for production code
+- Can be manually triggered for any branch
+- Team visibility and PR badges
+
+### When to Use What
+
+| Task | Use Local CI | Use GitHub Actions |
+|------|--------------|-------------------|
+| During development | ✅ Always | ❌ Not needed |
+| Before commit | ✅ Auto (hook) | ❌ Not needed |
+| Feature branch | ✅ Run manually | ⚠️ Optional (manual trigger) |
+| PR to main | ✅ Good practice | ✅ Runs automatically |
+| After merge to main | ❌ Not needed | ✅ Runs automatically |
+
+### Pre-Commit Hook
+
+Automatically runs `./local-ci.sh --all --quick` before each commit.
+
+**To bypass** (for WIP commits):
+```bash
+git commit --no-verify -m "WIP: message"
+```
+
+### Viewing Results
+
+**Terminal**: Colored output with ✅/❌ status
+**HTML Report**: Auto-opens in browser after each run
+**Logs**: Saved in `.ci-results/` directory
+**Notifications**: macOS alerts on completion
+
+### Manual GitHub Actions Trigger
+
+1. Go to: https://github.com/YOUR_USERNAME/just-spent/actions
+2. Click "PR Checks" workflow
+3. Click "Run workflow" → Select branch → Run
+
+### Performance Comparison
+
+| Metric | Local CI | GitHub Actions |
+|--------|----------|----------------|
+| Full suite | 5-10 min | 11-12 min |
+| Quick mode | 2-3 min | N/A |
+| Failure rate | ~5% | ~30% (network issues) |
+| Cost | Free | GitHub minutes |
+
 ## 🚀 Current Sprint Tasks
 
 ### Multi-Currency Tabbed UI Implementation (Android)

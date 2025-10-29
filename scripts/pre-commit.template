@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# ============================================================================
+# Just Spent - Pre-commit Hook
+# ============================================================================
+# Automatically runs CI checks before each commit to prevent breaking changes
+#
+# To bypass this hook (use sparingly!):
+#   git commit --no-verify
+# ============================================================================
+
+echo ""
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Get project root directory
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+
+# Run local CI in quick mode (build + unit tests only)
+if "$PROJECT_ROOT/local-ci.sh" --all --quick; then
+  echo ""
+  echo "✅ Pre-commit checks passed! Proceeding with commit..."
+  echo ""
+  exit 0
+else
+  echo ""
+  echo "❌ Pre-commit checks failed!"
+  echo ""
+  echo "Your commit has been blocked to prevent breaking changes."
+  echo ""
+  echo "Options:"
+  echo "  1. Fix the failing tests and try again"
+  echo "  2. Run full checks: ./local-ci.sh --all"
+  echo "  3. Bypass hook (not recommended): git commit --no-verify"
+  echo ""
+  exit 1
+fi
