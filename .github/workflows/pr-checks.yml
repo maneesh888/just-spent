@@ -1,14 +1,18 @@
 name: PR Checks
 
+# Hybrid CI/CD Approach:
+# - GitHub Actions: Runs automatically only on main branch (production safety net)
+# - Local CI: Used for feature branches during development (faster feedback)
+# - Manual Trigger: Available for any branch via GitHub Actions UI when needed
+
 on:
   pull_request:
     branches:
-      - main
-      - develop
+      - main  # Only auto-run on PRs to main
   push:
     branches:
-      - main
-      - develop
+      - main  # Only auto-run on pushes to main
+  workflow_dispatch:  # Allow manual triggering from GitHub UI for any branch
 
 # Cancel in-progress runs for the same workflow and PR/branch
 concurrency:
