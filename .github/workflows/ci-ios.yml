@@ -73,25 +73,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Install xcresulttool (for coverage conversion)
-        if: always()
-        run: |
-          brew install chargepoint/xcparse/xcparse || true
-
-      - name: Convert xcresult to coverage report
-        if: always()
-        working-directory: ios/JustSpent
-        run: |
-          # Convert unit test coverage
-          if [ -d "./test-results-unit.xcresult" ]; then
-            xcrun xccov view --report --json ./test-results-unit.xcresult > coverage-unit.json
-          fi
-
-          # Convert UI test coverage
-          if [ -d "./test-results-ui.xcresult" ]; then
-            xcrun xccov view --report --json ./test-results-ui.xcresult > coverage-ui.json
-          fi
-
       - name: Upload Unit Test Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -109,7 +90,6 @@ jobs:
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ios/JustSpent/coverage-unit.json,ios/JustSpent/coverage-ui.json
           flags: ios
           name: ios-coverage
           fail_ci_if_error: false

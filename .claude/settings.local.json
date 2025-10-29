@@ -36,7 +36,10 @@
       "Bash(echo:*)",
       "Bash(done)",
       "Bash(gh api:*)",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run watch:*)",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []
