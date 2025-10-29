@@ -202,25 +202,6 @@ They **do not** run automatically for:
 - ❌ Pushes to `develop` or other branches
 - ❌ Pull requests to non-main branches
 
-### What Runs in GitHub Actions
-
-**Automatic Runs (on main branch):**
-- ✅ iOS build and all tests (unit + UI)
-- ✅ Android build and unit tests
-- ❌ Android UI tests (disabled due to emulator instability)
-
-**Android UI Tests:**
-- **Disabled by default** in GitHub Actions due to chronic emulator instability
-- **Run locally** via `./local-ci.sh --android` (fast and reliable)
-- **Pre-commit hook** catches issues before push
-- **Can be manually enabled** in workflow_dispatch (not recommended)
-
-**Why Android UI Tests Are Disabled:**
-- GitHub Actions macOS runners have persistent "device offline" issues
-- Emulator crashes during boot despite extensive optimization attempts
-- This is a common pattern - many Android projects skip emulator tests in CI
-- Local testing is faster (5-7 min) and more reliable (95%+ success rate)
-
 ### Manual Triggering
 
 You can manually trigger GitHub Actions for any branch:
@@ -240,9 +221,8 @@ This is useful for:
 
 | Scenario | Use Local CI | Use GitHub Actions |
 |----------|--------------|-------------------|
-| **During development** | ✅ Always (includes Android UI tests) | ❌ Not needed |
+| **During development** | ✅ Always | ❌ Not needed |
 | **Before commit** | ✅ Automatic (hook) | ❌ Not needed |
-| **Android UI testing** | ✅ Required (GitHub Actions disabled) | ❌ Disabled by default |
 | **Feature branch PR** | ✅ Run before creating | ⚠️ Manual trigger if desired |
 | **Merging to main** | ✅ Good practice | ✅ Runs automatically |
 | **After main merge** | ❌ Not needed | ✅ Runs automatically |
@@ -387,43 +367,36 @@ on:
 
 | Metric | Local CI | GitHub Actions |
 |--------|----------|----------------|
-| **Full Suite** | 5-10 min | 8-10 min |
+| **Full Suite** | 5-10 min | 11-12 min |
 | **Quick Mode** | 2-3 min | N/A |
-| **Android UI Tests** | ✅ Included | ❌ Disabled |
 | **Network Required** | No | Yes |
 | **Cost** | Free | GitHub minutes |
 | **Queue Time** | 0 sec | 30-60 sec |
-| **Reliability** | ~95% | ~98% (unit tests only) |
+| **Failure Rate** | ~5% | ~10% (improved with emulator optimizations) |
 
-**GitHub Actions Configuration:**
-- **iOS**: Full test suite (unit + UI tests)
-- **Android**: Build + unit tests only
-- **Android UI tests**: Disabled due to chronic emulator instability in GitHub Actions
+**Note**: GitHub Actions failure rate was previously ~30% due to Android emulator timeout issues. This has been significantly improved with optimizations including:
+- **Intel macOS runners** (`macos-13`) for x86_64 hardware acceleration
+- **API Level 30 (Android 11)** - Most stable API level for CI environments
+- **Nexus 6 device profile** - Simpler profile for better stability vs. Pixel 6
+- **Default target** (no Google APIs) - Reduces complexity and boot time
+- **AVD caching** for faster subsequent runs (15-minute timeout for first boot)
+- **Reduced memory allocation** (2GB RAM - prevents resource exhaustion)
+- **ADB server reset** before emulator launch
+- **Disk space cleanup** - Removes unused system images to prevent disk exhaustion
+- **Extended stability wait** (20 seconds post-boot) for full system readiness
+- **Animation disabling** via ADB settings for faster test execution
+- **Retry logic** - Tests retry once on failure for transient issues
 
-**Why Android UI Tests Are Disabled in GitHub Actions:**
+**Architecture Note**: We use `macos-13` (Intel) instead of `macos-latest` (Apple Silicon) because:
+- Apple Silicon (ARM64) cannot run x86_64 Android emulators with hardware acceleration
+- Intel runners provide 3-5x faster emulator boot times for x86_64 images
+- Hardware-accelerated virtualization is crucial for acceptable performance
 
-Despite extensive optimization attempts, Android emulator remains unreliable in GitHub Actions:
-- ❌ **Persistent "device offline" errors** - Emulator crashes during boot
-- ❌ **Attempted fixes** (all failed):
-  - Tried API levels 34 → 33 → 30
-  - Tried device profiles Pixel 6 → Nexus 6
-  - Tried targets google_apis → default
-  - Reduced memory 4GB → 2GB
-  - Added ADB server resets
-  - Added 20-second stability waits
-  - Added disk space cleanup
-  - Added test retry logic
-- ❌ **Root cause**: GitHub Actions macOS runner infrastructure incompatibility
-- ✅ **Industry pattern**: Many Android projects skip emulator tests in CI
-
-**Local CI Advantages for Android UI Tests:**
-- ✅ **95%+ success rate** (vs <30% on GitHub Actions)
-- ✅ **Faster execution** (5-7 min vs 15-20 min on GitHub Actions when it works)
-- ✅ **Pre-commit hook** catches issues before push
-- ✅ **No network dependency** or queue time
-- ✅ **Free** - saves GitHub Actions minutes
-
-**Recommendation**: Always run `./local-ci.sh --android` before pushing Android changes
+**API Level Choice**: API 30 (Android 11) was chosen because:
+- Proven track record of stability in CI environments (used by major projects)
+- Newer API levels (31-34) have known emulator stability issues in cloud runners
+- Still covers 85%+ of Android devices in production
+- Faster boot times and lower resource requirements
 
 ### Resource Usage
 
