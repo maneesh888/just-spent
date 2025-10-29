@@ -374,7 +374,16 @@ on:
 | **Queue Time** | 0 sec | 30-60 sec |
 | **Failure Rate** | ~5% | ~10% (improved with emulator optimizations) |
 
-**Note**: GitHub Actions failure rate was previously ~30% due to Android emulator timeout issues. This has been significantly improved with optimizations including x86_64 architecture, AVD caching, and increased boot timeout.
+**Note**: GitHub Actions failure rate was previously ~30% due to Android emulator timeout issues. This has been significantly improved with optimizations including:
+- **Intel macOS runners** (`macos-13`) for x86_64 hardware acceleration
+- **AVD caching** for faster subsequent runs
+- **Increased boot timeout** (10 minutes)
+- **Memory allocation** (4GB RAM, 4GB partition)
+
+**Architecture Note**: We use `macos-13` (Intel) instead of `macos-latest` (Apple Silicon) because:
+- Apple Silicon (ARM64) cannot run x86_64 Android emulators with hardware acceleration
+- Intel runners provide 3-5x faster emulator boot times for x86_64 images
+- Hardware-accelerated virtualization is crucial for acceptable performance
 
 ### Resource Usage
 

@@ -66,7 +66,11 @@ jobs:
 
   ui-tests:
     name: Android UI Tests
-    runs-on: macos-latest
+    # IMPORTANT: Use macos-13 (Intel) instead of macos-latest (Apple Silicon/ARM)
+    # - macos-latest uses ARM64 which cannot run x86_64 emulators with hardware acceleration
+    # - macos-13 uses Intel x86_64 which supports hardware-accelerated x86_64 emulation
+    # - This provides 3-5x faster emulator boot times compared to ARM64 emulation
+    runs-on: macos-13
     timeout-minutes: 45
 
     steps:
@@ -102,7 +106,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34-x86_64
+          key: avd-34-x86_64-macos-intel  # Separate cache for Intel macOS runners
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
