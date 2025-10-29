@@ -112,35 +112,38 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34-x86_64-ubuntu-latest  # API 34 with x86_64 for Ubuntu + KVM
+          key: avd-28-x86_64-ubuntu-latest  # API 28 for stability (proven to work)
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34  # API 34 (Android 14) - matches targetSdk
+          api-level: 28  # API 28 (Android 9) - proven stable in CI environments
           target: google_apis
           arch: x86_64  # x86_64 with KVM hardware acceleration
-          profile: pixel_6
+          profile: Nexus 6
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -gpu swiftshader_indirect
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run instrumented tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34  # API 34 (Android 14) - matches targetSdk
+          api-level: 28  # API 28 (Android 9) - proven stable in CI environments
           target: google_apis
           arch: x86_64  # x86_64 with KVM hardware acceleration
-          profile: pixel_6
+          profile: Nexus 6
           force-avd-creation: false
           emulator-boot-timeout: 600  # 10 minutes timeout for boot
-          emulator-options: -no-snapshot-save -gpu swiftshader_indirect
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
           disable-animations: true
           disable-spellchecker: true
           disable-linux-hw-accel: false  # Enable KVM (false = don't disable)
-          script: cd android && ./gradlew connectedDebugAndroidTest --stacktrace
+          script: |
+            adb wait-for-device
+            adb shell input keyevent 82
+            cd android && ./gradlew connectedDebugAndroidTest --stacktrace
 
       - name: Upload UI Test Results
         if: always()

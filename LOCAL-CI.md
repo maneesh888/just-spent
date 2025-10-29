@@ -377,17 +377,18 @@ on:
 **Note**: GitHub Actions configuration optimized for reliability:
 - **Ubuntu runners** (`ubuntu-latest`) - Best stability for Android emulator
 - **KVM hardware acceleration** - Near-native performance for x86_64 emulation
-- **API Level 34 (Android 14)** - Matches app's targetSdk and compileSdk
-- **Pixel 6 device profile** - Modern device profile for realistic testing
+- **API Level 28 (Android 9)** - Proven stable in CI environments (newer APIs have reliability issues)
+- **Nexus 6 device profile** - Widely used and tested profile
 - **Google APIs target** - Full Android feature set available for comprehensive testing
 - **AVD caching** - Speeds up subsequent runs after initial boot
-- **Minimal emulator options** - Only essential flags to avoid ADB connection issues
+- **Explicit ADB commands** - `adb wait-for-device` ensures proper device detection
 
-**Architecture Choice**: Using `ubuntu-latest` with KVM:
+**Architecture Choice**: Using `ubuntu-latest` with KVM + API 28:
 - Linux runners provide superior emulator stability compared to macOS
 - KVM hardware acceleration delivers near-native performance
-- Recommended by android-emulator-runner maintainers
-- Significantly more reliable than macOS runners for Android emulator
+- API 28 chosen over newer versions due to proven CI reliability
+- Recommended by android-emulator-runner maintainers and community
+- Trade-off: API 28 vs targetSdk 34, but prioritizes CI reliability
 
 ### Resource Usage
 
