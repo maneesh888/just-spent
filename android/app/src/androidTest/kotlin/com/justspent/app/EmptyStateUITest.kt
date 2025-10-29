@@ -120,12 +120,17 @@ class EmptyStateUITest {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
 
-        // Then - Total should show 0.00 or similar (flexible matching)
+        // Then - Total label should exist
         composeTestRule.onNode(
-            hasText("Total", substring = true) or
-            hasText("0", substring = true),
+            hasText("Total", substring = true),
             useUnmergedTree = true
         ).assertExists()
+
+        // And - Total amount should show 0 or currency symbol (flexible matching)
+        composeTestRule.onAllNodes(
+            hasText("0", substring = true),
+            useUnmergedTree = true
+        ).assertAtLeastOne()
     }
 
     @Test
@@ -253,6 +258,7 @@ class EmptyStateUITest {
     fun emptyState_titleIsAccessible() {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
+        Thread.sleep(1000) // Wait for compose hierarchy to fully render
 
         // Then - Title should be accessible for screen readers
         composeTestRule.onNodeWithTag("empty_state_title")
@@ -294,17 +300,16 @@ class EmptyStateUITest {
         composeTestRule.waitForIdle()
         Thread.sleep(500) // Additional wait for compose hierarchy
 
-        // Then - Should still show empty state after idle
-        // Note: Rotation testing requires ActivityScenario
-        // This is a placeholder for rotation handling
-        try {
-            composeTestRule.onNodeWithTag("empty_state")
-                .assertExists()
-        } catch (e: Exception) {
-            // Fallback: check for empty state title
-            composeTestRule.onNodeWithTag("empty_state_title")
-                .assertExists()
-        }
+        // Then - Should show empty state (rotation testing requires device automation)
+        // Simplified test: verify empty state is stable and renders correctly
+        composeTestRule.onNodeWithTag("empty_state")
+            .assertExists()
+            .assertIsDisplayed()
+
+        // And - Title should still be visible
+        composeTestRule.onNodeWithTag("empty_state_title")
+            .assertExists()
+            .assertIsDisplayed()
     }
 
     @Test
@@ -313,32 +318,24 @@ class EmptyStateUITest {
         composeTestRule.waitForIdle()
         Thread.sleep(500) // Additional wait for initial load
 
-        try {
-            composeTestRule.onNodeWithTag("empty_state_title")
-                .assertExists()
-        } catch (e: Exception) {
-            // If test tag doesn't exist, look for the text
-            composeTestRule.onNode(
-                hasText("No Expenses Yet"),
-                useUnmergedTree = true
-            ).assertExists()
-        }
+        // Then - Should show empty state title
+        composeTestRule.onNodeWithTag("empty_state_title")
+            .assertExists()
+            .assertIsDisplayed()
 
-        // When - Wait and check again
+        // When - Wait and check again (verify stability)
         Thread.sleep(500)
         composeTestRule.waitForIdle()
 
-        // Then - Should still show same empty state
-        try {
-            composeTestRule.onNodeWithTag("empty_state_title")
-                .assertExists()
-                .assertIsDisplayed()
-        } catch (e: Exception) {
-            composeTestRule.onNode(
-                hasText("No Expenses Yet"),
-                useUnmergedTree = true
-            ).assertExists()
-        }
+        // Then - Should still show same empty state (no flickering or recomposition issues)
+        composeTestRule.onNodeWithTag("empty_state_title")
+            .assertExists()
+            .assertIsDisplayed()
+
+        // And - Empty state container should remain stable
+        composeTestRule.onNodeWithTag("empty_state")
+            .assertExists()
+            .assertIsDisplayed()
     }
 
     // MARK: - Performance Tests
