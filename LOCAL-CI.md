@@ -376,17 +376,27 @@ on:
 
 **Note**: GitHub Actions failure rate was previously ~30% due to Android emulator timeout issues. This has been significantly improved with optimizations including:
 - **Intel macOS runners** (`macos-13`) for x86_64 hardware acceleration
-- **API Level 33** (more stable than 34 in CI environments)
-- **AVD caching** for faster subsequent runs
-- **Increased boot timeout** (10 minutes)
-- **Reduced memory allocation** (2GB RAM, 2GB partition - prevents resource exhaustion)
+- **API Level 30 (Android 11)** - Most stable API level for CI environments
+- **Nexus 6 device profile** - Simpler profile for better stability vs. Pixel 6
+- **Default target** (no Google APIs) - Reduces complexity and boot time
+- **AVD caching** for faster subsequent runs (15-minute timeout for first boot)
+- **Reduced memory allocation** (2GB RAM - prevents resource exhaustion)
 - **ADB server reset** before emulator launch
-- **Post-boot stability wait** (15 seconds) for full system readiness
+- **Disk space cleanup** - Removes unused system images to prevent disk exhaustion
+- **Extended stability wait** (20 seconds post-boot) for full system readiness
+- **Animation disabling** via ADB settings for faster test execution
+- **Retry logic** - Tests retry once on failure for transient issues
 
 **Architecture Note**: We use `macos-13` (Intel) instead of `macos-latest` (Apple Silicon) because:
 - Apple Silicon (ARM64) cannot run x86_64 Android emulators with hardware acceleration
 - Intel runners provide 3-5x faster emulator boot times for x86_64 images
 - Hardware-accelerated virtualization is crucial for acceptable performance
+
+**API Level Choice**: API 30 (Android 11) was chosen because:
+- Proven track record of stability in CI environments (used by major projects)
+- Newer API levels (31-34) have known emulator stability issues in cloud runners
+- Still covers 85%+ of Android devices in production
+- Faster boot times and lower resource requirements
 
 ### Resource Usage
 
