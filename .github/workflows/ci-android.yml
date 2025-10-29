@@ -126,7 +126,7 @@ jobs:
           arch: arm64-v8a  # Native ARM64 for Apple Silicon
           profile: pixel_6
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096 -partition-size 4096
+          emulator-options: -no-snapshot-save -gpu swiftshader_indirect
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
@@ -139,7 +139,7 @@ jobs:
           profile: pixel_6
           force-avd-creation: false
           emulator-boot-timeout: 600  # 10 minutes timeout for boot
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096 -partition-size 4096
+          emulator-options: -no-snapshot-save -gpu swiftshader_indirect
           disable-animations: true
           disable-spellchecker: true
           disable-linux-hw-accel: false

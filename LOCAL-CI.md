@@ -381,7 +381,7 @@ on:
 - **Pixel 6 device profile** - Modern device profile for realistic testing
 - **Google APIs target** - Full Android feature set available for comprehensive testing
 - **AVD caching** - Speeds up subsequent runs after initial boot
-- **4GB RAM allocation** - Sufficient memory for stable emulator performance
+- **Minimal emulator options** - Only essential flags to avoid ADB connection issues
 - **ADB server reset** - Ensures clean state before emulator launch
 
 **Architecture Choice**: Using `macos-latest` (Apple Silicon M1/M2):
