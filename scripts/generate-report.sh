@@ -21,12 +21,16 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 RESULTS_DIR="$PROJECT_DIR/.ci-results"
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+
+# Extract timestamp from JSON filename to ensure HTML and JSON match
+JSON_BASENAME=$(basename "$RESULTS_FILE" .json)
+TIMESTAMP="${JSON_BASENAME#report_}"
 REPORT_HTML="$RESULTS_DIR/report_$TIMESTAMP.html"
 
 # Extract data from JSON (basic parsing)
 OVERALL_SUCCESS=$(grep -o '"overall_success": [^,]*' "$RESULTS_FILE" | cut -d' ' -f2)
-DURATION=$(grep -o '"duration": [^,}]*' "$RESULTS_FILE" | cut -d' ' -f2)
+# Get the last duration (overall duration, not individual test durations)
+DURATION=$(grep -o '"duration": [^,}]*' "$RESULTS_FILE" | cut -d' ' -f2 | tail -1)
 
 # Format duration
 format_duration() {
@@ -53,6 +57,98 @@ else
   STATUS_TEXT="❌ Checks Failed"
   STATUS_ICON="❌"
 fi
+
+# Function to extract test result from JSON
+extract_test_result() {
+  local platform=$1
+  local test_type=$2
+  local field=$3  # status, duration, count, passed, or failed
+
+  # Use Python for robust JSON parsing
+  python3 -c "
+import json, sys
+try:
+    with open('$RESULTS_FILE', 'r') as f:
+        data = json.load(f)
+    value = data.get('results', {}).get('$platform', {}).get('$test_type', {}).get('$field', '')
+    print(value if value != '' else '')
+except:
+    print('')
+" 2>/dev/null
+}
+
+# Function to get status HTML with test counts
+get_status_html() {
+  local status=$1
+  local test_count=$2
+  local passed=$3
+  local failed=$4
+  local is_build=$5  # Flag to indicate if this is a build (not test)
+
+  case $status in
+    pass)
+      if [ "$is_build" = "true" ]; then
+        # Builds don't have test counts, just show success
+        echo "<span class=\"stat-value success\">✓ Passed</span>"
+      elif [ "$test_count" -eq 0 ]; then
+        echo "<span class=\"stat-value warning\">⚠ No Tests</span>"
+      else
+        echo "<span class=\"stat-value success\">✓ Passed ($test_count tests)</span>"
+      fi
+      ;;
+    fail)
+      if [ "$is_build" = "true" ]; then
+        echo "<span class=\"stat-value error\">✗ Failed</span>"
+      else
+        echo "<span class=\"stat-value error\">✗ Failed ($passed/$test_count passed)</span>"
+      fi
+      ;;
+    incomplete)
+      echo "<span class=\"stat-value error\">⚠ Incomplete ($passed/$test_count executed)</span>"
+      ;;
+    no_tests)
+      echo "<span class=\"stat-value warning\">⚠ No Tests Found</span>"
+      ;;
+    skip)
+      echo "<span class=\"stat-value warning\">⊘ Skipped</span>"
+      ;;
+    *)
+      echo "<span class=\"stat-value\">- Not Run</span>"
+      ;;
+  esac
+}
+
+# Extract iOS results
+IOS_BUILD_STATUS=$(extract_test_result "ios" "build" "status")
+IOS_UNIT_STATUS=$(extract_test_result "ios" "unit" "status")
+IOS_UNIT_COUNT=$(extract_test_result "ios" "unit" "count")
+IOS_UNIT_PASSED=$(extract_test_result "ios" "unit" "passed")
+IOS_UNIT_FAILED=$(extract_test_result "ios" "unit" "failed")
+IOS_UI_STATUS=$(extract_test_result "ios" "ui" "status")
+IOS_UI_COUNT=$(extract_test_result "ios" "ui" "count")
+IOS_UI_PASSED=$(extract_test_result "ios" "ui" "passed")
+IOS_UI_FAILED=$(extract_test_result "ios" "ui" "failed")
+
+# Extract Android results
+ANDROID_BUILD_STATUS=$(extract_test_result "android" "build" "status")
+ANDROID_UNIT_STATUS=$(extract_test_result "android" "unit" "status")
+ANDROID_UNIT_COUNT=$(extract_test_result "android" "unit" "count")
+ANDROID_UNIT_PASSED=$(extract_test_result "android" "unit" "passed")
+ANDROID_UNIT_FAILED=$(extract_test_result "android" "unit" "failed")
+ANDROID_UI_STATUS=$(extract_test_result "android" "ui" "status")
+ANDROID_UI_COUNT=$(extract_test_result "android" "ui" "count")
+ANDROID_UI_PASSED=$(extract_test_result "android" "ui" "passed")
+ANDROID_UI_FAILED=$(extract_test_result "android" "ui" "failed")
+
+# Generate iOS status HTML
+IOS_BUILD_HTML=$(get_status_html "$IOS_BUILD_STATUS" "0" "0" "0" "true")
+IOS_UNIT_HTML=$(get_status_html "$IOS_UNIT_STATUS" "$IOS_UNIT_COUNT" "$IOS_UNIT_PASSED" "$IOS_UNIT_FAILED" "false")
+IOS_UI_HTML=$(get_status_html "$IOS_UI_STATUS" "$IOS_UI_COUNT" "$IOS_UI_PASSED" "$IOS_UI_FAILED" "false")
+
+# Generate Android status HTML
+ANDROID_BUILD_HTML=$(get_status_html "$ANDROID_BUILD_STATUS" "0" "0" "0" "true")
+ANDROID_UNIT_HTML=$(get_status_html "$ANDROID_UNIT_STATUS" "$ANDROID_UNIT_COUNT" "$ANDROID_UNIT_PASSED" "$ANDROID_UNIT_FAILED" "false")
+ANDROID_UI_HTML=$(get_status_html "$ANDROID_UI_STATUS" "$ANDROID_UI_COUNT" "$ANDROID_UI_PASSED" "$ANDROID_UI_FAILED" "false")
 
 # Generate HTML
 cat > "$REPORT_HTML" << 'EOF'
@@ -184,6 +280,10 @@ cat > "$REPORT_HTML" << 'EOF'
             color: #F44336;
         }
 
+        .stat-value.warning {
+            color: #FF9800;
+        }
+
         .logs-section {
             background: white;
             border-radius: 16px;
@@ -281,15 +381,15 @@ cat > "$REPORT_HTML" << 'EOF'
                 <h2><span class="platform-icon">📱</span> iOS Pipeline</h2>
                 <div class="stat-row">
                     <span class="stat-label">Build</span>
-                    <span class="stat-value success">✓ Success</span>
+                    IOS_BUILD_PLACEHOLDER
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Unit Tests</span>
-                    <span class="stat-value success">✓ Passed</span>
+                    IOS_UNIT_PLACEHOLDER
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">UI Tests</span>
-                    <span class="stat-value success">✓ Passed</span>
+                    IOS_UI_PLACEHOLDER
                 </div>
             </div>
 
@@ -297,15 +397,15 @@ cat > "$REPORT_HTML" << 'EOF'
                 <h2><span class="platform-icon">🤖</span> Android Pipeline</h2>
                 <div class="stat-row">
                     <span class="stat-label">Build</span>
-                    <span class="stat-value success">✓ Success</span>
+                    ANDROID_BUILD_PLACEHOLDER
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Unit Tests</span>
-                    <span class="stat-value success">✓ Passed</span>
+                    ANDROID_UNIT_PLACEHOLDER
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">UI Tests</span>
-                    <span class="stat-value success">✓ Passed</span>
+                    ANDROID_UI_PLACEHOLDER
                 </div>
             </div>
         </div>
@@ -342,6 +442,16 @@ sed -i '' "s/STATUS_ICON_PLACEHOLDER/$STATUS_ICON/g" "$REPORT_HTML"
 sed -i '' "s/STATUS_TEXT_PLACEHOLDER/$STATUS_TEXT/g" "$REPORT_HTML"
 sed -i '' "s/DURATION_PLACEHOLDER/$FORMATTED_DURATION/g" "$REPORT_HTML"
 sed -i '' "s/TIMESTAMP_PLACEHOLDER/$(date '+%Y-%m-%d %H:%M:%S')/g" "$REPORT_HTML"
+
+# Replace iOS test result placeholders (using @ as delimiter to avoid conflicts with HTML)
+sed -i '' "s@IOS_BUILD_PLACEHOLDER@$IOS_BUILD_HTML@g" "$REPORT_HTML"
+sed -i '' "s@IOS_UNIT_PLACEHOLDER@$IOS_UNIT_HTML@g" "$REPORT_HTML"
+sed -i '' "s@IOS_UI_PLACEHOLDER@$IOS_UI_HTML@g" "$REPORT_HTML"
+
+# Replace Android test result placeholders
+sed -i '' "s@ANDROID_BUILD_PLACEHOLDER@$ANDROID_BUILD_HTML@g" "$REPORT_HTML"
+sed -i '' "s@ANDROID_UNIT_PLACEHOLDER@$ANDROID_UNIT_HTML@g" "$REPORT_HTML"
+sed -i '' "s@ANDROID_UI_PLACEHOLDER@$ANDROID_UI_HTML@g" "$REPORT_HTML"
 
 echo "✅ HTML report generated: $REPORT_HTML"
 

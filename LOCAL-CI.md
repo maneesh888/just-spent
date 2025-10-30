@@ -69,9 +69,50 @@ After running, you'll get:
 # Skip UI tests but run everything else
 ./local-ci.sh --all --skip-ui
 
+# Stop Android emulator after tests complete
+./local-ci.sh --android --kill-emulator
+
 # Get help
 ./local-ci.sh --help
 ```
+
+#### Android Emulator Management (NEW!)
+
+The local CI now **automatically launches Android emulators** if none are running, matching GitHub Actions behavior!
+
+**Features:**
+- ✅ **Auto-detection**: Checks if emulator is already running
+- ✅ **Auto-launch**: Starts an emulator automatically if needed
+- ✅ **Permission Granting**: Automatically grants RECORD_AUDIO and MODIFY_AUDIO_SETTINGS
+- ✅ **Smart Cleanup**: Optional flag to stop emulator after tests
+
+**How it works:**
+1. When running Android UI tests, CI checks for running emulator
+2. If none found, automatically launches best available AVD
+3. Waits for emulator to fully boot (5-minute timeout)
+4. Grants required app permissions
+5. Runs UI tests
+6. Optionally stops emulator if `--kill-emulator` flag is set
+
+**Manual Emulator Management:**
+```bash
+# Check emulator status
+./scripts/android-emulator-manager.sh status
+
+# Start emulator manually
+./scripts/android-emulator-manager.sh start --wait --grant-permissions
+
+# Grant permissions to running emulator
+./scripts/android-emulator-manager.sh grant-permissions
+
+# Stop emulator
+./scripts/android-emulator-manager.sh stop
+```
+
+**When to use `--kill-emulator`:**
+- ✅ Save resources after long test runs
+- ✅ Clean slate for next test run
+- ❌ Don't use if running multiple test iterations (keeps emulator warm)
 
 #### What Gets Run
 
@@ -159,15 +200,16 @@ All logs are saved in `.ci-results/`:
 
 ```
 .ci-results/
-├── report_20250129_143022.html        # HTML report
-├── report_20250129_143022.json        # JSON results
-├── ios_build_20250129_143022.log      # iOS build log
-├── ios_unit_20250129_143022.log       # iOS unit test log
-├── ios_ui_20250129_143022.log         # iOS UI test log
-├── ios_unit_20250129_143022.xcresult  # iOS test results
-├── android_build_20250129_143022.log  # Android build log
-├── android_unit_20250129_143022.log   # Android unit test log
-└── android_ui_20250129_143022.log     # Android UI test log
+├── report_20250129_143022.html           # HTML report
+├── report_20250129_143022.json           # JSON results
+├── ios_build_20250129_143022.log         # iOS build log
+├── ios_unit_20250129_143022.log          # iOS unit test log
+├── ios_ui_20250129_143022.log            # iOS UI test log
+├── ios_unit_20250129_143022.xcresult     # iOS test results
+├── android_build_20250129_143022.log     # Android build log
+├── android_unit_20250129_143022.log      # Android unit test log
+├── android_ui_20250129_143022.log        # Android UI test log
+└── android_emulator_20250129_143022.log  # Android emulator management log
 ```
 
 To view a log:
@@ -177,6 +219,9 @@ cat .ci-results/ios_build_*.log | tail -n 50
 
 # View most recent Android unit test log
 cat .ci-results/android_unit_*.log | tail -n 50
+
+# View Android emulator management log
+cat .ci-results/android_emulator_*.log | tail -n 50
 
 # Open test results in Xcode
 open .ci-results/ios_unit_*.xcresult
@@ -268,19 +313,59 @@ chmod +x scripts/*.sh
 ./scripts/install-hooks.sh
 ```
 
-#### UI Tests Skipped (Android)
+#### Android Emulator Issues
 
-Android UI tests require a running emulator:
+**NEW:** Local CI now auto-launches emulators! But if you encounter issues:
+
+**Problem: "Failed to launch emulator"**
+
+1. **Check if AVD exists**:
+   ```bash
+   # List available AVDs
+   emulator -list-avds
+
+   # Check emulator status
+   ./scripts/android-emulator-manager.sh status
+   ```
+
+2. **Create AVD if missing**:
+   - Open Android Studio
+   - Go to Tools → Device Manager
+   - Create Device
+   - Recommended: Pixel 6, API 28+, Google APIs
+
+3. **Manual emulator launch**:
+   ```bash
+   # Start emulator manually
+   ./scripts/android-emulator-manager.sh start --wait --grant-permissions
+
+   # Or use emulator command directly
+   emulator -avd Pixel_9_Pro &
+   ```
+
+**Problem: "Emulator boot timeout"**
+
+- Increase timeout in `scripts/android-emulator-manager.sh` (default: 5 minutes)
+- Check emulator logs: `cat .ci-results/android_emulator_*.log`
+- Try launching emulator manually first to see errors
+
+**Problem: "Permission grant failed"**
+
+- Permissions are granted automatically, but may fail if:
+  - App not installed yet (build APK first)
+  - Emulator not fully booted
+  - ADB connection issues
+- Grant manually: `./scripts/android-emulator-manager.sh grant-permissions`
+
+**Problem: "Emulator won't stop"**
 
 ```bash
-# Check if emulator is running
-adb devices
+# Force kill emulator
+adb emu kill
 
-# If no emulator, start one
-emulator -avd Pixel_6_API_34 &
-
-# Wait for emulator to boot, then run again
-./local-ci.sh --android
+# Or find and kill process
+ps aux | grep emulator
+kill -9 <PID>
 ```
 
 #### Slow Performance
