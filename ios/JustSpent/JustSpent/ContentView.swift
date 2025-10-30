@@ -620,7 +620,31 @@ struct ContentView: View {
         }
         
         // Configure microphone input
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        // Get the native format from input node
+        let inputFormat = inputNode.outputFormat(forBus: 0)
+
+        // Validate the format - if invalid, create a fallback format
+        let recordingFormat: AVAudioFormat
+        if inputFormat.sampleRate > 0 && inputFormat.channelCount > 0 {
+            recordingFormat = inputFormat
+        } else {
+            // Fallback to a standard format if input format is invalid
+            guard let fallbackFormat = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: 44100,
+                channels: 1,
+                interleaved: false
+            ) else {
+                print("❌ Failed to create audio format")
+                siriMessage = "Failed to configure audio format"
+                isErrorMessage = true
+                showingSiriSuccess = true
+                return
+            }
+            recordingFormat = fallbackFormat
+            print("⚠️ Using fallback audio format: \(recordingFormat)")
+        }
+
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer: AVAudioPCMBuffer, when: AVAudioTime) in
             recognitionRequest.append(buffer)
         }

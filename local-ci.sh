@@ -7,15 +7,16 @@
 # feedback during development. Part of the hybrid CI/CD approach.
 #
 # Usage:
-#   ./local-ci.sh [--ios] [--android] [--all] [--skip-ui] [--quick]
+#   ./local-ci.sh [--ios] [--android] [--all] [--skip-ui] [--quick] [--kill-emulator]
 #
 # Options:
-#   --ios        Run iOS checks only
-#   --android    Run Android checks only
-#   --all        Run both iOS and Android (default)
-#   --skip-ui    Skip UI tests (faster, unit tests only)
-#   --quick      Fast mode: build + unit tests only
-#   --help       Show this help message
+#   --ios            Run iOS checks only
+#   --android        Run Android checks only
+#   --all            Run both iOS and Android (default)
+#   --skip-ui        Skip UI tests (faster, unit tests only)
+#   --quick          Fast mode: build + unit tests only
+#   --kill-emulator  Stop Android emulator after tests complete
+#   --help           Show this help message
 # ============================================================================
 
 set -e  # Exit on error
@@ -45,6 +46,20 @@ ICON_ERROR="❌"
 ICON_INFO="ℹ️ "
 ICON_RUNNING="⏳"
 ICON_SKIP="⏭️ "
+ICON_INCOMPLETE="⚠️ "
+
+# ============================================================================
+# Expected Test Counts (Industry Standard: Validate Completeness)
+# ============================================================================
+# These values represent the minimum number of tests that MUST execute
+# for a test suite to be considered "complete". If fewer tests run,
+# the build FAILS (even if xcodebuild/gradle returns exit code 0).
+#
+# Industry Standard: A CI pipeline MUST fail if tests don't fully execute,
+# even if the test tool returns success. Incomplete execution = FAILURE.
+EXPECTED_IOS_UNIT_TESTS=83
+EXPECTED_ANDROID_UNIT_TESTS=145
+# Note: UI test counts are dynamic (emulator-dependent), so no minimum enforced
 
 # ============================================================================
 # Parse Command Line Arguments
@@ -54,6 +69,7 @@ RUN_ANDROID=false
 RUN_ALL=false
 SKIP_UI_TESTS=false
 QUICK_MODE=false
+KILL_EMULATOR=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -76,6 +92,10 @@ while [[ $# -gt 0 ]]; do
     --quick)
       QUICK_MODE=true
       SKIP_UI_TESTS=true
+      shift
+      ;;
+    --kill-emulator)
+      KILL_EMULATOR=true
       shift
       ;;
     --help)
@@ -168,26 +188,267 @@ format_duration() {
   fi
 }
 
+# Global variables to store test results
+IOS_BUILD_STATUS=""
+IOS_BUILD_DURATION=0
+IOS_UNIT_STATUS=""
+IOS_UNIT_DURATION=0
+IOS_UNIT_COUNT=0
+IOS_UNIT_PASSED=0
+IOS_UNIT_FAILED=0
+IOS_UI_STATUS=""
+IOS_UI_DURATION=0
+IOS_UI_COUNT=0
+IOS_UI_PASSED=0
+IOS_UI_FAILED=0
+
+ANDROID_BUILD_STATUS=""
+ANDROID_BUILD_DURATION=0
+ANDROID_UNIT_STATUS=""
+ANDROID_UNIT_DURATION=0
+ANDROID_UNIT_COUNT=0
+ANDROID_UNIT_PASSED=0
+ANDROID_UNIT_FAILED=0
+ANDROID_UI_STATUS=""
+ANDROID_UI_DURATION=0
+ANDROID_UI_COUNT=0
+ANDROID_UI_PASSED=0
+ANDROID_UI_FAILED=0
+
 # Initialize results directory
 init_results() {
   mkdir -p "$RESULTS_DIR"
-  echo "{" > "$REPORT_FILE"
-  echo "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"," >> "$REPORT_FILE"
-  echo "  \"results\": {" >> "$REPORT_FILE"
+}
+
+# Parse Gradle test output for test counts
+parse_gradle_test_output() {
+  local log_file=$1
+  local test_type=${2:-"unit"}  # Default to "unit" if not specified
+  local test_count=0
+  local passed=0
+  local failed=0
+
+  # Gradle doesn't output test counts to console, so check XML results instead
+  local test_results_dir
+  if [ "$test_type" = "ui" ]; then
+    # Android UI tests (instrumented tests) results location
+    # Note: Results may be in connected/ or connected/debug/ subdirectory
+    test_results_dir="$SCRIPT_DIR/android/app/build/outputs/androidTest-results/connected"
+  else
+    # Android unit tests results location
+    test_results_dir="$SCRIPT_DIR/android/app/build/test-results/testDebugUnitTest"
+  fi
+
+  if [ -d "$test_results_dir" ]; then
+    # Parse XML test results (search recursively for UI tests, direct for unit tests)
+    if [ "$test_type" = "ui" ]; then
+      # Use while loop with null delimiter to handle filenames with spaces
+      while IFS= read -r -d '' xml_file; do
+        if [ -f "$xml_file" ]; then
+          # Extract test counts from XML: <testsuite tests="45" failures="0" errors="0"
+          local suite_tests=$(grep '<testsuite' "$xml_file" | sed 's/.*tests="\([0-9]*\)".*/\1/' | head -1)
+          local suite_failures=$(grep '<testsuite' "$xml_file" | sed 's/.*failures="\([0-9]*\)".*/\1/' | head -1)
+          local suite_errors=$(grep '<testsuite' "$xml_file" | sed 's/.*errors="\([0-9]*\)".*/\1/' | head -1)
+
+          [ -n "$suite_tests" ] && test_count=$((test_count + suite_tests))
+          [ -n "$suite_failures" ] && failed=$((failed + suite_failures))
+          [ -n "$suite_errors" ] && failed=$((failed + suite_errors))
+        fi
+      done < <(find "$test_results_dir" -name "*.xml" -type f -print0)
+    else
+      # Unit tests: use simple for loop (filenames don't have spaces)
+      for xml_file in "$test_results_dir"/*.xml; do
+        if [ -f "$xml_file" ]; then
+          # Extract test counts from XML: <testsuite tests="45" failures="0" errors="0"
+          local suite_tests=$(grep '<testsuite' "$xml_file" | sed 's/.*tests="\([0-9]*\)".*/\1/' | head -1)
+          local suite_failures=$(grep '<testsuite' "$xml_file" | sed 's/.*failures="\([0-9]*\)".*/\1/' | head -1)
+          local suite_errors=$(grep '<testsuite' "$xml_file" | sed 's/.*errors="\([0-9]*\)".*/\1/' | head -1)
+
+          [ -n "$suite_tests" ] && test_count=$((test_count + suite_tests))
+          [ -n "$suite_failures" ] && failed=$((failed + suite_failures))
+          [ -n "$suite_errors" ] && failed=$((failed + suite_errors))
+        fi
+      done
+    fi
+
+    passed=$((test_count - failed))
+  elif grep -q "BUILD SUCCESSFUL" "$log_file" 2>/dev/null; then
+    # Check if tests actually ran by looking for the test task
+    if grep -q "Task :app:testDebugUnitTest" "$log_file" 2>/dev/null; then
+      # Tests ran but no XML results found (shouldn't happen with --rerun-tasks)
+      test_count=0
+    fi
+  fi
+
+  echo "$test_count:$passed:$failed"
+}
+
+# Parse xcodebuild test output for test counts
+parse_xcodebuild_test_output() {
+  local log_file=$1
+  local test_count=0
+  local passed=0
+  local failed=0
+
+  # Industry Standard: Parse actual test case results from xcodebuild output
+  # xcodebuild outputs individual test cases like:
+  #   "Test case 'MyTest.testSomething()' passed on 'iPhone 16'"
+  #   "Test case 'MyTest.testSomething()' failed on 'iPhone 16'"
+
+  if [ -f "$log_file" ]; then
+    # Count test cases that passed (excluding skipped tests)
+    passed=$(grep -c "Test case .* passed on " "$log_file" 2>/dev/null || echo "0")
+
+    # Count test cases that failed
+    failed=$(grep -c "Test case .* failed on " "$log_file" 2>/dev/null || echo "0")
+
+    # Count skipped tests separately (don't include in total)
+    # skipped=$(grep -c "Test case .* skipped on " "$log_file" 2>/dev/null || echo "0")
+
+    # Total = passed + failed (skipped tests don't count toward execution)
+    test_count=$((passed + failed))
+  fi
+
+  echo "$test_count:$passed:$failed"
+}
+
+# Record a test result
+record_test_result() {
+  local platform=$1  # "ios" or "android"
+  local test_type=$2 # "build", "unit", "ui"
+  local status=$3    # "pass", "fail", "skip", "no_tests"
+  local duration=$4  # in seconds
+  local test_count=${5:-0}   # total tests
+  local passed=${6:-0}       # passed tests
+  local failed=${7:-0}       # failed tests
+
+  # Store in global variables
+  if [ "$platform" = "ios" ]; then
+    if [ "$test_type" = "build" ]; then
+      IOS_BUILD_STATUS="$status"
+      IOS_BUILD_DURATION="$duration"
+    elif [ "$test_type" = "unit" ]; then
+      IOS_UNIT_STATUS="$status"
+      IOS_UNIT_DURATION="$duration"
+      IOS_UNIT_COUNT="$test_count"
+      IOS_UNIT_PASSED="$passed"
+      IOS_UNIT_FAILED="$failed"
+    elif [ "$test_type" = "ui" ]; then
+      IOS_UI_STATUS="$status"
+      IOS_UI_DURATION="$duration"
+      IOS_UI_COUNT="$test_count"
+      IOS_UI_PASSED="$passed"
+      IOS_UI_FAILED="$failed"
+    fi
+  else
+    if [ "$test_type" = "build" ]; then
+      ANDROID_BUILD_STATUS="$status"
+      ANDROID_BUILD_DURATION="$duration"
+    elif [ "$test_type" = "unit" ]; then
+      ANDROID_UNIT_STATUS="$status"
+      ANDROID_UNIT_DURATION="$duration"
+      ANDROID_UNIT_COUNT="$test_count"
+      ANDROID_UNIT_PASSED="$passed"
+      ANDROID_UNIT_FAILED="$failed"
+    elif [ "$test_type" = "ui" ]; then
+      ANDROID_UI_STATUS="$status"
+      ANDROID_UI_DURATION="$duration"
+      ANDROID_UI_COUNT="$test_count"
+      ANDROID_UI_PASSED="$passed"
+      ANDROID_UI_FAILED="$failed"
+    fi
+  fi
 }
 
 # Finalize results file
 finalize_results() {
   local success=$1
-  echo "  }," >> "$REPORT_FILE"
-  echo "  \"overall_success\": $success," >> "$REPORT_FILE"
-  echo "  \"duration\": $TOTAL_DURATION" >> "$REPORT_FILE"
-  echo "}" >> "$REPORT_FILE"
+
+  # Build iOS JSON section
+  local ios_json=""
+  if [ -n "$IOS_BUILD_STATUS" ]; then
+    ios_json="\"build\": {\"status\": \"$IOS_BUILD_STATUS\", \"duration\": $IOS_BUILD_DURATION}"
+  fi
+  if [ -n "$IOS_UNIT_STATUS" ]; then
+    [ -n "$ios_json" ] && ios_json="$ios_json,"
+    ios_json="$ios_json
+      \"unit\": {\"status\": \"$IOS_UNIT_STATUS\", \"duration\": $IOS_UNIT_DURATION, \"count\": $IOS_UNIT_COUNT, \"passed\": $IOS_UNIT_PASSED, \"failed\": $IOS_UNIT_FAILED}"
+  fi
+  if [ -n "$IOS_UI_STATUS" ]; then
+    [ -n "$ios_json" ] && ios_json="$ios_json,"
+    ios_json="$ios_json
+      \"ui\": {\"status\": \"$IOS_UI_STATUS\", \"duration\": $IOS_UI_DURATION, \"count\": $IOS_UI_COUNT, \"passed\": $IOS_UI_PASSED, \"failed\": $IOS_UI_FAILED}"
+  fi
+
+  # Build Android JSON section
+  local android_json=""
+  if [ -n "$ANDROID_BUILD_STATUS" ]; then
+    android_json="\"build\": {\"status\": \"$ANDROID_BUILD_STATUS\", \"duration\": $ANDROID_BUILD_DURATION}"
+  fi
+  if [ -n "$ANDROID_UNIT_STATUS" ]; then
+    [ -n "$android_json" ] && android_json="$android_json,"
+    android_json="$android_json
+      \"unit\": {\"status\": \"$ANDROID_UNIT_STATUS\", \"duration\": $ANDROID_UNIT_DURATION, \"count\": $ANDROID_UNIT_COUNT, \"passed\": $ANDROID_UNIT_PASSED, \"failed\": $ANDROID_UNIT_FAILED}"
+  fi
+  if [ -n "$ANDROID_UI_STATUS" ]; then
+    [ -n "$android_json" ] && android_json="$android_json,"
+    android_json="$android_json
+      \"ui\": {\"status\": \"$ANDROID_UI_STATUS\", \"duration\": $ANDROID_UI_DURATION, \"count\": $ANDROID_UI_COUNT, \"passed\": $ANDROID_UI_PASSED, \"failed\": $ANDROID_UI_FAILED}"
+  fi
+
+  # Write JSON file
+  cat > "$REPORT_FILE" << EOF
+{
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "results": {
+    "ios": {
+      $ios_json
+    },
+    "android": {
+      $android_json
+    }
+  },
+  "overall_success": $success,
+  "duration": $TOTAL_DURATION
+}
+EOF
 }
 
 # ============================================================================
 # iOS Pipeline Functions
 # ============================================================================
+
+# Grant iOS simulator permissions for testing
+grant_ios_simulator_permissions() {
+  local simulator_name="$1"
+  local bundle_id="com.justspent.app"
+
+  info "Granting iOS simulator permissions..."
+
+  # Get simulator ID
+  local simulator_id=$(xcrun simctl list devices | grep "$simulator_name" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+
+  if [ -z "$simulator_id" ]; then
+    warning "Could not find simulator ID for '$simulator_name'"
+    return 1
+  fi
+
+  # Boot simulator if not already booted
+  local sim_state=$(xcrun simctl list devices | grep "$simulator_id" | grep -o "Booted\|Shutdown" || echo "Shutdown")
+  if [ "$sim_state" != "Booted" ]; then
+    info "Booting simulator..."
+    xcrun simctl boot "$simulator_id" 2>/dev/null || true
+    sleep 5  # Wait for simulator to boot
+  fi
+
+  # Grant microphone permission
+  xcrun simctl privacy "$simulator_id" grant microphone "$bundle_id" 2>/dev/null || true
+
+  # Grant speech recognition permission
+  xcrun simctl privacy "$simulator_id" grant speech-recognition "$bundle_id" 2>/dev/null || true
+
+  success "iOS simulator permissions granted (microphone + speech recognition)"
+}
 
 run_ios_pipeline() {
   section "iOS Pipeline"
@@ -212,14 +473,19 @@ run_ios_pipeline() {
 
     local build_time=$(end_timer)
     success "iOS build completed ($(format_duration $build_time))"
+    record_test_result "ios" "build" "pass" "$build_time"
   else
     local build_time=$(end_timer)
     error "iOS build failed ($(format_duration $build_time))"
     error "Check log: $RESULTS_DIR/ios_build_$TIMESTAMP.log"
+    record_test_result "ios" "build" "fail" "$build_time"
     ios_success=false
     cd "$SCRIPT_DIR"
     return 1
   fi
+
+  # Grant simulator permissions before running tests
+  grant_ios_simulator_permissions "iPhone 16"
 
   # iOS Unit Tests
   running "Running iOS unit tests..."
@@ -237,15 +503,75 @@ run_ios_pipeline() {
     > "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" 2>&1; then
 
     local test_time=$(end_timer)
-    success "iOS unit tests passed ($(format_duration $test_time))"
+
+    # Parse test output for counts
+    local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_unit_$TIMESTAMP.log")
+    local test_count=$(echo "$test_results" | cut -d':' -f1)
+    local test_passed=$(echo "$test_results" | cut -d':' -f2)
+    local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+    # Industry Standard: Validate test completeness
+    # Even if xcodebuild returns success, we must verify all expected tests ran
+    if [ "$test_count" -eq 0 ]; then
+      error "iOS unit tests: No tests found!"
+      info "Expected: $EXPECTED_IOS_UNIT_TESTS tests, Found: 0"
+      record_test_result "ios" "unit" "no_tests" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      ios_success=false
+    elif [ "$test_count" -lt "$EXPECTED_IOS_UNIT_TESTS" ]; then
+      # INCOMPLETE: Some tests ran, but not all (simulator crash, etc.)
+      error "${ICON_INCOMPLETE}iOS unit tests INCOMPLETE - not all tests executed"
+      error "Expected: $EXPECTED_IOS_UNIT_TESTS tests, Executed: $test_count tests"
+      info "Tests: $test_count executed, $test_passed passed, $test_failed failed"
+      info "Missing: $((EXPECTED_IOS_UNIT_TESTS - test_count)) tests did not run"
+      error "This usually indicates simulator crash or test timeout"
+      record_test_result "ios" "unit" "incomplete" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      ios_success=false
+    elif [ "$test_failed" -gt 0 ]; then
+      # FAILURE: All tests ran, but some failed
+      error "iOS unit tests FAILED"
+      info "Tests: $test_count executed, $test_passed passed, $test_failed failed"
+      record_test_result "ios" "unit" "fail" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      ios_success=false
+    else
+      # SUCCESS: All tests executed and passed
+      success "iOS unit tests passed ($(format_duration $test_time))"
+      info "Tests: $test_count/$EXPECTED_IOS_UNIT_TESTS executed, $test_passed passed, $test_failed failed"
+      record_test_result "ios" "unit" "pass" "$test_time" "$test_count" "$test_passed" "$test_failed"
+    fi
   else
     local test_time=$(end_timer)
-    error "iOS unit tests failed ($(format_duration $test_time))"
-    error "Check log: $RESULTS_DIR/ios_unit_$TIMESTAMP.log"
+
+    # Parse test output even on failure
+    local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_unit_$TIMESTAMP.log")
+    local test_count=$(echo "$test_results" | cut -d':' -f1)
+    local test_passed=$(echo "$test_results" | cut -d':' -f2)
+    local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+    # Industry Standard: Check if incomplete vs regular failure
+    if [ "$test_count" -lt "$EXPECTED_IOS_UNIT_TESTS" ]; then
+      # INCOMPLETE: Not all tests executed (some passed, some failed, but missing tests)
+      error "${ICON_INCOMPLETE}iOS unit tests INCOMPLETE - not all tests executed"
+      error "Expected: $EXPECTED_IOS_UNIT_TESTS tests, Executed: $test_count tests"
+      info "Tests: $test_count executed, $test_passed passed, $test_failed failed"
+      info "Missing: $((EXPECTED_IOS_UNIT_TESTS - test_count)) tests did not run"
+      error "This usually indicates simulator crash, timeout, or skipped tests"
+      error "Check log: $RESULTS_DIR/ios_unit_$TIMESTAMP.log"
+      record_test_result "ios" "unit" "incomplete" "$test_time" "$test_count" "$test_passed" "$test_failed"
+    else
+      # FAILURE: All tests executed, but some failed
+      error "iOS unit tests FAILED ($(format_duration $test_time))"
+      info "Tests: $test_count/$EXPECTED_IOS_UNIT_TESTS executed, $test_passed passed, $test_failed failed"
+      error "Check log: $RESULTS_DIR/ios_unit_$TIMESTAMP.log"
+      record_test_result "ios" "unit" "fail" "$test_time" "$test_count" "$test_passed" "$test_failed"
+    fi
+
     ios_success=false
   fi
 
   # iOS UI Tests
+  # Grant permissions before UI tests (microphone access required)
+  grant_ios_simulator_permissions "iPhone 16"
+
   if [ "$SKIP_UI_TESTS" = false ]; then
     running "Running iOS UI tests..."
     start_timer
@@ -262,15 +588,40 @@ run_ios_pipeline() {
       > "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" 2>&1; then
 
       local test_time=$(end_timer)
-      success "iOS UI tests passed ($(format_duration $test_time))"
+
+      # Parse test output for counts
+      local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_ui_$TIMESTAMP.log")
+      local test_count=$(echo "$test_results" | cut -d':' -f1)
+      local test_passed=$(echo "$test_results" | cut -d':' -f2)
+      local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+      if [ "$test_count" -eq 0 ]; then
+        warning "iOS UI tests: No tests found!"
+        info "Tests: $test_count total"
+        record_test_result "ios" "ui" "no_tests" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      else
+        success "iOS UI tests passed ($(format_duration $test_time))"
+        info "Tests: $test_count total, $test_passed passed, $test_failed failed"
+        record_test_result "ios" "ui" "pass" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      fi
     else
       local test_time=$(end_timer)
       error "iOS UI tests failed ($(format_duration $test_time))"
       error "Check log: $RESULTS_DIR/ios_ui_$TIMESTAMP.log"
+
+      # Parse test output even on failure
+      local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_ui_$TIMESTAMP.log")
+      local test_count=$(echo "$test_results" | cut -d':' -f1)
+      local test_passed=$(echo "$test_results" | cut -d':' -f2)
+      local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+      info "Tests: $test_count total, $test_passed passed, $test_failed failed"
+      record_test_result "ios" "ui" "fail" "$test_time" "$test_count" "$test_passed" "$test_failed"
       ios_success=false
     fi
   else
     skip "iOS UI tests skipped (--skip-ui flag)"
+    record_test_result "ios" "ui" "skip" "0" "0" "0" "0"
   fi
 
   cd "$SCRIPT_DIR"
@@ -308,10 +659,12 @@ run_android_pipeline() {
 
     local build_time=$(end_timer)
     success "Android build completed ($(format_duration $build_time))"
+    record_test_result "android" "build" "pass" "$build_time"
   else
     local build_time=$(end_timer)
     error "Android build failed ($(format_duration $build_time))"
     error "Check log: $RESULTS_DIR/android_build_$TIMESTAMP.log"
+    record_test_result "android" "build" "fail" "$build_time"
     android_success=false
     cd "$SCRIPT_DIR"
     return 1
@@ -320,40 +673,160 @@ run_android_pipeline() {
   # Android Unit Tests
   running "Running Android unit tests..."
   start_timer
-  if ./gradlew testDebugUnitTest --stacktrace \
+  if ./gradlew testDebugUnitTest --rerun-tasks --stacktrace \
     > "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>&1; then
 
     local test_time=$(end_timer)
-    success "Android unit tests passed ($(format_duration $test_time))"
+
+    # Parse test output for counts
+    local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_unit_$TIMESTAMP.log")
+    local test_count=$(echo "$test_results" | cut -d':' -f1)
+    local test_passed=$(echo "$test_results" | cut -d':' -f2)
+    local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+    # Industry Standard: Validate test completeness
+    # Even if gradle returns success, we must verify all expected tests ran
+    if [ "$test_count" -eq 0 ]; then
+      error "Android unit tests: No tests found!"
+      info "Expected: $EXPECTED_ANDROID_UNIT_TESTS tests, Found: 0"
+      record_test_result "android" "unit" "no_tests" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      android_success=false
+    elif [ "$test_count" -lt "$EXPECTED_ANDROID_UNIT_TESTS" ]; then
+      # INCOMPLETE: Some tests ran, but not all
+      error "${ICON_INCOMPLETE}Android unit tests INCOMPLETE - not all tests executed"
+      error "Expected: $EXPECTED_ANDROID_UNIT_TESTS tests, Executed: $test_count tests"
+      info "Tests: $test_count executed, $test_passed passed, $test_failed failed"
+      info "Missing: $((EXPECTED_ANDROID_UNIT_TESTS - test_count)) tests did not run"
+      error "This usually indicates test filtering or compilation issues"
+      record_test_result "android" "unit" "incomplete" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      android_success=false
+    elif [ "$test_failed" -gt 0 ]; then
+      # FAILURE: All tests ran, but some failed
+      error "Android unit tests FAILED"
+      info "Tests: $test_count executed, $test_passed passed, $test_failed failed"
+      record_test_result "android" "unit" "fail" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      android_success=false
+    else
+      # SUCCESS: All tests executed and passed
+      success "Android unit tests passed ($(format_duration $test_time))"
+      info "Tests: $test_count/$EXPECTED_ANDROID_UNIT_TESTS executed, $test_passed passed, $test_failed failed"
+      record_test_result "android" "unit" "pass" "$test_time" "$test_count" "$test_passed" "$test_failed"
+    fi
   else
     local test_time=$(end_timer)
-    error "Android unit tests failed ($(format_duration $test_time))"
-    error "Check log: $RESULTS_DIR/android_unit_$TIMESTAMP.log"
+
+    # Parse test output even on failure
+    local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_unit_$TIMESTAMP.log")
+    local test_count=$(echo "$test_results" | cut -d':' -f1)
+    local test_passed=$(echo "$test_results" | cut -d':' -f2)
+    local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+    # Industry Standard: Check if incomplete vs regular failure
+    if [ "$test_count" -lt "$EXPECTED_ANDROID_UNIT_TESTS" ]; then
+      # INCOMPLETE: Not all tests executed (some passed, some failed, but missing tests)
+      error "${ICON_INCOMPLETE}Android unit tests INCOMPLETE - not all tests executed"
+      error "Expected: $EXPECTED_ANDROID_UNIT_TESTS tests, Executed: $test_count tests"
+      info "Tests: $test_count executed, $test_passed passed, $test_failed failed"
+      info "Missing: $((EXPECTED_ANDROID_UNIT_TESTS - test_count)) tests did not run"
+      error "This usually indicates compilation issues or test filtering"
+      error "Check log: $RESULTS_DIR/android_unit_$TIMESTAMP.log"
+      record_test_result "android" "unit" "incomplete" "$test_time" "$test_count" "$test_passed" "$test_failed"
+    else
+      # FAILURE: All tests executed, but some failed
+      error "Android unit tests FAILED ($(format_duration $test_time))"
+      info "Tests: $test_count/$EXPECTED_ANDROID_UNIT_TESTS executed, $test_passed passed, $test_failed failed"
+      error "Check log: $RESULTS_DIR/android_unit_$TIMESTAMP.log"
+      record_test_result "android" "unit" "fail" "$test_time" "$test_count" "$test_passed" "$test_failed"
+    fi
+
     android_success=false
   fi
 
-  # Android UI Tests (only if emulator is running)
+  # Android UI Tests (with automatic emulator management)
   if [ "$SKIP_UI_TESTS" = false ]; then
-    if adb devices | grep -q "device$"; then
-      running "Running Android UI tests..."
-      start_timer
-      if ./gradlew connectedDebugAndroidTest --stacktrace \
-        > "$RESULTS_DIR/android_ui_$TIMESTAMP.log" 2>&1; then
+    local emulator_was_started=false
 
-        local test_time=$(end_timer)
-        success "Android UI tests passed ($(format_duration $test_time))"
+    # Check if emulator is running, start if needed
+    if ! adb devices 2>/dev/null | grep -q "device$"; then
+      running "No emulator detected, launching automatically..."
+
+      # Use emulator manager to start emulator
+      if "$SCRIPT_DIR/scripts/android-emulator-manager.sh" start --wait --grant-permissions \
+        > "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1; then
+
+        success "Emulator launched and ready"
+        emulator_was_started=true
       else
-        local test_time=$(end_timer)
-        error "Android UI tests failed ($(format_duration $test_time))"
-        error "Check log: $RESULTS_DIR/android_ui_$TIMESTAMP.log"
-        android_success=false
+        error "Failed to launch emulator"
+        error "Check log: $RESULTS_DIR/android_emulator_$TIMESTAMP.log"
+        warning "Android UI tests skipped (emulator launch failed)"
+        warning "You can manually start an emulator and re-run tests"
+        # Don't fail the whole pipeline, just skip UI tests
+        cd "$SCRIPT_DIR"
+        return 0
       fi
     else
-      warning "Android UI tests skipped (no emulator/device detected)"
-      info "Start an emulator to run UI tests"
+      info "Emulator already running, granting permissions..."
+
+      # Grant permissions to existing emulator
+      if "$SCRIPT_DIR/scripts/android-emulator-manager.sh" grant-permissions \
+        >> "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1; then
+
+        success "Permissions granted"
+      else
+        warning "Failed to grant some permissions (may not affect tests)"
+      fi
+    fi
+
+    # Run UI tests
+    running "Running Android UI tests..."
+    start_timer
+    if ./gradlew connectedDebugAndroidTest --rerun-tasks --stacktrace \
+      > "$RESULTS_DIR/android_ui_$TIMESTAMP.log" 2>&1; then
+
+      local test_time=$(end_timer)
+
+      # Parse test output for counts
+      local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_ui_$TIMESTAMP.log" "ui")
+      local test_count=$(echo "$test_results" | cut -d':' -f1)
+      local test_passed=$(echo "$test_results" | cut -d':' -f2)
+      local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+      if [ "$test_count" -eq 0 ]; then
+        warning "Android UI tests: No tests found!"
+        info "Tests: $test_count total"
+        record_test_result "android" "ui" "no_tests" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      else
+        success "Android UI tests passed ($(format_duration $test_time))"
+        info "Tests: $test_count total, $test_passed passed, $test_failed failed"
+        record_test_result "android" "ui" "pass" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      fi
+    else
+      local test_time=$(end_timer)
+      error "Android UI tests failed ($(format_duration $test_time))"
+      error "Check log: $RESULTS_DIR/android_ui_$TIMESTAMP.log"
+
+      # Parse test output even on failure
+      local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_ui_$TIMESTAMP.log" "ui")
+      local test_count=$(echo "$test_results" | cut -d':' -f1)
+      local test_passed=$(echo "$test_results" | cut -d':' -f2)
+      local test_failed=$(echo "$test_results" | cut -d':' -f3)
+
+      info "Tests: $test_count total, $test_passed passed, $test_failed failed"
+      record_test_result "android" "ui" "fail" "$test_time" "$test_count" "$test_passed" "$test_failed"
+      android_success=false
+    fi
+
+    # Kill emulator if requested and we started it
+    if [ "$KILL_EMULATOR" = true ] && [ "$emulator_was_started" = true ]; then
+      info "Stopping emulator (--kill-emulator flag set)..."
+      "$SCRIPT_DIR/scripts/android-emulator-manager.sh" stop \
+        >> "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1 || true
+      success "Emulator stopped"
     fi
   else
     skip "Android UI tests skipped (--skip-ui flag)"
+    record_test_result "android" "ui" "skip" "0"
   fi
 
   cd "$SCRIPT_DIR"

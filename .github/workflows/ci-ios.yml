@@ -20,6 +20,35 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Boot Simulator and Grant Permissions
+        run: |
+          # Get simulator ID
+          SIMULATOR_ID=$(xcrun simctl list devices | grep "iPhone 16" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+
+          if [ -z "$SIMULATOR_ID" ]; then
+            echo "⚠️  Could not find iPhone 16 simulator"
+            exit 1
+          fi
+
+          echo "Found simulator: $SIMULATOR_ID"
+
+          # Boot simulator
+          echo "Booting simulator..."
+          xcrun simctl boot "$SIMULATOR_ID" || true
+
+          # Wait for simulator to fully boot
+          echo "Waiting for simulator to boot..."
+          sleep 10
+
+          # Grant permissions
+          echo "Granting microphone permission..."
+          xcrun simctl privacy "$SIMULATOR_ID" grant microphone com.justspent.app || true
+
+          echo "Granting speech recognition permission..."
+          xcrun simctl privacy "$SIMULATOR_ID" grant speech-recognition com.justspent.app || true
+
+          echo "✅ Permissions granted to iOS simulator"
+
       - name: Cache Swift Package Manager dependencies
         uses: actions/cache@v4
         with:
