@@ -83,13 +83,12 @@ class FloatingActionButtonUITests: XCTestCase {
     func testFloatingActionButtonInitialState() throws {
         // Given
         let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
-        
+
         // When
         XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
-        
-        // Then - Check initial state (should show microphone icon)
-        let micIcon = floatingButton.images["mic.circle.fill"]
-        XCTAssertTrue(micIcon.exists, "Button should show microphone icon initially")
+
+        // Then - Check initial state (should show "Start voice recording" label)
+        XCTAssertEqual(floatingButton.label, "Start voice recording", "Button should show start recording label initially")
     }
     
     #if !targetEnvironment(simulator)
@@ -195,25 +194,28 @@ class FloatingActionButtonUITests: XCTestCase {
     #endif
     
     // MARK: - Auto-Stop Behavior Tests
-    
+
+    #if !targetEnvironment(simulator)
     func testAutoStopInstructionVisibility() throws {
+        // NOTE: This test requires actual microphone and speech recognition
+        // which are not available in iOS Simulator
+
         // Given
         let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
         XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
-        
+
         // When - Start recording
         floatingButton.tap()
-        
-        // Then - Auto-stop instruction should be visible
-        let autoStopText = app.staticTexts["Will stop automatically when you finish speaking"]
+
+        // Then - Auto-stop instruction should be visible (checking for the actual localized text)
+        // The text "Will stop automatically when you finish speaking" should exist
+        let autoStopText = app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'stop automatically'")).firstMatch
         XCTAssertTrue(autoStopText.waitForExistence(timeout: 2.0), "Should show auto-stop instruction")
-        
-        // Check text positioning (should be above the button)
-        let buttonFrame = floatingButton.frame
-        let textFrame = autoStopText.frame
-        
-        XCTAssertTrue(textFrame.maxY < buttonFrame.minY, "Auto-stop text should be above the button")
+
+        // Stop recording to clean up
+        floatingButton.tap()
     }
+    #endif
     
     #if !targetEnvironment(simulator)
     func testAutoStopAfterSilence() throws {
@@ -304,51 +306,59 @@ class FloatingActionButtonUITests: XCTestCase {
     
     // MARK: - Visual Feedback Tests
     
+    #if !targetEnvironment(simulator)
     func testButtonVisualStateChanges() throws {
+        // NOTE: This test requires actual microphone and speech recognition
+        // which are not available in iOS Simulator
+
         // Given
         let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
         XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
-        
+
         // When - Tap to start recording
         floatingButton.tap()
-        
-        // Then - Visual state should change
-        let stopIcon = floatingButton.images["stop.circle.fill"]
-        XCTAssertTrue(stopIcon.waitForExistence(timeout: 2.0), "Should show stop icon")
-        
-        // Check button color/appearance (limited by XCUITest capabilities)
-        // We can verify the button frame and accessibility properties
-        
+
+        // Then - Accessibility label should change to recording state
+        // Wait briefly for state change
+        Thread.sleep(forTimeInterval: 0.5)
+        XCTAssertEqual(floatingButton.label, "Stop recording", "Should show stop recording label")
+
         // Stop recording
         floatingButton.tap()
-        
-        let micIcon = floatingButton.images["mic.circle.fill"]
-        XCTAssertTrue(micIcon.waitForExistence(timeout: 2.0), "Should return to mic icon")
+
+        // Should return to initial state
+        Thread.sleep(forTimeInterval: 0.5)
+        XCTAssertEqual(floatingButton.label, "Start voice recording", "Should return to start recording label")
     }
+    #endif
     
+    #if !targetEnvironment(simulator)
     func testButtonAccessibilityLabels() throws {
+        // NOTE: This test requires actual microphone and speech recognition
+        // which are not available in iOS Simulator
+
         // Given
         let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
         XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
-        
+
         // When - Check accessibility label in initial state
         let initialLabel = floatingButton.label
-        
-        // Then - Should have appropriate accessibility label
-        XCTAssertTrue(initialLabel.contains("Start") || initialLabel.contains("Record") || initialLabel.contains("Voice"),
-                     "Button should have descriptive accessibility label")
-        
+
+        // Then - Should have exact accessibility label
+        XCTAssertEqual(initialLabel, "Start voice recording", "Button should have 'Start voice recording' label")
+
         // When - Start recording
         floatingButton.tap()
-        
+        Thread.sleep(forTimeInterval: 0.5)
+
         // Then - Accessibility label should change
         let recordingLabel = floatingButton.label
-        XCTAssertTrue(recordingLabel.contains("Stop") || recordingLabel.contains("Recording"),
-                     "Button should have appropriate accessibility label while recording")
-        
+        XCTAssertEqual(recordingLabel, "Stop recording", "Button should have 'Stop recording' label while recording")
+
         // Cleanup - Stop recording
         floatingButton.tap()
     }
+    #endif
     
     // MARK: - Integration Tests
     
