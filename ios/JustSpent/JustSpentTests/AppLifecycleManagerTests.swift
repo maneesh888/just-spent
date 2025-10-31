@@ -27,7 +27,8 @@ final class AppLifecycleManagerTests: XCTestCase {
         let suiteName = "test.\(UUID().uuidString)"
         mockUserDefaults = UserDefaults(suiteName: suiteName)!
 
-        sut = AppLifecycleManager(userDefaults: mockUserDefaults)
+        // Use short background threshold for testing (0.1 seconds instead of 30 minutes)
+        sut = AppLifecycleManager(userDefaults: mockUserDefaults, backgroundThreshold: 0.1)
     }
 
     override func tearDownWithError() throws {
@@ -280,7 +281,7 @@ final class AppLifecycleManagerTests: XCTestCase {
 
     // MARK: - Integration Tests
 
-    func testCompleteFlow_FirstLaunchToSubsequentLaunch() {
+    func testCompleteFlow_FirstLaunchToSubsequentLaunch() async {
         // Scenario: User's first launch → grants permissions → closes app → reopens
 
         // 1. First launch - should NOT auto-record
@@ -295,7 +296,10 @@ final class AppLifecycleManagerTests: XCTestCase {
         // 3. App goes to background
         sut.updateAppState(.background)
 
-        // 4. App returns to foreground (subsequent launch simulation)
+        // 4. Wait for background threshold to pass (0.1s in tests)
+        try? await Task.sleep(nanoseconds: 150_000_000) // 150ms
+
+        // 5. App returns to foreground (subsequent launch simulation)
         sut.updateAppState(.active)
         XCTAssertTrue(sut.didBecomeActive, "Should detect foreground transition")
         XCTAssertTrue(sut.shouldTriggerAutoRecording(), "Should auto-record on subsequent launch")
