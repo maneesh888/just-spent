@@ -42,7 +42,6 @@ class OnboardingFlowUITest {
         composeTestRule.activityRule.scenario.recreate()
 
         composeTestRule.waitForIdle()
-        Thread.sleep(3000)  // Increased wait time for LazyColumn to fully compose all items (was 2000ms)
     }
 
     // MARK: - Onboarding Display Tests
@@ -80,7 +79,6 @@ class OnboardingFlowUITest {
     @Test
     fun onboarding_displaysAEDOption() {
         composeTestRule.waitForIdle()
-        Thread.sleep(2000) // Extra wait for LazyColumn composition (increased from 1000ms)
 
         // AED is typically first - should be visible without scrolling
         composeTestRule.onNodeWithTag("currency_option_AED")
@@ -271,7 +269,6 @@ class OnboardingFlowUITest {
         // 2. Complete onboarding
         // 3. Verify the currency is saved as default
         composeTestRule.waitForIdle()
-        Thread.sleep(2000) // Extra wait for LazyColumn composition (increased from 1000ms)
 
         // Placeholder: Select USD (should be visible without scrolling)
         composeTestRule.onNodeWithTag("currency_option_USD")

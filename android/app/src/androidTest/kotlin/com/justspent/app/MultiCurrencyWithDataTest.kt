@@ -387,8 +387,6 @@ class MultiCurrencyWithDataTest {
             .onFirst()
         tab.performClick()
         composeTestRule.waitForIdle()
-        Thread.sleep(500) // Give recomposition time to update LazyColumn items
-        Thread.sleep(2500) // Give time for tab switch animation and recomposition (increased from 2000ms)
     }
 
     private fun assertCurrencyAmountExists(amount: String) {

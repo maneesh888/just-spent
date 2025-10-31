@@ -58,7 +58,6 @@ class EmptyStateUITest {
         }
 
         composeTestRule.waitForIdle()
-        Thread.sleep(1500) // Give time for UI to fully compose and settle
     }
 
     @After
@@ -261,7 +260,6 @@ class EmptyStateUITest {
     fun emptyState_titleIsAccessible() {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
-        Thread.sleep(2000) // Wait for compose hierarchy to fully render
 
         // Then - Title should be accessible for screen readers
         composeTestRule.onNodeWithTag("empty_state_title", useUnmergedTree = true)
