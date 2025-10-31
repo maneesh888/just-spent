@@ -84,7 +84,7 @@ object CurrencyFormatter {
             cleanedString = cleanedString.replace(" ", "")
 
             // Remove all known currency symbols (hardcoded for safety)
-            val symbols = listOf("د.إ", "$", "€", "£", "₹", "﷼")
+            val symbols = listOf("د.إ", "$", "€", "£", "₹", "ر.س")
             symbols.forEach { symbol ->
                 cleanedString = cleanedString.replace(symbol, "")
             }

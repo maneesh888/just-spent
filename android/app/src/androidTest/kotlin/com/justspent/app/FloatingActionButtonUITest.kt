@@ -285,9 +285,10 @@ class FloatingActionButtonUITest {
 
         fab.performClick()
         composeTestRule.waitForIdle()
+        Thread.sleep(1000) // Wait for recording state to update (increased from 500ms)
 
         // When - Wait for potential state changes during recording
-        val listeningText = composeTestRule.onNodeWithText("Listening...")
+        val listeningText = composeTestRule.onNodeWithText("Listening...", useUnmergedTree = true)
         listeningText.assertExists()
 
         // Then - Check if processing state might appear

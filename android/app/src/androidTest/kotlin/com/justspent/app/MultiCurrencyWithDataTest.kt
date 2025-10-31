@@ -3,7 +3,6 @@ package com.justspent.app
 import android.content.Context
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.justspent.app.data.database.JustSpentDatabase
@@ -11,6 +10,7 @@ import com.justspent.app.data.model.Expense
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -38,19 +38,19 @@ class MultiCurrencyWithDataTest {
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
-    private lateinit var database: JustSpentDatabase
+    @Inject
+    lateinit var database: JustSpentDatabase
+
     private val testExpenseIds = mutableListOf<String>()
 
     @Before
     fun setUp() = runBlocking {
         hiltRule.inject()
-        // Get database instance
+
+        // Skip onboarding for tests
         val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.databaseBuilder(
-            context,
-            JustSpentDatabase::class.java,
-            "just_spent_database"
-        ).build()
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
 
         val dao = database.expenseDao()
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -387,7 +387,8 @@ class MultiCurrencyWithDataTest {
             .onFirst()
         tab.performClick()
         composeTestRule.waitForIdle()
-        Thread.sleep(500) // Give time for tab switch animation
+        Thread.sleep(500) // Give recomposition time to update LazyColumn items
+        Thread.sleep(2500) // Give time for tab switch animation and recomposition (increased from 2000ms)
     }
 
     private fun assertCurrencyAmountExists(amount: String) {

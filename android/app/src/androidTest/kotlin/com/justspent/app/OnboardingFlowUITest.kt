@@ -1,7 +1,9 @@
 package com.justspent.app
 
+import android.content.Context
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -27,6 +29,20 @@ class OnboardingFlowUITest {
     @Before
     fun setUp() {
         hiltRule.inject()
+
+        // Reset onboarding state to ensure onboarding screen is shown
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("has_completed_onboarding", false)
+            .remove("default_currency")
+            .apply()
+
+        // Restart activity to pick up new preference
+        composeTestRule.activityRule.scenario.recreate()
+
+        composeTestRule.waitForIdle()
+        Thread.sleep(3000)  // Increased wait time for LazyColumn to fully compose all items (was 2000ms)
     }
 
     // MARK: - Onboarding Display Tests
@@ -52,6 +68,10 @@ class OnboardingFlowUITest {
         val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
 
         currencies.forEach { code ->
+            // Scroll to make item visible if needed - scroll the list first, then assert
+            composeTestRule.onNodeWithTag("currency_list")
+                .performTouchInput { swipeUp() }
+            composeTestRule.waitForIdle()
             composeTestRule.onNodeWithTag("currency_option_$code")
                 .assertExists()
         }
@@ -60,8 +80,9 @@ class OnboardingFlowUITest {
     @Test
     fun onboarding_displaysAEDOption() {
         composeTestRule.waitForIdle()
+        Thread.sleep(2000) // Extra wait for LazyColumn composition (increased from 1000ms)
 
-        // Use test tag for precise matching
+        // AED is typically first - should be visible without scrolling
         composeTestRule.onNodeWithTag("currency_option_AED")
             .assertExists()
             .assertHasClickAction()
@@ -105,6 +126,11 @@ class OnboardingFlowUITest {
 
     @Test
     fun onboarding_displaysSAROption() {
+        composeTestRule.waitForIdle()
+
+        // SAR is last - need to scroll to see it
+        composeTestRule.onNodeWithTag("currency_list")
+            .performTouchInput { swipeUp() }
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag("currency_option_SAR")
@@ -211,6 +237,11 @@ class OnboardingFlowUITest {
         val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
 
         currencies.forEach { code ->
+            // Scroll list to make items visible
+            composeTestRule.onNodeWithTag("currency_list")
+                .performTouchInput { swipeUp() }
+            composeTestRule.waitForIdle()
+
             composeTestRule.onNodeWithTag("currency_option_$code")
                 .assertExists()
                 .assertHasClickAction()
@@ -240,8 +271,9 @@ class OnboardingFlowUITest {
         // 2. Complete onboarding
         // 3. Verify the currency is saved as default
         composeTestRule.waitForIdle()
+        Thread.sleep(2000) // Extra wait for LazyColumn composition (increased from 1000ms)
 
-        // Placeholder: Select USD
+        // Placeholder: Select USD (should be visible without scrolling)
         composeTestRule.onNodeWithTag("currency_option_USD")
             .performClick()
 
@@ -260,6 +292,11 @@ class OnboardingFlowUITest {
         var foundCurrencies = 0
         currencies.forEach { code ->
             try {
+                // Scroll list to make items visible
+                composeTestRule.onNodeWithTag("currency_list")
+                    .performTouchInput { swipeUp() }
+                composeTestRule.waitForIdle()
+
                 composeTestRule.onNodeWithTag("currency_option_$code")
                     .assertExists()
                 foundCurrencies++

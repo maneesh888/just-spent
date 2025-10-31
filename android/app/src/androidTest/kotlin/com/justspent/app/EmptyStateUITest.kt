@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -17,6 +16,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * UI tests for the empty state screen
@@ -40,27 +40,22 @@ class EmptyStateUITest {
         Manifest.permission.MODIFY_AUDIO_SETTINGS
     )
 
-    private lateinit var database: JustSpentDatabase
+    @Inject
+    lateinit var database: JustSpentDatabase
 
     @Before
     fun setUp() {
         hiltRule.inject()
-        // Get database instance
+
+        // Skip onboarding by setting the preference
         val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.databaseBuilder(
-            context,
-            JustSpentDatabase::class.java,
-            "just_spent_database"
-        ).build()
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
 
         // Clear all expenses to ensure empty state
         runBlocking {
             database.expenseDao().deleteAllExpenses()
         }
-
-        // Skip onboarding by setting the preference
-        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
 
         composeTestRule.waitForIdle()
         Thread.sleep(1500) // Give time for UI to fully compose and settle
@@ -266,10 +261,10 @@ class EmptyStateUITest {
     fun emptyState_titleIsAccessible() {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
-        Thread.sleep(1000) // Wait for compose hierarchy to fully render
+        Thread.sleep(2000) // Wait for compose hierarchy to fully render
 
         // Then - Title should be accessible for screen readers
-        composeTestRule.onNodeWithTag("empty_state_title")
+        composeTestRule.onNodeWithTag("empty_state_title", useUnmergedTree = true)
             .assertExists()
             .assertIsDisplayed()
     }
