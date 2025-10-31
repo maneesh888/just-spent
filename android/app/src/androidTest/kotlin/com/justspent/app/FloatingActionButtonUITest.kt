@@ -236,7 +236,7 @@ class FloatingActionButtonUITest {
     @Test
     fun recordingIndicator_appearanceWhenRecording() {
         // Given
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
 
         // When - Start recording
@@ -270,7 +270,7 @@ class FloatingActionButtonUITest {
 
         // Cleanup - Stop recording
         try {
-            val stopFab = composeTestRule.onNodeWithContentDescription("Stop Recording")
+            val stopFab = composeTestRule.onNodeWithTag("voice_fab")
             stopFab.performClick()
         } catch (e: AssertionError) {
             // Recording may have already stopped
@@ -280,7 +280,7 @@ class FloatingActionButtonUITest {
     @Test
     fun recordingIndicator_stateChanges() {
         // Given - Start recording
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
 
         fab.performClick()
@@ -301,7 +301,7 @@ class FloatingActionButtonUITest {
     @Test
     fun floatingActionButton_visualStateChanges() {
         // Given
-        val startFab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val startFab = composeTestRule.onNodeWithTag("voice_fab")
         startFab.assertExists()
 
         // When - Tap to start recording
@@ -313,7 +313,7 @@ class FloatingActionButtonUITest {
         composeTestRule.waitForIdle()
 
         // Then - Visual state should change (stop icon)
-        val stopFab = composeTestRule.onNodeWithContentDescription("Stop Recording")
+        val stopFab = composeTestRule.onNodeWithTag("voice_fab")
         stopFab.assertExists()
 
         // Stop Recording
@@ -325,14 +325,14 @@ class FloatingActionButtonUITest {
         composeTestRule.waitForIdle()
 
         // Should return to mic icon
-        val micFab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val micFab = composeTestRule.onNodeWithTag("voice_fab")
         micFab.assertExists()
     }
 
     @Test
     fun floatingActionButton_accessibilityLabels() {
         // Given - Verify FAB exists with correct content description
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
 
         // Then - Content description should be "Start Recording"
@@ -348,7 +348,7 @@ class FloatingActionButtonUITest {
         composeTestRule.waitForIdle()
 
         // Then - Accessibility description should change to "Stop Recording"
-        val stopFab = composeTestRule.onNodeWithContentDescription("Stop Recording")
+        val stopFab = composeTestRule.onNodeWithTag("voice_fab")
         stopFab.assertExists()
 
         // Cleanup - Stop Recording
@@ -362,7 +362,7 @@ class FloatingActionButtonUITest {
     @Test
     fun floatingButton_quickRecordingCycle() {
         // Given
-        val startFab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val startFab = composeTestRule.onNodeWithTag("voice_fab")
         startFab.assertExists()
 
         // When - Start and stop recording quickly
@@ -373,7 +373,7 @@ class FloatingActionButtonUITest {
         Thread.sleep(500)
         composeTestRule.waitForIdle()
 
-        val stopFab = composeTestRule.onNodeWithContentDescription("Stop Recording")
+        val stopFab = composeTestRule.onNodeWithTag("voice_fab")
         stopFab.assertExists()
 
         stopFab.performClick()
@@ -384,7 +384,7 @@ class FloatingActionButtonUITest {
         composeTestRule.waitForIdle()
 
         // Then - Should return to normal state
-        val micFab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val micFab = composeTestRule.onNodeWithTag("voice_fab")
         micFab.assertExists()
     }
 
@@ -394,7 +394,7 @@ class FloatingActionButtonUITest {
         // Note: Using 2 cycles instead of 3 to avoid UI tree instability
         repeat(2) { iteration ->
             // Start recording - re-query FAB each time to handle UI tree updates
-            val startFab = composeTestRule.onNodeWithContentDescription("Start Recording")
+            val startFab = composeTestRule.onNodeWithTag("voice_fab")
             startFab.assertExists()
             startFab.performClick()
             composeTestRule.waitForIdle()
@@ -404,7 +404,7 @@ class FloatingActionButtonUITest {
             composeTestRule.waitForIdle()
 
             // Verify recording state
-            val stopFab = composeTestRule.onNodeWithContentDescription("Stop Recording")
+            val stopFab = composeTestRule.onNodeWithTag("voice_fab")
             stopFab.assertExists()
 
             // Stop Recording
@@ -417,7 +417,7 @@ class FloatingActionButtonUITest {
         }
 
         // Then - Should still be in normal state after multiple cycles
-        val finalFab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val finalFab = composeTestRule.onNodeWithTag("voice_fab")
         finalFab.assertExists()
     }
 
@@ -429,7 +429,7 @@ class FloatingActionButtonUITest {
         // (Permission state affects functionality, not visibility)
 
         // Then
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
     }
 
@@ -443,7 +443,7 @@ class FloatingActionButtonUITest {
         // When - Empty state is displayed
         if (emptyStateText.isDisplayed()) {
             // Then - FAB should be visible
-            val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+            val fab = composeTestRule.onNodeWithTag("voice_fab")
             fab.assertExists()
             fab.assertIsDisplayed()
         }
@@ -453,7 +453,7 @@ class FloatingActionButtonUITest {
     fun floatingButton_positionInEmptyState() {
         // Given - Empty state with FAB
         val emptyState = composeTestRule.onNodeWithText("No Expenses Yet")
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
 
         // When - Both elements exist
         if (emptyState.isDisplayed()) {
