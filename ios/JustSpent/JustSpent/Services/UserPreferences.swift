@@ -59,6 +59,35 @@ class UserPreferences: ObservableObject {
 
     // MARK: - Public Methods
 
+    /// Initialize default currency based on device locale if not already set.
+    /// This ensures the app ALWAYS has a default currency, making modules independent.
+    ///
+    /// Should be called on app launch before checking onboarding state.
+    ///
+    /// - Returns: The initialized or existing default currency
+    @discardableResult
+    func initializeDefaultCurrency() -> Currency {
+        // Check if default currency already exists in UserDefaults
+        if let existingCode = UserDefaults.standard.string(forKey: Keys.defaultCurrency),
+           let existingCurrency = Currency(rawValue: existingCode) {
+            // Default currency already set - return existing
+            print("UserPreferences: Using existing default currency: \(existingCurrency.rawValue)")
+            return existingCurrency
+        }
+
+        // No default currency set - detect from device locale
+        let localeCurrency = Currency.default // Uses Locale.current.currencyCode
+
+        // Save to UserDefaults
+        UserDefaults.standard.set(localeCurrency.rawValue, forKey: Keys.defaultCurrency)
+
+        // Update published property
+        self.defaultCurrency = localeCurrency
+
+        print("UserPreferences: Initialized default currency from locale: \(localeCurrency.rawValue)")
+        return localeCurrency
+    }
+
     /// Update the default currency for the current user
     /// - Parameter currency: New default currency
     func setDefaultCurrency(_ currency: Currency) {

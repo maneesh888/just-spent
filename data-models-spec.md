@@ -42,19 +42,34 @@ This document defines the complete data model architecture for Just Spent, ensur
 - **Dynamic Total:** Calculated in header card, updates when switching tabs
 - **Consistent Formatting:** All amounts use 1,234.56 format (. decimal, , grouping)
 
-### Onboarding Flow
+### Default Currency Initialization
+
+**Core Principle:** The app ALWAYS has a default currency based on device locale. This ensures modules are independent and expense screens can function without checking onboarding state.
 
 **First Launch Sequence:**
 ```
 App Launch
     ↓
+Check if default currency is set in UserPreferences
+    ↓
+    ├─ Not Set → Detect locale currency
+    │             ↓
+    │          Set default currency = locale currency
+    │          (e.g., UAE locale → AED, US locale → USD)
+    │             ↓
+    │          Continue to onboarding check
+    │
+    └─ Already Set → Use existing default currency
+    ↓
 Check hasCompletedOnboarding
     ↓
     ├─ false → Show CurrencyOnboardingView
     │           ↓
-    │       User selects currency
+    │       Show currency selector with default currency pre-selected
     │           ↓
-    │       Save to UserPreferences
+    │       User can accept default OR choose different currency
+    │           ↓
+    │       If user chooses different → Update default currency
     │           ↓
     │       Set hasCompletedOnboarding = true
     │           ↓
@@ -63,12 +78,43 @@ Check hasCompletedOnboarding
     └─ true → Show main ContentView with tabs
 ```
 
+**Locale-Based Default Currency Detection:**
+```kotlin
+// Android
+val locale = Locale.getDefault()
+val currencyCode = Currency.getInstance(locale).currencyCode
+val defaultCurrency = Currency.all.find { it.code == currencyCode } ?: Currency.USD
+```
+
+```swift
+// iOS
+let locale = Locale.current
+let currencyCode = locale.currencyCode ?? "USD"
+let defaultCurrency = Currency.all.first { $0.code == currencyCode } ?? .USD
+```
+
+**Supported Locale Mappings:**
+- `en_AE`, `ar_AE` → AED (UAE Dirham)
+- `en_US`, `es_US` → USD (US Dollar)
+- `en_GB` → GBP (British Pound)
+- `en_IN`, `hi_IN` → INR (Indian Rupee)
+- `ar_SA` → SAR (Saudi Riyal)
+- `de_DE`, `fr_FR`, `it_IT`, `es_ES` → EUR (Euro)
+- **Fallback:** USD (if locale currency not in supported list)
+
 **Onboarding Requirements:**
 - **Mandatory:** Cannot access main app until completed
 - **One-time:** Only shown on first launch
+- **Default Pre-Selected:** Locale-based currency is pre-selected for user convenience
+- **User Choice:** User can override locale default if desired
 - **Persistent:** Preference saved to UserDefaults/DataStore
 - **Visual:** Large currency symbols, clear selection UI
 - **Informative:** Helper text explaining default currency purpose
+
+**Empty State Currency Display:**
+- Empty expense list ALWAYS shows default currency total (e.g., "AED 0.00")
+- No need to check onboarding state or user selection
+- Modules remain independent and self-sufficient
 
 ### Currency Detection & Tab Management
 

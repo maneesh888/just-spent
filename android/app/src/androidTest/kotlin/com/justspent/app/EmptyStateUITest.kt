@@ -43,20 +43,28 @@ class EmptyStateUITest {
     @Inject
     lateinit var database: JustSpentDatabase
 
+    @Inject
+    lateinit var userPreferences: com.justspent.app.data.preferences.UserPreferences
+
     @Before
     fun setUp() {
         hiltRule.inject()
 
-        // Skip onboarding by setting the preference
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
+        // Skip onboarding by completing it with default currency
+        // Use UserPreferences.completeOnboarding() to update both SharedPreferences and StateFlow
+        userPreferences.completeOnboarding(com.justspent.app.data.model.Currency.AED)
 
         // Clear all expenses to ensure empty state
         runBlocking {
             database.expenseDao().deleteAllExpenses()
         }
 
+        // Restart activity to pick up preference changes
+        composeTestRule.activityRule.scenario.recreate()
+
+        // Wait for app to fully launch and render
+        composeTestRule.waitForIdle()
+        Thread.sleep(2000) // Extended wait for activity recreation
         composeTestRule.waitForIdle()
     }
 
@@ -261,8 +269,13 @@ class EmptyStateUITest {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
 
+        // Wait for compose hierarchy to settle and empty state to render
+        Thread.sleep(500)
+        composeTestRule.waitForIdle()
+
         // Then - Title should be accessible for screen readers
-        composeTestRule.onNodeWithTag("empty_state_title", useUnmergedTree = true)
+        // Note: Using merged tree (default) as that's how accessibility services see it
+        composeTestRule.onNodeWithTag("empty_state_title")
             .assertExists()
             .assertIsDisplayed()
     }

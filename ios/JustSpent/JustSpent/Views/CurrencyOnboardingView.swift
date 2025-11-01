@@ -30,9 +30,10 @@ struct CurrencyOnboardingView: View {
                         .fontWeight(.bold)
                         .multilineTextAlignment(.center)
 
-                    Text("Select Your Default Currency")
+                    Text("We've pre-selected your currency based on your location")
                         .font(.title3)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal)
 
@@ -52,7 +53,7 @@ struct CurrencyOnboardingView: View {
                 .scrollContentBackground(.hidden)
 
                 // Helper Text
-                Text("This will be used for expenses when no\ncurrency is specified in voice commands.")
+                Text("You can choose a different currency below.\nThis will be used when no currency is specified.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

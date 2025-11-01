@@ -51,6 +51,9 @@ struct ContentView: View {
     // User preferences for currency
     @StateObject private var userPreferences = UserPreferences.shared
 
+    // Onboarding state
+    @State private var hasCompletedOnboarding: Bool = UserPreferences.shared.hasCompletedOnboarding()
+
     // MARK: - Currency Detection
 
     /// Get distinct currencies from expenses
@@ -66,6 +69,18 @@ struct ContentView: View {
     }
 
     var body: some View {
+        if !hasCompletedOnboarding {
+            // Show onboarding screen on first launch
+            CurrencyOnboardingView(isOnboardingComplete: $hasCompletedOnboarding)
+        } else {
+            // Show main app content
+            mainAppContent
+        }
+    }
+
+    // MARK: - Main App Content
+
+    private var mainAppContent: some View {
         ZStack {
             // MARK: - Main Content View Based on Currency Count
             Group {

@@ -346,35 +346,64 @@ class MultiCurrencyWithDataTest {
         // Given - Multiple currencies with data
         composeTestRule.waitForIdle()
 
-        // When - Switch from AED to USD
+        // When - Switch to AED tab
         clickTab("AED")
 
-        // Then - See AED data
+        // Then - See AED data (wait for it to appear)
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            composeTestRule.onAllNodesWithText("Carrefour", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
         val aedNodes = composeTestRule.onAllNodesWithText("Carrefour", useUnmergedTree = true)
             .fetchSemanticsNodes()
         assert(aedNodes.isNotEmpty()) { "Should see Carrefour in AED tab" }
 
-        // When - Switch to USD
+        // When - Switch to USD tab
         clickTab("USD")
+
+        // Wait for Amazon to appear (USD data)
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            composeTestRule.onAllNodesWithText("Amazon", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
 
         // Then - Should see USD data
         val usdNodes = composeTestRule.onAllNodesWithText("Amazon", useUnmergedTree = true)
             .fetchSemanticsNodes()
         assert(usdNodes.isNotEmpty()) { "Should see Amazon in USD tab" }
 
+        // Wait for Carrefour to disappear (AED data should be filtered out)
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            composeTestRule.onAllNodesWithText("Carrefour", useUnmergedTree = true)
+                .fetchSemanticsNodes().isEmpty()
+        }
+
         // Carrefour should not be visible anymore
         val carrefourAfterSwitch = composeTestRule.onAllNodesWithText("Carrefour", useUnmergedTree = true)
             .fetchSemanticsNodes()
         assert(carrefourAfterSwitch.isEmpty()) { "Carrefour should not be visible in USD tab" }
 
-        // When - Switch to EUR
+        // When - Switch to EUR tab
         clickTab("EUR")
 
-        // Then - EUR data shown, USD data hidden
+        // Wait for Pharmacy to appear (EUR data)
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            composeTestRule.onAllNodesWithText("Pharmacy", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Then - EUR data shown
         val eurNodes = composeTestRule.onAllNodesWithText("Pharmacy", useUnmergedTree = true)
             .fetchSemanticsNodes()
         assert(eurNodes.isNotEmpty()) { "Should see Pharmacy in EUR tab" }
 
+        // Wait for Amazon to disappear (USD data should be filtered out)
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            composeTestRule.onAllNodesWithText("Amazon", useUnmergedTree = true)
+                .fetchSemanticsNodes().isEmpty()
+        }
+
+        // USD data hidden
         val amazonAfterSwitch = composeTestRule.onAllNodesWithText("Amazon", useUnmergedTree = true)
             .fetchSemanticsNodes()
         assert(amazonAfterSwitch.isEmpty()) { "Amazon should not be visible in EUR tab" }
@@ -386,6 +415,10 @@ class MultiCurrencyWithDataTest {
         val tab = composeTestRule.onAllNodesWithText(currency, substring = true, useUnmergedTree = true)
             .onFirst()
         tab.performClick()
+        composeTestRule.waitForIdle()
+
+        // Wait for tab content to fully recompose with new currency filter
+        // Give Compose time to update the expense list for the selected currency
         composeTestRule.waitForIdle()
     }
 

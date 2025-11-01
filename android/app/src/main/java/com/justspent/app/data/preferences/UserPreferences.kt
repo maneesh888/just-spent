@@ -59,6 +59,37 @@ class UserPreferences @Inject constructor(
     }
 
     /**
+     * Initialize default currency based on device locale if not already set.
+     * This ensures the app ALWAYS has a default currency, making modules independent.
+     *
+     * Should be called on app launch before checking onboarding state.
+     *
+     * @return The initialized or existing default currency
+     */
+    fun initializeDefaultCurrency(): Currency {
+        val existingCurrency = prefs.getString(KEY_DEFAULT_CURRENCY, null)
+
+        if (existingCurrency == null) {
+            // No default currency set - detect from device locale
+            val localeCurrency = Currency.default // Already implements locale detection
+
+            prefs.edit()
+                .putString(KEY_DEFAULT_CURRENCY, localeCurrency.code)
+                .apply()
+
+            _defaultCurrency.value = localeCurrency
+
+            android.util.Log.d(TAG, "Initialized default currency from locale: ${localeCurrency.code}")
+            return localeCurrency
+        }
+
+        // Default currency already set - return existing
+        val currency = Currency.fromCode(existingCurrency) ?: Currency.default
+        android.util.Log.d(TAG, "Using existing default currency: ${currency.code}")
+        return currency
+    }
+
+    /**
      * Reset onboarding state (for testing)
      */
     fun resetOnboarding() {
@@ -75,5 +106,6 @@ class UserPreferences @Inject constructor(
         private const val PREFS_NAME = "user_prefs"
         private const val KEY_HAS_COMPLETED_ONBOARDING = "has_completed_onboarding"
         private const val KEY_DEFAULT_CURRENCY = "default_currency"
+        private const val TAG = "UserPreferences"
     }
 }

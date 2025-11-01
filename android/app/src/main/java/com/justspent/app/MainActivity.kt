@@ -53,6 +53,11 @@ class MainActivity : ComponentActivity() {
         androidx.lifecycle.ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleManager)
         android.util.Log.d("MainActivity", "🚀 Lifecycle observer registered")
 
+        // Initialize default currency based on locale if not already set
+        // This ensures app ALWAYS has a default currency (module independence)
+        userPreferences.initializeDefaultCurrency()
+        android.util.Log.d("MainActivity", "💱 Default currency initialized")
+
         // Check permissions on launch
         permissionManager.checkPermissions()
 

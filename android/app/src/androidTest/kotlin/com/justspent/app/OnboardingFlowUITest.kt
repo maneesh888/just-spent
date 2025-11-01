@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * UI tests for the onboarding flow
@@ -26,21 +27,23 @@ class OnboardingFlowUITest {
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
+    @Inject
+    lateinit var userPreferences: com.justspent.app.data.preferences.UserPreferences
+
     @Before
     fun setUp() {
         hiltRule.inject()
 
         // Reset onboarding state to ensure onboarding screen is shown
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        prefs.edit()
-            .putBoolean("has_completed_onboarding", false)
-            .remove("default_currency")
-            .apply()
+        // Use UserPreferences.resetOnboarding() to update both SharedPreferences and StateFlow
+        userPreferences.resetOnboarding()
 
         // Restart activity to pick up new preference
         composeTestRule.activityRule.scenario.recreate()
 
+        // Wait for activity recreation and UI to fully render
+        composeTestRule.waitForIdle()
+        Thread.sleep(2500) // Activity recreation needs extended time
         composeTestRule.waitForIdle()
     }
 
@@ -78,6 +81,14 @@ class OnboardingFlowUITest {
 
     @Test
     fun onboarding_displaysAEDOption() {
+        composeTestRule.waitForIdle()
+
+        // Wait for the currency list to appear
+        composeTestRule.onNodeWithTag("currency_list")
+            .assertExists()
+
+        // Give compose time to fully render the lazy column items
+        Thread.sleep(800)
         composeTestRule.waitForIdle()
 
         // AED is typically first - should be visible without scrolling
@@ -270,8 +281,17 @@ class OnboardingFlowUITest {
         // 3. Verify the currency is saved as default
         composeTestRule.waitForIdle()
 
-        // Placeholder: Select USD (should be visible without scrolling)
+        // Wait for the currency list to appear
+        composeTestRule.onNodeWithTag("currency_list")
+            .assertExists()
+
+        // Give compose time to fully render the lazy column items
+        Thread.sleep(800)
+        composeTestRule.waitForIdle()
+
+        // Placeholder: Select USD (should be second, visible without scrolling)
         composeTestRule.onNodeWithTag("currency_option_USD")
+            .assertExists()
             .performClick()
 
         composeTestRule.waitForIdle()

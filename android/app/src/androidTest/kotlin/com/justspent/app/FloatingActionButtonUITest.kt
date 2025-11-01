@@ -280,20 +280,59 @@ class FloatingActionButtonUITest {
     @Test
     fun recordingIndicator_stateChanges() {
         // Given - Start recording
+        composeTestRule.waitForIdle()
+        Thread.sleep(500) // Wait for FAB to be fully rendered
+
         val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
 
         fab.performClick()
         composeTestRule.waitForIdle()
 
-        // When - Wait for potential state changes during recording
-        val listeningText = composeTestRule.onNodeWithText("Listening...", useUnmergedTree = true)
-        listeningText.assertExists()
+        // When - Wait for recording state to update and indicator to appear
+        // The recording indicator appears conditionally based on isRecording state
+        // Give more time for recording to initialize and UI to update
+        Thread.sleep(1000)
+        composeTestRule.waitForIdle()
 
-        // Then - Check if processing state might appear
-        // Note: This depends on actual speech detection
-        // We just verify the listening state is visible
-        listeningText.assertIsDisplayed()
+        // Wait for either "Listening..." or "Processing..." to appear
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            val listening = composeTestRule.onAllNodesWithText("Listening...", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+            val processing = composeTestRule.onAllNodesWithText("Processing...", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+            listening || processing
+        }
+
+        // Then - Verify at least one recording indicator is visible
+        val hasListening = try {
+            composeTestRule.onNodeWithText("Listening...", useUnmergedTree = true)
+                .assertIsDisplayed()
+            true
+        } catch (e: AssertionError) {
+            false
+        }
+
+        val hasProcessing = try {
+            composeTestRule.onNodeWithText("Processing...", useUnmergedTree = true)
+                .assertIsDisplayed()
+            true
+        } catch (e: AssertionError) {
+            false
+        }
+
+        assert(hasListening || hasProcessing) {
+            "Expected either 'Listening...' or 'Processing...' to be displayed"
+        }
+
+        // Cleanup - Stop recording
+        try {
+            val stopFab = composeTestRule.onNodeWithTag("voice_fab")
+            stopFab.performClick()
+            composeTestRule.waitForIdle()
+        } catch (e: Exception) {
+            // Recording may have stopped automatically
+        }
     }
 
     // MARK: - Visual State Tests

@@ -261,18 +261,53 @@ enum ExpenseError: LocalizedError {
 - **Dynamic tab creation** when new currency detected from voice
 - **Same UI per currency**: expense list + total at top
 
+### Default Currency Initialization (NEW!)
+**Core Principle**: App ALWAYS has a default currency based on device locale. This ensures:
+- ✅ Modules are independent (no need to check onboarding state)
+- ✅ Empty state shows meaningful currency ("AED 0.00" not just "0.00")
+- ✅ Voice commands have intelligent fallback
+
+**Initialization Flow:**
+```
+App Launch
+    ↓
+Check if default currency exists in UserPreferences
+    ↓
+    ├─ Not Set → Detect from device locale
+    │             (e.g., UAE locale → AED, US locale → USD)
+    │             ↓
+    │          Save as default currency
+    │
+    └─ Already Set → Use existing default
+    ↓
+Continue to onboarding check
+```
+
+**Locale Mappings:**
+- UAE/Arabic locales → AED
+- US locales → USD
+- UK locales → GBP
+- India locales → INR
+- Saudi Arabia → SAR
+- EU locales → EUR
+- Fallback → USD
+
 ### Currency Flow
-1. **First Launch**: Onboarding → Request Permissions → Select Default Currency
-2. **Single Currency**: Show simple list (no tabs)
-3. **Multiple Currencies**: Show tabbed interface with currency switcher
-4. **Voice Detection**: Auto-detect currency from voice ("50 dirhams" → AED)
-5. **Universal Support**: Detect ANY currency ("100 kuna" → create HRK tab)
-6. **Fallback**: Use default currency if none specified in voice
+1. **First Launch**: Initialize default (locale-based) → Onboarding → Request Permissions → Select/Confirm Default Currency
+2. **Empty State**: ALWAYS shows default currency total (e.g., "AED 0.00")
+3. **Single Currency**: Show simple list (no tabs) with default currency
+4. **Multiple Currencies**: Show tabbed interface with currency switcher
+5. **Voice Detection**: Auto-detect currency from voice ("50 dirhams" → AED)
+6. **Universal Support**: Detect ANY currency ("100 kuna" → create HRK tab)
+7. **Fallback**: Use default currency if none specified in voice
 
 ### Onboarding Requirements
 - **Step 1: Welcome** - App introduction
 - **Step 2: Permissions** - Siri/Assistant, Microphone (required), Notifications (optional)
 - **Step 3: Currency Selection** - Choose from 6 predefined currencies
+  - **Default Pre-Selected**: Locale-based currency is pre-selected
+  - **User Choice**: User can accept default OR choose different currency
+  - **Update Default**: If user chooses different, update default currency
 - **Must complete** before main app access
 - Save to UserPreferences/DataStore with `hasCompletedOnboarding` flag
 

@@ -94,7 +94,7 @@ private fun WelcomeHeader() {
 
         // Subtitle
         Text(
-            text = "Select Your Default Currency",
+            text = "We've pre-selected your currency based on your location",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -191,7 +191,7 @@ private fun CurrencyOnboardingRow(
 @Composable
 private fun HelperText() {
     Text(
-        text = "This will be used for expenses when no\ncurrency is specified in voice commands.",
+        text = "You can choose a different currency below.\nThis will be used when no currency is specified.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
