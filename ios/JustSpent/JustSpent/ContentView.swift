@@ -52,7 +52,13 @@ struct ContentView: View {
     @StateObject private var userPreferences = UserPreferences.shared
 
     // Onboarding state
-    @State private var hasCompletedOnboarding: Bool = UserPreferences.shared.hasCompletedOnboarding()
+    @State private var hasCompletedOnboarding: Bool = {
+        // Skip onboarding when running UI tests
+        if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+            return true
+        }
+        return UserPreferences.shared.hasCompletedOnboarding()
+    }()
 
     // MARK: - Currency Detection
 

@@ -280,6 +280,11 @@ parse_gradle_test_output() {
     fi
   fi
 
+  # Ensure we always return valid numbers (default to 0 if empty)
+  test_count=${test_count:-0}
+  passed=${passed:-0}
+  failed=${failed:-0}
+
   echo "$test_count:$passed:$failed"
 }
 
@@ -308,6 +313,11 @@ parse_xcodebuild_test_output() {
     # Total = passed + failed (skipped tests don't count toward execution)
     test_count=$((passed + failed))
   fi
+
+  # Ensure we always return valid numbers (default to 0 if empty)
+  test_count=${test_count:-0}
+  passed=${passed:-0}
+  failed=${failed:-0}
 
   echo "$test_count:$passed:$failed"
 }
@@ -580,6 +590,7 @@ run_ios_pipeline() {
       -scheme JustSpent \
       -destination 'platform=iOS Simulator,name=iPhone 16' \
       -only-testing:JustSpentUITests \
+      -parallel-testing-enabled NO \
       -enableCodeCoverage YES \
       -resultBundlePath "$RESULTS_DIR/ios_ui_$TIMESTAMP.xcresult" \
       CODE_SIGN_IDENTITY="" \

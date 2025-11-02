@@ -7,10 +7,12 @@ class FloatingActionButtonUITests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
-        
+
         app = XCUIApplication()
+        // Skip onboarding when running UI tests
+        app.launchArguments = ["--uitesting"]
         app.launch()
-        
+
         // Wait for app to load
         let appTitle = app.staticTexts["Just Spent"]
         XCTAssertTrue(appTitle.waitForExistence(timeout: 10.0), "App should launch and show title")
