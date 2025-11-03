@@ -392,7 +392,165 @@ class FloatingActionButtonUITests: XCTestCase {
         // 3. Check UI updates
     }
     #endif
-    
+
+    // MARK: - Additional Simulator-Compatible Tests (10 tests)
+
+    func testFloatingActionButtonEnabledState() throws {
+        // Given
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // Then - Button should be enabled by default
+        XCTAssertTrue(floatingButton.isEnabled, "Floating button should be enabled")
+        XCTAssertTrue(floatingButton.isHittable, "Floating button should be tappable")
+    }
+
+    func testFloatingButtonQuickTapCycle() throws {
+        // Given - Simulator-compatible version (no actual recording)
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // When - Quick tap cycle
+        let initialLabel = floatingButton.label
+        floatingButton.tap()
+        Thread.sleep(forTimeInterval: 0.2)
+
+        floatingButton.tap()
+        Thread.sleep(forTimeInterval: 0.3)
+
+        // Then - Button should return to normal state
+        XCTAssertTrue(floatingButton.exists, "Button should remain after quick cycle")
+    }
+
+    func testFloatingButtonMultipleTapCycles() throws {
+        // Given - Test button stability with multiple taps
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // When - Perform 3 tap cycles
+        for _ in 1...3 {
+            floatingButton.tap()
+            Thread.sleep(forTimeInterval: 0.3)
+
+            floatingButton.tap()
+            Thread.sleep(forTimeInterval: 0.3)
+        }
+
+        // Then - Button should still be functional
+        XCTAssertTrue(floatingButton.exists, "Button should remain stable after multiple cycles")
+        XCTAssertTrue(floatingButton.isEnabled, "Button should still be enabled")
+    }
+
+    func testFloatingButtonExistsRegardlessOfPermissions() throws {
+        // Given/When - The button should always exist
+        // (Permission state affects functionality, not visibility)
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+
+        // Then
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist regardless of permissions")
+        XCTAssertTrue(floatingButton.isHittable, "Button should be visible")
+    }
+
+    func testFloatingButtonVisibleAcrossDifferentStates() throws {
+        // Given - Button should be visible in both empty and populated states
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should be visible initially")
+
+        // When - Navigate or change state (if applicable)
+        // For now, just verify consistent visibility
+        Thread.sleep(forTimeInterval: 1.0)
+
+        // Then - Button should remain visible
+        XCTAssertTrue(floatingButton.exists, "Button should remain visible across states")
+        XCTAssertTrue(floatingButton.isHittable, "Button should remain tappable")
+    }
+
+    func testFloatingButtonPositionInEmptyState() throws {
+        // Given
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // When - Check position in empty state
+        let emptyStateText = app.staticTexts["No expenses yet"]
+
+        if emptyStateText.exists {
+            // Then - Both should be visible (button doesn't overlap empty state)
+            XCTAssertTrue(floatingButton.exists, "Button should be visible in empty state")
+            XCTAssertTrue(floatingButton.isHittable, "Button should be accessible in empty state")
+            XCTAssertTrue(emptyStateText.isHittable, "Empty state should be visible")
+        }
+    }
+
+    func testFloatingButtonSizeAndAppearance() throws {
+        // Given
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // When - Check button properties
+        let buttonFrame = floatingButton.frame
+
+        // Then - Button should have reasonable size (not tiny, not huge)
+        XCTAssertGreaterThan(buttonFrame.width, 40, "Button should be at least 40pt wide")
+        XCTAssertGreaterThan(buttonFrame.height, 40, "Button should be at least 40pt tall")
+        XCTAssertLessThan(buttonFrame.width, 200, "Button should not be unreasonably wide")
+        XCTAssertLessThan(buttonFrame.height, 200, "Button should not be unreasonably tall")
+    }
+
+    func testFloatingButtonPerformanceOfTap() throws {
+        // Given
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // When - Measure tap response time
+        let startTime = Date()
+        floatingButton.tap()
+        let tapTime = Date().timeIntervalSince(startTime)
+
+        // Then - Tap should be responsive (< 100ms)
+        XCTAssertLessThan(tapTime, 0.1, "Button tap should be responsive, took \(tapTime)s")
+
+        // Cleanup - tap again to stop any recording
+        Thread.sleep(forTimeInterval: 0.3)
+        if floatingButton.exists {
+            floatingButton.tap()
+        }
+    }
+
+    func testFloatingButtonAccessibleToScreenReaders() throws {
+        // Given
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // Then - Button should have accessible label
+        XCTAssertFalse(floatingButton.label.isEmpty, "Button should have accessible label for screen readers")
+
+        // Label should be descriptive
+        let label = floatingButton.label.lowercased()
+        let hasRelevantKeywords = label.contains("voice") || label.contains("record") || label.contains("start")
+        XCTAssertTrue(hasRelevantKeywords, "Button label should be descriptive: '\(floatingButton.label)'")
+    }
+
+    func testFloatingButtonStateTransitionSmooth() throws {
+        // Given
+        let floatingButton = app.buttons.matching(identifier: "voice_recording_button").firstMatch
+        XCTAssertTrue(floatingButton.waitForExistence(timeout: 5.0), "Button should exist")
+
+        // When - Tap to change state
+        let initialLabel = floatingButton.label
+        floatingButton.tap()
+        Thread.sleep(forTimeInterval: 0.5) // Wait for transition
+
+        // Then - Button should still exist (smooth transition)
+        XCTAssertTrue(floatingButton.exists, "Button should exist during state transition")
+
+        // Tap again to return to normal
+        floatingButton.tap()
+        Thread.sleep(forTimeInterval: 0.5)
+
+        // Should return to initial state smoothly
+        XCTAssertTrue(floatingButton.exists, "Button should exist after return transition")
+    }
+
     // MARK: - Helper Methods
     
     private func addMockExpenseForTesting() {

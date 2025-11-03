@@ -53,8 +53,13 @@ struct ContentView: View {
 
     // Onboarding state
     @State private var hasCompletedOnboarding: Bool = {
-        // Skip onboarding when running UI tests
-        if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+        // Force show onboarding if --show-onboarding flag is present
+        if ProcessInfo.processInfo.arguments.contains("--show-onboarding") {
+            return false
+        }
+        // Skip onboarding when running UI tests (unless --show-onboarding overrides)
+        if ProcessInfo.processInfo.arguments.contains("--uitesting") ||
+           ProcessInfo.processInfo.arguments.contains("--skip-onboarding") {
             return true
         }
         return UserPreferences.shared.hasCompletedOnboarding()
@@ -242,9 +247,11 @@ struct ContentView: View {
                         Text(LocalizedStrings.appTitle)
                             .font(.largeTitle)
                             .fontWeight(.bold)
+                            .accessibilityIdentifier("empty_state_app_title")
                         Text(LocalizedStrings.appSubtitle)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("empty_state_app_subtitle")
                     }
 
                     Spacer()
@@ -253,6 +260,7 @@ struct ContentView: View {
                         Text(LocalizedStrings.totalLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("empty_state_total_label")
                         Text(CurrencyFormatter.shared.format(
                             amount: 0,
                             currency: userPreferences.defaultCurrency,
@@ -261,6 +269,7 @@ struct ContentView: View {
                         ))
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .accessibilityIdentifier("empty_state_total_amount")
                     }
                 }
                 .padding(.horizontal)
@@ -277,27 +286,32 @@ struct ContentView: View {
                         Image(systemName: "mic.circle")
                             .font(.system(size: 60))
                             .foregroundColor(.blue)
+                            .accessibilityIdentifier("empty_state_mic_icon")
 
                         VStack(spacing: 12) {
                             Text(LocalizedStrings.emptyStateNoExpenses)
                                 .font(.title2)
                                 .foregroundColor(.secondary)
+                                .accessibilityIdentifier("empty_state_no_expenses_title")
 
                             Text(LocalizedStrings.emptyStateTapVoiceButton)
                                 .font(.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
+                                .accessibilityIdentifier("empty_state_tap_voice_button_message")
                         }
                     } else {
                         Image(systemName: speechRecognitionAvailable ? "mic.slash.circle" : "exclamationmark.triangle")
                             .font(.system(size: 60))
                             .foregroundColor(.orange)
+                            .accessibilityIdentifier("empty_state_permission_warning_icon")
 
                         VStack(spacing: 12) {
                             Text(LocalizedStrings.emptyStatePermissionsNeeded)
                                 .font(.title2)
                                 .foregroundColor(.secondary)
+                                .accessibilityIdentifier("empty_state_permissions_needed_title")
 
                             if !speechRecognitionAvailable {
                                 Text(LocalizedStrings.emptyStateRecognitionUnavailable)
@@ -305,18 +319,21 @@ struct ContentView: View {
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal)
+                                    .accessibilityIdentifier("empty_state_recognition_unavailable_message")
                             } else {
                                 Text(LocalizedStrings.emptyStateGrantPermissions)
                                     .font(.body)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal)
+                                    .accessibilityIdentifier("empty_state_grant_permissions_message")
 
                                 Button(LocalizedStrings.buttonGrantPermissions) {
                                     openAppSettings()
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .padding(.top, 8)
+                                .accessibilityIdentifier("empty_state_grant_permissions_button")
                             }
                         }
                     }
@@ -327,6 +344,7 @@ struct ContentView: View {
                         Text(errorMessage)
                             .foregroundColor(.red)
                             .padding()
+                            .accessibilityIdentifier("empty_state_error_message")
                     }
                 }
             }

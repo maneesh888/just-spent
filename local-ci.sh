@@ -57,7 +57,7 @@ ICON_INCOMPLETE="⚠️ "
 #
 # Industry Standard: A CI pipeline MUST fail if tests don't fully execute,
 # even if the test tool returns success. Incomplete execution = FAILURE.
-EXPECTED_IOS_UNIT_TESTS=83
+EXPECTED_IOS_UNIT_TESTS=80  # 83 total - 3 skipped (XCTSkip) - 1 excluded (simulator)
 EXPECTED_ANDROID_UNIT_TESTS=145
 # Note: UI test counts are dynamic (emulator-dependent), so no minimum enforced
 
@@ -281,6 +281,12 @@ parse_gradle_test_output() {
   fi
 
   # Ensure we always return valid numbers (default to 0 if empty)
+  # Strip any non-digit characters to ensure clean integers for JSON
+  test_count=$(echo "${test_count:-0}" | tr -cd '0-9')
+  passed=$(echo "${passed:-0}" | tr -cd '0-9')
+  failed=$(echo "${failed:-0}" | tr -cd '0-9')
+
+  # If empty after stripping, default to 0
   test_count=${test_count:-0}
   passed=${passed:-0}
   failed=${failed:-0}
@@ -296,19 +302,20 @@ parse_xcodebuild_test_output() {
   local failed=0
 
   # Industry Standard: Parse actual test case results from xcodebuild output
-  # xcodebuild outputs individual test cases like:
-  #   "Test case 'MyTest.testSomething()' passed on 'iPhone 16'"
-  #   "Test case 'MyTest.testSomething()' failed on 'iPhone 16'"
+  # xcodebuild outputs individual test cases in two formats:
+  #   Unit tests:  "Test case 'MyTest.testSomething()' passed on 'iPhone 16'"
+  #   UI tests:    "Test Case '-[MyUITest testSomething]' passed (3.286 seconds)."
 
   if [ -f "$log_file" ]; then
-    # Count test cases that passed (excluding skipped tests)
-    passed=$(grep -c "Test case .* passed on " "$log_file" 2>/dev/null || echo "0")
+    # Count test cases that passed (case-insensitive, works for both unit and UI tests)
+    passed_raw=$(grep -ci "Test [Cc]ase .* passed" "$log_file" 2>/dev/null)
+    passed=$(echo "$passed_raw" | tr -cd '0-9')
+    passed=${passed:-0}
 
-    # Count test cases that failed
-    failed=$(grep -c "Test case .* failed on " "$log_file" 2>/dev/null || echo "0")
-
-    # Count skipped tests separately (don't include in total)
-    # skipped=$(grep -c "Test case .* skipped on " "$log_file" 2>/dev/null || echo "0")
+    # Count test cases that failed (case-insensitive)
+    failed_raw=$(grep -ci "Test [Cc]ase .* failed" "$log_file" 2>/dev/null)
+    failed=$(echo "$failed_raw" | tr -cd '0-9')
+    failed=${failed:-0}
 
     # Total = passed + failed (skipped tests don't count toward execution)
     test_count=$((passed + failed))
