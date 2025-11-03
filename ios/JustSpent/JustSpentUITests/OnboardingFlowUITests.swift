@@ -128,7 +128,7 @@ class OnboardingFlowUITests: BaseUITestCase {
 
     func testOnboardingDisplaysCurrencySymbols() throws {
         // Wait for onboarding to fully render
-        Thread.sleep(forTimeInterval: 1.0)
+        Thread.sleep(forTimeInterval: 1.5)
 
         // Check that currency symbols are present using accessibility identifiers
         let currencies = TestDataHelper.allCurrencyCodes
@@ -136,8 +136,24 @@ class OnboardingFlowUITests: BaseUITestCase {
         var foundSymbols = 0
         for code in currencies {
             let symbolId = "currency_symbol_\(code)"
-            let symbol = app.staticTexts.matching(identifier: symbolId).firstMatch
-            if symbol.waitForExistence(timeout: 10.0) {
+
+            // Try staticTexts first
+            var symbol = app.staticTexts.matching(identifier: symbolId).firstMatch
+            if symbol.waitForExistence(timeout: 2.0) && symbol.exists {
+                foundSymbols += 1
+                continue
+            }
+
+            // Try as "other" element type if not found as staticText
+            symbol = app.otherElements.matching(identifier: symbolId).firstMatch
+            if symbol.waitForExistence(timeout: 2.0) && symbol.exists {
+                foundSymbols += 1
+                continue
+            }
+
+            // Try in descendants of cells (SwiftUI List cells)
+            if let cellSymbol = app.cells.descendants(matching: .staticText).matching(identifier: symbolId).firstMatch,
+               cellSymbol.waitForExistence(timeout: 1.0) {
                 foundSymbols += 1
             }
         }
@@ -166,16 +182,26 @@ class OnboardingFlowUITests: BaseUITestCase {
 
     func testOnboardingCurrencyOptionsAreAccessible() throws {
         // Wait for onboarding to fully render
-        Thread.sleep(forTimeInterval: 1.0)
+        Thread.sleep(forTimeInterval: 1.5)
 
         // Verify currency options are accessible using proper accessibility identifiers
         let currencies = TestDataHelper.allCurrencyCodes
 
         var accessibleCount = 0
         for code in currencies {
-            // Currency rows have accessibility identifier matching the code
-            let currencyOption = app.buttons.matching(identifier: code).firstMatch
-            if currencyOption.waitForExistence(timeout: 10.0) {
+            // SwiftUI List buttons appear as "other" element type, not "buttons"
+            var currencyOption = app.otherElements.matching(identifier: code).firstMatch
+
+            // Wait for existence
+            if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
+                XCTAssertFalse(currencyOption.label.isEmpty, "\(code) option should have accessible label")
+                accessibleCount += 1
+                continue
+            }
+
+            // Fallback: Try as button (in case of UI changes)
+            currencyOption = app.buttons.matching(identifier: code).firstMatch
+            if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
                 XCTAssertFalse(currencyOption.label.isEmpty, "\(code) option should have accessible label")
                 accessibleCount += 1
             }
@@ -223,16 +249,24 @@ class OnboardingFlowUITests: BaseUITestCase {
 
     func testOnboardingCurrenciesAreInGridOrList() throws {
         // Wait for onboarding to fully render
-        Thread.sleep(forTimeInterval: 1.0)
+        Thread.sleep(forTimeInterval: 1.5)
 
         // Verify currencies are displayed in organized layout
         let currencies = TestDataHelper.allCurrencyCodes
 
         var visibleCurrencies = 0
         for code in currencies {
-            // Use accessibility identifiers with proper wait
-            let currencyOption = app.buttons.matching(identifier: code).firstMatch
-            if currencyOption.waitForExistence(timeout: 10.0) {
+            // SwiftUI List buttons appear as "other" element type
+            var currencyOption = app.otherElements.matching(identifier: code).firstMatch
+
+            if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
+                visibleCurrencies += 1
+                continue
+            }
+
+            // Fallback: Try as button
+            currencyOption = app.buttons.matching(identifier: code).firstMatch
+            if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
                 visibleCurrencies += 1
             }
         }
@@ -256,11 +290,17 @@ class OnboardingFlowUITests: BaseUITestCase {
 
     func testOnboardingHandlesScreenRotation() throws {
         // Wait for onboarding to fully render
-        Thread.sleep(forTimeInterval: 1.0)
+        Thread.sleep(forTimeInterval: 1.5)
 
         // Verify onboarding elements exist using accessibility identifier
-        let usdButton = app.buttons.matching(identifier: "USD").firstMatch
-        XCTAssertTrue(usdButton.waitForExistence(timeout: 10.0), "Onboarding should show currency options")
+        // SwiftUI List buttons appear as "other" element type
+        var usdButton = app.otherElements.matching(identifier: "USD").firstMatch
+        if !usdButton.waitForExistence(timeout: 2.0) {
+            // Fallback: Try as button
+            usdButton = app.buttons.matching(identifier: "USD").firstMatch
+            _ = usdButton.waitForExistence(timeout: 2.0)
+        }
+        XCTAssertTrue(usdButton.exists, "Onboarding should show currency options")
 
         // Note: Rotation testing requires device orientation changes
         // XCUIDevice.shared.orientation = .landscapeLeft
@@ -284,8 +324,17 @@ class OnboardingFlowUITests: BaseUITestCase {
         let currencies = TestDataHelper.allCurrencyCodes
 
         for code in currencies {
-            let currencyButton = app.buttons.matching(identifier: code).firstMatch
-            if currencyButton.waitForExistence(timeout: 10.0) {
+            // SwiftUI List buttons appear as "other" element type
+            var currencyButton = app.otherElements.matching(identifier: code).firstMatch
+
+            if currencyButton.waitForExistence(timeout: 2.0) && currencyButton.exists {
+                foundCurrency = true
+                break
+            }
+
+            // Fallback: Try as button
+            currencyButton = app.buttons.matching(identifier: code).firstMatch
+            if currencyButton.waitForExistence(timeout: 2.0) && currencyButton.exists {
                 foundCurrency = true
                 break
             }
