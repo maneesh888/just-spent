@@ -109,15 +109,28 @@ class OnboardingFlowUITests: BaseUITestCase {
     // MARK: - Navigation Tests (2 tests)
 
     func testOnboardingHasConfirmButton() throws {
-        // Look for continue/confirm button
-        let continueButton = app.buttons["Continue"] ?? app.buttons["Get Started"] ?? app.buttons["Done"]
+        // Look for continue/confirm button - try each in order
+        var continueButton = app.buttons["Continue"]
+        if !continueButton.exists {
+            continueButton = app.buttons["Get Started"]
+        }
+        if !continueButton.exists {
+            continueButton = app.buttons["Done"]
+        }
 
         XCTAssertTrue(continueButton.exists, "Should have a continue/confirm button")
         XCTAssertTrue(continueButton.isHittable, "Continue button should be tappable")
     }
 
     func testOnboardingConfirmButtonIsClickable() throws {
-        let continueButton = app.buttons["Continue"] ?? app.buttons["Get Started"] ?? app.buttons["Done"]
+        // Look for continue/confirm button - try each in order
+        var continueButton = app.buttons["Continue"]
+        if !continueButton.exists {
+            continueButton = app.buttons["Get Started"]
+        }
+        if !continueButton.exists {
+            continueButton = app.buttons["Done"]
+        }
 
         XCTAssertTrue(continueButton.exists, "Continue button should exist")
         XCTAssertTrue(continueButton.isHittable, "Continue button should be clickable")
@@ -130,35 +143,39 @@ class OnboardingFlowUITests: BaseUITestCase {
         // Wait for onboarding to fully render
         Thread.sleep(forTimeInterval: 1.5)
 
-        // Check that currency symbols are present using accessibility identifiers
+        // Check that currency symbols are present using scroll helper
         let currencies = TestDataHelper.allCurrencyCodes
 
         var foundSymbols = 0
         for code in currencies {
-            let symbolId = "currency_symbol_\(code)"
+            // First, scroll to find the currency option (which contains the symbol)
+            if let currencyOption = testHelper.findCurrencyOption(code), currencyOption.exists {
+                // Now look for the symbol within this currency's row
+                let symbolId = "currency_symbol_\(code)"
 
-            // Try staticTexts first
-            var symbol = app.staticTexts.matching(identifier: symbolId).firstMatch
-            if symbol.waitForExistence(timeout: 2.0) && symbol.exists {
-                foundSymbols += 1
-                continue
-            }
+                // Try staticTexts first
+                var symbol = app.staticTexts.matching(identifier: symbolId).firstMatch
+                if symbol.exists {
+                    foundSymbols += 1
+                    continue
+                }
 
-            // Try as "other" element type if not found as staticText
-            symbol = app.otherElements.matching(identifier: symbolId).firstMatch
-            if symbol.waitForExistence(timeout: 2.0) && symbol.exists {
-                foundSymbols += 1
-                continue
-            }
+                // Try as "other" element type if not found as staticText
+                symbol = app.otherElements.matching(identifier: symbolId).firstMatch
+                if symbol.exists {
+                    foundSymbols += 1
+                    continue
+                }
 
-            // Try in descendants of cells (SwiftUI List cells)
-            if let cellSymbol = app.cells.descendants(matching: .staticText).matching(identifier: symbolId).firstMatch,
-               cellSymbol.waitForExistence(timeout: 1.0) {
-                foundSymbols += 1
+                // Try in descendants of cells (SwiftUI List cells)
+                let cellSymbol = app.cells.descendants(matching: .staticText).matching(identifier: symbolId).firstMatch
+                if cellSymbol.exists {
+                    foundSymbols += 1
+                }
             }
         }
 
-        XCTAssertGreaterThanOrEqual(foundSymbols, 4, "Should show at least 4 currency symbols, found \(foundSymbols)")
+        XCTAssertGreaterThanOrEqual(foundSymbols, 6, "Should show all 6 currency symbols (with scroll), found \(foundSymbols)")
     }
 
     func testOnboardingHasInstructionalText() throws {
@@ -189,8 +206,11 @@ class OnboardingFlowUITests: BaseUITestCase {
 
         var accessibleCount = 0
         for code in currencies {
+            // Use the correct identifier pattern from CurrencyOnboardingView
+            let identifier = "currency_option_\(code)"
+
             // SwiftUI List buttons appear as "other" element type, not "buttons"
-            var currencyOption = app.otherElements.matching(identifier: code).firstMatch
+            var currencyOption = app.otherElements.matching(identifier: identifier).firstMatch
 
             // Wait for existence
             if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
@@ -200,7 +220,7 @@ class OnboardingFlowUITests: BaseUITestCase {
             }
 
             // Fallback: Try as button (in case of UI changes)
-            currencyOption = app.buttons.matching(identifier: code).firstMatch
+            currencyOption = app.buttons.matching(identifier: identifier).firstMatch
             if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
                 XCTAssertFalse(currencyOption.label.isEmpty, "\(code) option should have accessible label")
                 accessibleCount += 1
@@ -223,7 +243,8 @@ class OnboardingFlowUITests: BaseUITestCase {
         var foundCurrency = false
 
         for code in currencies {
-            if app.buttons[code].exists || app.staticTexts[code].exists {
+            let identifier = "currency_option_\(code)"
+            if app.buttons[identifier].exists || app.otherElements[identifier].exists || app.staticTexts[code].exists {
                 foundCurrency = true
                 break
             }
@@ -251,35 +272,29 @@ class OnboardingFlowUITests: BaseUITestCase {
         // Wait for onboarding to fully render
         Thread.sleep(forTimeInterval: 1.5)
 
-        // Verify currencies are displayed in organized layout
+        // Verify currencies are displayed in organized layout (with scrolling support)
         let currencies = TestDataHelper.allCurrencyCodes
 
         var visibleCurrencies = 0
         for code in currencies {
-            // SwiftUI List buttons appear as "other" element type
-            var currencyOption = app.otherElements.matching(identifier: code).firstMatch
-
-            if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
-                visibleCurrencies += 1
-                continue
-            }
-
-            // Fallback: Try as button
-            currencyOption = app.buttons.matching(identifier: code).firstMatch
-            if currencyOption.waitForExistence(timeout: 2.0) && currencyOption.exists {
+            // Use scroll helper to find currency (works for any number of currencies)
+            if let element = testHelper.findCurrencyOption(code), element.exists {
                 visibleCurrencies += 1
             }
         }
 
         // All 6 currencies should be visible in the grid/list
-        XCTAssertEqual(visibleCurrencies, 6, "All 6 currencies should be visible in grid/list, found \(visibleCurrencies)")
+        XCTAssertEqual(visibleCurrencies, 6, "All 6 currencies should be visible in grid/list (with scroll), found \(visibleCurrencies)")
     }
 
     // MARK: - Edge Case Tests (2 tests)
 
     func testOnboardingHandlesBackPress() throws {
         // Verify onboarding screen is displayed
-        let continueButton = app.buttons["Continue"] ?? app.buttons["Get Started"]
+        var continueButton = app.buttons["Continue"]
+        if !continueButton.exists {
+            continueButton = app.buttons["Get Started"]
+        }
 
         XCTAssertTrue(continueButton.exists, "Onboarding should be displayed")
 
@@ -293,11 +308,14 @@ class OnboardingFlowUITests: BaseUITestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Verify onboarding elements exist using accessibility identifier
+        // Use the correct identifier pattern from CurrencyOnboardingView
+        let identifier = "currency_option_USD"
+
         // SwiftUI List buttons appear as "other" element type
-        var usdButton = app.otherElements.matching(identifier: "USD").firstMatch
+        var usdButton = app.otherElements.matching(identifier: identifier).firstMatch
         if !usdButton.waitForExistence(timeout: 2.0) {
             // Fallback: Try as button
-            usdButton = app.buttons.matching(identifier: "USD").firstMatch
+            usdButton = app.buttons.matching(identifier: identifier).firstMatch
             _ = usdButton.waitForExistence(timeout: 2.0)
         }
         XCTAssertTrue(usdButton.exists, "Onboarding should show currency options")
@@ -324,8 +342,11 @@ class OnboardingFlowUITests: BaseUITestCase {
         let currencies = TestDataHelper.allCurrencyCodes
 
         for code in currencies {
+            // Use the correct identifier pattern from CurrencyOnboardingView
+            let identifier = "currency_option_\(code)"
+
             // SwiftUI List buttons appear as "other" element type
-            var currencyButton = app.otherElements.matching(identifier: code).firstMatch
+            var currencyButton = app.otherElements.matching(identifier: identifier).firstMatch
 
             if currencyButton.waitForExistence(timeout: 2.0) && currencyButton.exists {
                 foundCurrency = true
@@ -333,7 +354,7 @@ class OnboardingFlowUITests: BaseUITestCase {
             }
 
             // Fallback: Try as button
-            currencyButton = app.buttons.matching(identifier: code).firstMatch
+            currencyButton = app.buttons.matching(identifier: identifier).firstMatch
             if currencyButton.waitForExistence(timeout: 2.0) && currencyButton.exists {
                 foundCurrency = true
                 break
@@ -356,8 +377,15 @@ class OnboardingFlowUITests: BaseUITestCase {
             Thread.sleep(forTimeInterval: 0.5)
         }
 
-        // Tap continue
-        let continueButton = app.buttons["Continue"] ?? app.buttons["Get Started"] ?? app.buttons["Done"]
+        // Tap continue - try each button in order
+        var continueButton = app.buttons["Continue"]
+        if !continueButton.exists {
+            continueButton = app.buttons["Get Started"]
+        }
+        if !continueButton.exists {
+            continueButton = app.buttons["Done"]
+        }
+
         if continueButton.exists {
             continueButton.tap()
             Thread.sleep(forTimeInterval: 1.0)
