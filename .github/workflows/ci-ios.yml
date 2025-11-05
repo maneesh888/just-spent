@@ -7,7 +7,7 @@ on:
 jobs:
   build-and-test:
     name: iOS Build & Test
-    runs-on: macos-15  # macOS with Xcode 16+ (supports iOS 26.0)
+    runs-on: macos-15  # macOS with Xcode 16+
     timeout-minutes: 30
 
     steps:
@@ -16,7 +16,7 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          # Use Xcode 16+ which supports iOS 26.0
+          # Use Xcode 16+ which supports iOS 18.6
           sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || \
           sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || \
           sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer
@@ -26,11 +26,11 @@ jobs:
 
       - name: Boot Simulator and Grant Permissions
         run: |
-          # Get simulator ID for iOS 26.0
-          SIMULATOR_ID=$(xcrun simctl list devices | grep -A 1 "iOS 26.0" | grep "iPhone 16" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+          # Get simulator ID for iOS 26.0 with iPhone 17 (iPhone 16 not available with iOS 26.0)
+          SIMULATOR_ID=$(xcrun simctl list devices | grep "iOS 26.0" | grep -E "iPhone 17" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
 
           if [ -z "$SIMULATOR_ID" ]; then
-            echo "⚠️  Could not find iPhone 16 with iOS 26.0 simulator"
+            echo "⚠️  Could not find iPhone 17 with iOS 26.0 simulator"
             echo "Available simulators:"
             xcrun simctl list devices | grep -E "(iPhone|iOS)"
             exit 1
@@ -71,7 +71,7 @@ jobs:
           xcodebuild clean build \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.0' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -84,7 +84,7 @@ jobs:
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.0' \
             -only-testing:JustSpentTests \
             -enableCodeCoverage YES \
             -resultBundlePath ./test-results-unit.xcresult \
@@ -99,7 +99,7 @@ jobs:
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.0' \
             -only-testing:JustSpentUITests \
             -enableCodeCoverage YES \
             -resultBundlePath ./test-results-ui.xcresult \
