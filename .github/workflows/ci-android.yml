@@ -160,7 +160,6 @@ jobs:
 
             echo "=== Granting runtime permissions ==="
             adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
-            adb shell pm grant com.justspent.app android.permission.MODIFY_AUDIO_SETTINGS
 
             # Verify permissions were granted
             echo "=== Checking granted permissions ==="
