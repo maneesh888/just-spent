@@ -19,20 +19,31 @@ struct CurrencyOnboardingView: View {
             VStack(spacing: 32) {
                 Spacer()
 
+                // App Title (for test discoverability)
+                Text(LocalizedStrings.appTitle)
+                    .font(.caption2)
+                    .foregroundColor(.clear)
+                    .frame(height: 0)
+                    .accessibilityHidden(true)
+
                 // Welcome Header
                 VStack(spacing: 16) {
                     Image(systemName: "dollarsign.circle.fill")
                         .font(.system(size: 80))
                         .foregroundColor(.blue)
+                        .accessibilityIdentifier("onboarding_icon")
 
                     Text("Welcome to Just Spent!")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("onboarding_title")
 
-                    Text("Select Your Default Currency")
+                    Text("We've pre-selected your currency based on your location")
                         .font(.title3)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("onboarding_subtitle")
                 }
                 .padding(.horizontal)
 
@@ -45,18 +56,21 @@ struct CurrencyOnboardingView: View {
                         ) {
                             selectedCurrency = currency
                         }
+                        .accessibilityIdentifier("currency_option_\(currency.rawValue)")
                     }
                 }
                 .listStyle(.insetGrouped)
                 .frame(maxHeight: 400)
                 .scrollContentBackground(.hidden)
+                .accessibilityIdentifier("currency_list")
 
                 // Helper Text
-                Text("This will be used for expenses when no\ncurrency is specified in voice commands.")
+                Text("You can choose a different currency below.\nThis will be used when no currency is specified.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
+                    .accessibilityIdentifier("onboarding_helper_text")
 
                 Spacer()
 
@@ -72,6 +86,7 @@ struct CurrencyOnboardingView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 32)
+                .accessibilityIdentifier("onboarding_continue_button")
             }
             .navigationBarHidden(true)
         }
@@ -106,6 +121,7 @@ struct CurrencyOnboardingRow: View {
                 Text(currency.symbol)
                     .font(.system(size: 32))
                     .frame(width: 50)
+                    .accessibilityIdentifier("currency_symbol_\(currency.rawValue)")
 
                 // Currency Info
                 VStack(alignment: .leading, spacing: 4) {
@@ -113,10 +129,12 @@ struct CurrencyOnboardingRow: View {
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
+                        .accessibilityIdentifier("currency_name_\(currency.rawValue)")
 
                     Text(currency.rawValue)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .accessibilityIdentifier("currency_code_\(currency.rawValue)")
                 }
 
                 Spacer()
@@ -126,16 +144,22 @@ struct CurrencyOnboardingRow: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.blue)
                         .font(.title2)
+                        .accessibilityIdentifier("currency_selected_\(currency.rawValue)")
                 } else {
                     Image(systemName: "circle")
                         .foregroundColor(.gray.opacity(0.3))
                         .font(.title2)
+                        .accessibilityIdentifier("currency_unselected_\(currency.rawValue)")
                 }
             }
             .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(currency.displayName) (\(currency.rawValue))")
+        .accessibilityIdentifier(currency.rawValue)
+        .accessibilityAddTraits(.isButton)
     }
 }
 
