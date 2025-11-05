@@ -11,6 +11,7 @@ import com.justspent.app.data.model.Currency
 import com.justspent.app.lifecycle.AppLifecycleManager
 import com.justspent.app.lifecycle.AppState
 import com.justspent.app.ui.expenses.*
+import com.justspent.app.ui.preferences.UserPreferencesViewModel
 import com.justspent.app.ui.voice.ExtractedVoiceData
 import com.justspent.app.ui.voice.VoiceExpenseViewModel
 import com.justspent.app.voice.AutoRecordingCoordinator
@@ -37,7 +38,8 @@ fun MainContentScreen(
     lifecycleManager: AppLifecycleManager,
     autoRecordingCoordinator: AutoRecordingCoordinator,
     viewModel: ExpenseListViewModel = hiltViewModel(),
-    voiceViewModel: VoiceExpenseViewModel = hiltViewModel()
+    voiceViewModel: VoiceExpenseViewModel = hiltViewModel(),
+    preferencesViewModel: UserPreferencesViewModel = hiltViewModel()
 ) {
     // Collect expenses
     val uiState by viewModel.uiState.collectAsState()
@@ -67,8 +69,8 @@ fun MainContentScreen(
     // Determine if we should show tabs
     val shouldShowTabs = activeCurrencies.size > 1
 
-    // Get default currency (from user preferences or device locale)
-    val defaultCurrency = Currency.default
+    // Get default currency from user preferences (not device locale)
+    val defaultCurrency by preferencesViewModel.defaultCurrency.collectAsStateWithLifecycle()
 
     // Handle voice result
     LaunchedEffect(voiceUiState.isProcessed, voiceUiState.processedExpense) {

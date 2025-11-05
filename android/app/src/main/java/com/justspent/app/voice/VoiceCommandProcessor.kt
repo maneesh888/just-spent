@@ -23,13 +23,14 @@ class VoiceCommandProcessor @Inject constructor() {
      */
     fun processVoiceCommand(
         command: String,
-        locale: Locale = Locale.getDefault()
+        locale: Locale = Locale.getDefault(),
+        defaultCurrency: String = "USD"
     ): Result<ExpenseData> {
         return try {
             val cleanCommand = command.trim().lowercase()
-            
+
             val amount = extractAmount(cleanCommand)
-            val currency = extractCurrency(cleanCommand, locale)
+            val currency = extractCurrency(cleanCommand, locale, defaultCurrency)
             val category = extractCategory(cleanCommand)
             val merchant = extractMerchant(cleanCommand)
             val notes = extractNotes(cleanCommand)
@@ -117,25 +118,32 @@ class VoiceCommandProcessor @Inject constructor() {
     }
     
     /**
-     * Extract currency from command or determine from locale
+     * Extract currency from command, using user's default currency as fallback
      */
-    private fun extractCurrency(command: String, locale: Locale): String {
+    private fun extractCurrency(command: String, locale: Locale, defaultCurrency: String): String {
+        // Check for explicit currency mentions using proper regex patterns
         return when {
-            command.contains("dollars?".toRegex()) || command.contains("$") -> "USD"
-            command.contains("AED|aed|dirhams?".toRegex()) -> "AED"
-            command.contains("euros?".toRegex()) || command.contains("€") -> "EUR"
-            command.contains("pounds?".toRegex()) || command.contains("£") -> "GBP"
-            command.contains("rupees?".toRegex()) || command.contains("₹") -> "INR"
-            command.contains("riyals?".toRegex()) -> "SAR"
+            Regex("dollars?").containsMatchIn(command) || command.contains("$") ||
+            Regex("usd").containsMatchIn(command) -> "USD"
+
+            Regex("dirhams?").containsMatchIn(command) || command.contains("د.إ") ||
+            Regex("aed").containsMatchIn(command) || Regex("dhs").containsMatchIn(command) -> "AED"
+
+            Regex("euros?").containsMatchIn(command) || command.contains("€") ||
+            Regex("eur").containsMatchIn(command) -> "EUR"
+
+            Regex("pounds?").containsMatchIn(command) || command.contains("£") ||
+            Regex("gbp").containsMatchIn(command) || Regex("quid").containsMatchIn(command) -> "GBP"
+
+            Regex("rupees?").containsMatchIn(command) || command.contains("₹") ||
+            Regex("inr").containsMatchIn(command) -> "INR"
+
+            Regex("riyals?").containsMatchIn(command) || command.contains("ر.س") ||
+            Regex("sar").containsMatchIn(command) || command.contains("﷼") -> "SAR"
+
             else -> {
-                // Determine from locale
-                when (locale.country) {
-                    "AE" -> "AED"
-                    "GB" -> "GBP"
-                    "IN" -> "INR"
-                    "SA" -> "SAR"
-                    else -> "USD" // Default
-                }
+                // No explicit currency found - use user's default currency
+                defaultCurrency
             }
         }
     }
