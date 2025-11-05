@@ -1,0 +1,41 @@
+name: PR Checks
+
+# Hybrid CI/CD Approach:
+# - GitHub Actions: Runs automatically only on main branch (production safety net)
+# - Local CI: Used for feature branches during development (faster feedback)
+# - Manual Trigger: Available for any branch via GitHub Actions UI when needed
+
+on:
+  pull_request:
+    branches:
+      - main  # Only auto-run on PRs to main
+  push:
+    branches:
+      - main  # Only auto-run on pushes to main
+  workflow_dispatch:  # Allow manual triggering from GitHub UI for any branch
+
+# Cancel in-progress runs for the same workflow and PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Run both platform checks in parallel
+  android-checks:
+    name: Android Build & Test
+    uses: ./.github/workflows/ci-android.yml
+    secrets: inherit
+
+  ios-checks:
+    name: iOS Build & Test
+    uses: ./.github/workflows/ci-ios.yml
+    secrets: inherit
+
+  # Summary job that depends on both platform checks
+  all-checks-passed:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [android-checks, ios-checks]
+    steps:
+      - name: All checks passed
+        run: echo "✅ All platform checks passed successfully!"

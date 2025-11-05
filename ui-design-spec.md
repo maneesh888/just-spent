@@ -27,15 +27,17 @@ Multiple Currencies → MultiCurrencyTabbedScreen (with tabs)
 ```
 First Launch
     ↓
-Onboarding (currency selection)
+Initialize default currency (locale-based)
     ↓
-Empty State (no expenses)
+Onboarding (currency selector with default pre-selected)
+    ↓
+Empty State (shows default currency: e.g., "AED 0.00")
     ↓ (user logs first expense)
     ↓
-Single Currency Screen
+Single Currency Screen (shows expenses + total in default currency)
     ↓ (user logs expense in different currency)
     ↓
-Multi-Currency Tabbed Screen
+Multi-Currency Tabbed Screen (tabs for each currency)
 ```
 
 ### 2. Empty State Design
@@ -49,8 +51,8 @@ Multi-Currency Tabbed Screen
 │  │  ┌─────────────────────┬─────────────────┐   │   │
 │  │  │ "Just Spent"        │  TOTAL CARD     │   │   │
 │  │  │ subtitle text       │  "Total"        │   │   │
-│  │  │ (with mic icon if   │  $0.00          │   │   │
-│  │  │  no permission)     │  (green bg)     │   │   │
+│  │  │ (with mic icon if   │  AED 0.00       │   │   │
+│  │  │  no permission)     │  (default curr) │   │   │
 │  │  └─────────────────────┴─────────────────┘   │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                      │

@@ -20,12 +20,14 @@ android/app/build/
 android/app/.gradle/
 android/.gradle/
 android/local.properties
-android/app/src/main/assets/
-android/app/src/main/res/raw/
-android/app/src/main/res/xml/
-android/app/src/main/res/values/
-android/app/src/main/res/drawable/
-android/app/src/main/res/layout/
+# Android resource directories - COMMENTED OUT to allow essential files
+# Only ignore specific generated/temporary files, not entire directories
+# android/app/src/main/assets/
+# android/app/src/main/res/raw/
+# android/app/src/main/res/xml/  # NEEDED: Contains actions.xml, backup_rules.xml, data_extraction_rules.xml
+# android/app/src/main/res/values/  # NEEDED: Contains strings.xml, themes.xml, colors.xml
+# android/app/src/main/res/drawable/
+# android/app/src/main/res/layout/  # May not be needed if using Jetpack Compose
 # android/app/src/main/res/mipmap-*/  # Commented out - app icons should be committed
 android/app/src/main/res/values-*/
 android/app/.idea/
@@ -65,3 +67,6 @@ yarn-error.log*
 
 # Claude Code
 .claude/settings.local.json
+
+# Local CI results
+.ci-results/

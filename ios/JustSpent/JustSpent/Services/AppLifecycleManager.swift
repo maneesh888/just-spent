@@ -46,14 +46,15 @@ class AppLifecycleManager: ObservableObject {
     private var lastBackgroundTime: Date?
 
     /// Threshold for considering app "been away for a while" (30 minutes in seconds)
-    private let backgroundThreshold: TimeInterval = 1800 // 30 minutes
+    private let backgroundThreshold: TimeInterval
 
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Lifecycle
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = .standard, backgroundThreshold: TimeInterval = 1800) {
         self.userDefaults = userDefaults
+        self.backgroundThreshold = backgroundThreshold
 
         // Determine if this is first launch
         self.isFirstLaunch = !userDefaults.bool(forKey: firstLaunchKey)

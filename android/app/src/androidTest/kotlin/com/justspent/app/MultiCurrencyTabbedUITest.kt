@@ -357,7 +357,7 @@ class MultiCurrencyTabbedUITest {
         composeTestRule.waitForIdle()
 
         // When - Switching between tabs
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
 
         // FAB should exist initially
         fab.assertExists()
@@ -387,7 +387,7 @@ class MultiCurrencyTabbedUITest {
         composeTestRule.waitForIdle()
 
         // When - Clicking FAB in different tabs
-        val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+        val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
 
         // Test FAB click
@@ -396,7 +396,7 @@ class MultiCurrencyTabbedUITest {
         Thread.sleep(500)
 
         // Then - FAB should change to recording state
-        val stopFab = composeTestRule.onNodeWithContentDescription("Stop Recording")
+        val stopFab = composeTestRule.onNodeWithTag("voice_fab")
         stopFab.assertExists()
 
         // Stop recording
@@ -551,7 +551,7 @@ class MultiCurrencyTabbedUITest {
                 totalCard1.assertExists()
 
                 // 2. FAB still accessible
-                val fab = composeTestRule.onNodeWithContentDescription("Start Recording")
+                val fab = composeTestRule.onNodeWithTag("voice_fab")
                 fab.assertExists()
 
                 // 3. Header still visible

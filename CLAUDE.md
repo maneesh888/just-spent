@@ -94,6 +94,78 @@ cd android
 ./test.sh all     # All tests
 ```
 
+## 🔄 CI/CD - Hybrid Approach
+
+Reference: @LOCAL-CI.md for complete documentation
+
+### Quick Start
+```bash
+# First time setup
+./scripts/install-hooks.sh
+
+# Run local CI checks
+./local-ci.sh --all          # Full: build + all tests (~5-10 min)
+./local-ci.sh --all --quick  # Fast: build + unit tests (~2-3 min)
+./local-ci.sh --ios          # iOS only
+./local-ci.sh --android      # Android only
+```
+
+### Strategy: Hybrid CI/CD
+
+**Local CI** (for development):
+- Runs on your Mac for instant feedback
+- 3-5x faster than GitHub Actions (5-10 min vs 11-12 min)
+- Pre-commit hook prevents breaking changes
+- Generates HTML reports + macOS notifications
+- Zero cost, no network dependency
+
+**GitHub Actions** (for production):
+- Runs automatically on `main` branch only
+- Safety net for production code
+- Can be manually triggered for any branch
+- Team visibility and PR badges
+
+### When to Use What
+
+| Task | Use Local CI | Use GitHub Actions |
+|------|--------------|-------------------|
+| During development | ✅ Always | ❌ Not needed |
+| Before commit | ✅ Auto (hook) | ❌ Not needed |
+| Feature branch | ✅ Run manually | ⚠️ Optional (manual trigger) |
+| PR to main | ✅ Good practice | ✅ Runs automatically |
+| After merge to main | ❌ Not needed | ✅ Runs automatically |
+
+### Pre-Commit Hook
+
+Automatically runs `./local-ci.sh --all --quick` before each commit.
+
+**To bypass** (for WIP commits):
+```bash
+git commit --no-verify -m "WIP: message"
+```
+
+### Viewing Results
+
+**Terminal**: Colored output with ✅/❌ status
+**HTML Report**: Auto-opens in browser after each run
+**Logs**: Saved in `.ci-results/` directory
+**Notifications**: macOS alerts on completion
+
+### Manual GitHub Actions Trigger
+
+1. Go to: https://github.com/YOUR_USERNAME/just-spent/actions
+2. Click "PR Checks" workflow
+3. Click "Run workflow" → Select branch → Run
+
+### Performance Comparison
+
+| Metric | Local CI | GitHub Actions |
+|--------|----------|----------------|
+| Full suite | 5-10 min | 11-12 min |
+| Quick mode | 2-3 min | N/A |
+| Failure rate | ~5% | ~30% (network issues) |
+| Cost | Free | GitHub minutes |
+
 ## 🚀 Current Sprint Tasks
 
 ### Multi-Currency Tabbed UI Implementation (Android)
@@ -189,18 +261,53 @@ enum ExpenseError: LocalizedError {
 - **Dynamic tab creation** when new currency detected from voice
 - **Same UI per currency**: expense list + total at top
 
+### Default Currency Initialization (NEW!)
+**Core Principle**: App ALWAYS has a default currency based on device locale. This ensures:
+- ✅ Modules are independent (no need to check onboarding state)
+- ✅ Empty state shows meaningful currency ("AED 0.00" not just "0.00")
+- ✅ Voice commands have intelligent fallback
+
+**Initialization Flow:**
+```
+App Launch
+    ↓
+Check if default currency exists in UserPreferences
+    ↓
+    ├─ Not Set → Detect from device locale
+    │             (e.g., UAE locale → AED, US locale → USD)
+    │             ↓
+    │          Save as default currency
+    │
+    └─ Already Set → Use existing default
+    ↓
+Continue to onboarding check
+```
+
+**Locale Mappings:**
+- UAE/Arabic locales → AED
+- US locales → USD
+- UK locales → GBP
+- India locales → INR
+- Saudi Arabia → SAR
+- EU locales → EUR
+- Fallback → USD
+
 ### Currency Flow
-1. **First Launch**: Onboarding → Request Permissions → Select Default Currency
-2. **Single Currency**: Show simple list (no tabs)
-3. **Multiple Currencies**: Show tabbed interface with currency switcher
-4. **Voice Detection**: Auto-detect currency from voice ("50 dirhams" → AED)
-5. **Universal Support**: Detect ANY currency ("100 kuna" → create HRK tab)
-6. **Fallback**: Use default currency if none specified in voice
+1. **First Launch**: Initialize default (locale-based) → Onboarding → Request Permissions → Select/Confirm Default Currency
+2. **Empty State**: ALWAYS shows default currency total (e.g., "AED 0.00")
+3. **Single Currency**: Show simple list (no tabs) with default currency
+4. **Multiple Currencies**: Show tabbed interface with currency switcher
+5. **Voice Detection**: Auto-detect currency from voice ("50 dirhams" → AED)
+6. **Universal Support**: Detect ANY currency ("100 kuna" → create HRK tab)
+7. **Fallback**: Use default currency if none specified in voice
 
 ### Onboarding Requirements
 - **Step 1: Welcome** - App introduction
 - **Step 2: Permissions** - Siri/Assistant, Microphone (required), Notifications (optional)
 - **Step 3: Currency Selection** - Choose from 6 predefined currencies
+  - **Default Pre-Selected**: Locale-based currency is pre-selected
+  - **User Choice**: User can accept default OR choose different currency
+  - **Update Default**: If user chooses different, update default currency
 - **Must complete** before main app access
 - Save to UserPreferences/DataStore with `hasCompletedOnboarding` flag
 

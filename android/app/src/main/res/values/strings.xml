@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App General -->
+    <string name="app_name">Just Spent</string>
+    <string name="app_subtitle">Voice-enabled expense tracker</string>
+    <string name="app_total_label">Total</string>
+
+    <!-- Empty State -->
+    <string name="empty_state_no_expenses">No Expenses Yet</string>
+    <string name="empty_state_tap_voice_button">Tap the microphone button to add an expense</string>
+    <string name="empty_state_permissions_needed">Voice features need permissions</string>
+    <string name="empty_state_recognition_unavailable">Speech recognition is not available on this device</string>
+    <string name="empty_state_grant_permissions">Grant Speech Recognition and Microphone permissions to use voice expense logging</string>
+
+    <!-- Buttons -->
+    <string name="button_grant_permissions">Grant Permissions</string>
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_retry">Retry</string>
+    <string name="button_process">Process</string>
+    <string name="button_go_to_settings">Go to Settings</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_save">Save</string>
+
+    <!-- Voice Recording -->
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_processing">Processing…</string>
+    <string name="voice_will_stop_auto">Will stop automatically when you finish speaking</string>
+    <string name="voice_enter_expense">Say your expense…</string>
+    <string name="voice_enter_naturally">Enter your expense naturally, like: \'I just spent 20 dollars for tea\'</string>
+
+    <!-- Permissions -->
+    <string name="permission_title_voice_unavailable">Voice Recognition Unavailable</string>
+    <string name="permission_title_service_unavailable">Service Temporarily Unavailable</string>
+    <string name="permission_title_required">Permissions Required</string>
+    <string name="permission_title_speech_required">Speech Recognition Permission Required</string>
+    <string name="permission_title_mic_required">Microphone Permission Required</string>
+
+    <string name="permission_message_unavailable">Speech recognition is not available on this device. Voice recording features require speech recognition support.</string>
+    <string name="permission_message_temp_unavailable">Speech recognition is temporarily unavailable. Please try again in a few moments.</string>
+    <string name="permission_message_both_required">Voice recording requires both Speech Recognition and Microphone permissions. Please grant these permissions in Settings > Privacy.</string>
+    <string name="permission_message_speech_required">Please grant Speech Recognition permission in Settings > Privacy > Speech Recognition to use voice features.</string>
+    <string name="permission_message_mic_required">Please grant Microphone permission in Settings > Privacy > Microphone to use voice features.</string>
+
+    <!-- Voice Recognition States -->
+    <string name="voice_recognition_error_title">Voice Recognition Error</string>
+    <string name="voice_recognition_success_title">Voice Success</string>
+    <string name="voice_recognition_entry_title">Voice Expense Entry</string>
+    <string name="voice_recognition_failed">Speech recognition failed: %1$s</string>
+    <string name="voice_recognition_no_speech">No speech detected. Please try again.</string>
+    <string name="voice_recognition_speak_clearly">No speech detected. Please try speaking clearly.</string>
+
+    <!-- Expense Processing -->
+    <string name="expense_added_success">✅ Voice expense added successfully!\n💰 Amount: %1$s$%2$s\n📂 Category: %3$s\n🎙️ From: \'%4$s\'</string>
+    <string name="expense_smart_processing">Smart processing success!\n💰 Amount: $%1$s\n📂 Category: %2$s\n📝 From: \'%3$s\'</string>
+    <string name="expense_failed_to_save">❌ Failed to save expense: %1$s</string>
+    <string name="expense_could_not_understand">❌ Could not understand: \'%1$s\'\n\nTry saying: \'I just spent 20 dollars for tea\'</string>
+    <string name="expense_added_via_voice">Added via voice recognition</string>
+    <string name="expense_added_via_intelligent">Added via intelligent voice processing</string>
+
+    <!-- Categories -->
+    <string name="category_food_dining">Food &amp; Dining</string>
+    <string name="category_grocery">Grocery</string>
+    <string name="category_transportation">Transportation</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_bills_utilities">Bills &amp; Utilities</string>
+    <string name="category_healthcare">Healthcare</string>
+    <string name="category_education">Education</string>
+    <string name="category_other">Other</string>
+    <string name="category_unknown">Unknown</string>
+
+    <!-- Category aliases for App Actions -->
+    <string name="category_food">Food &amp; Dining</string>
+    <string name="category_transport">Transportation</string>
+    <string name="category_bills">Bills &amp; Utilities</string>
+
+    <!-- Source Types -->
+    <string name="source_manual">Manual</string>
+    <string name="source_voice_assistant">Voice (Assistant)</string>
+    <string name="source_voice_recognition">Voice Recognition</string>
+    <string name="source_import">Import</string>
+
+    <!-- Assistant Integration -->
+    <string name="assistant_title_log_expense">Log Expense</string>
+    <string name="assistant_invalid_data">❌ Invalid Assistant expense data</string>
+    <string name="assistant_expense_received">🎙️ Assistant expense: $%1$s for %2$s</string>
+    <string name="assistant_processing">🎙️ Processing voice command with NLP</string>
+    <string name="assistant_shortcut_activated">✅ Assistant shortcut activated, showing voice input dialog</string>
+    <string name="assistant_shortcut_created">🎉 Assistant shortcut created!\n\nNow say: \'Hey Google, %1$s\'\n\nThe app will open and you can speak your expense naturally like:\n\'I just spent 20 dollars for tea\'</string>
+    <string name="assistant_shortcut_failed">❌ Failed to create Assistant shortcut: %1$s</string>
+    <string name="assistant_shortcut_cancelled">ℹ️ You can create an Assistant shortcut anytime by tapping \'Enable Assistant Support\' again.</string>
+
+    <!-- Errors -->
+    <string name="error_audio_session_setup">Failed to setup audio session</string>
+    <string name="error_audio_engine_failed">Failed to start recording: %1$s</string>
+    <string name="error_deactivate_audio_session">❌ Failed to deactivate audio session: %1$s</string>
+    <string name="error_invalid_expense_data">❌ Invalid expense data</string>
+    <string name="error_could_not_extract">❌ Could not extract expense data from: \'%1$s\'</string>
+    <string name="error_failed_to_save">❌ Failed to save expense: %1$s</string>
+    <string name="error_invalid_amount">Please enter a valid amount</string>
+    <string name="error_missing_category">Please select a category</string>
+    <string name="error_database">Database error occurred</string>
+    <string name="error_network">Network error occurred</string>
+
+    <!-- Debug Messages -->
+    <string name="debug_received_url">🔗 Received URL: %1$s</string>
+    <string name="debug_processing_url">📝 Processing URL text: \'%1$s\'</string>
+    <string name="debug_processing">🧠 Processing: \'%1$s\'</string>
+    <string name="debug_extracted">🔍 Extracted - Amount: %1$s, Currency: %2$s, Category: %3$s</string>
+    <string name="debug_saved_expense">✅ Intelligently processed and saved expense: $%1$s for %2$s</string>
+    <string name="debug_recording_started">🎙️ Recording started with auto-stop detection…</string>
+    <string name="debug_recording_stopped">🎙️ Recording stopped</string>
+    <string name="debug_manual_stop">🎙️ Manual stop requested</string>
+    <string name="debug_auto_stop">🎙️ Auto-stop triggered by silence detection</string>
+    <string name="debug_auto_stop_after_silence">🔇 Auto-stopping recording after %.1fs of silence</string>
+    <string name="debug_transcription">🎙️ Transcription: %1$s</string>
+    <string name="debug_processing_transcription">🧠 Processing transcription: \'%1$s\'</string>
+
+    <!-- Formatting -->
+    <string name="format_currency">%1$s %2$s</string>
+    <string name="format_amount">%1$.2f</string>
+
+    <!-- Voice Commands (for App Actions) -->
+    <string name="voice_command_log_expense">Log expense</string>
+    <string name="voice_command_view_expenses">View my expenses</string>
+    <string name="voice_command_check_total">Check my total spending</string>
+
+    <!-- Confirmations -->
+    <string name="expense_logged_success">Expense logged successfully</string>
+    <string name="expense_deleted_success">Expense deleted</string>
+
+    <!-- Content Descriptions (for Accessibility) -->
+    <string name="cd_voice_button">Voice recording button</string>
+    <string name="cd_delete_expense">Delete expense</string>
+    <string name="cd_expense_item">Expense item</string>
+    <string name="cd_category_icon">Category icon</string>
+</resources>

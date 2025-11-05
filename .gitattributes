@@ -1,0 +1,35 @@
+# Xcode project files - use LF line endings, no conversion
+*.pbxproj text eol=lf
+*.xcworkspacedata text eol=lf
+*.xcscheme text eol=lf
+
+# Swift files
+*.swift text eol=lf
+
+# Kotlin files
+*.kt text eol=lf
+
+# Gradle files
+*.gradle text eol=lf
+gradlew text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Workflow files
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Config files
+*.json text eol=lf
+*.xml text eol=lf
+*.plist text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.ttf binary
+*.otf binary

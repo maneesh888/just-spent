@@ -1,0 +1,169 @@
+name: Android CI
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Android Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        working-directory: android
+        run: chmod +x gradlew
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Run Unit Tests
+        working-directory: android
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Generate Code Coverage Report
+        working-directory: android
+        run: ./gradlew jacocoTestReport
+
+      - name: Upload Unit Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unit-test-results
+          path: android/app/build/reports/tests/testDebugUnitTest/
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          flags: android-unit
+          name: android-coverage
+          fail_ci_if_error: false
+          verbose: true
+
+  ui-tests:
+    name: Android UI Tests
+    # Using ubuntu-latest for reliable Android emulator with KVM hardware acceleration
+    # - Linux runners have better emulator stability than macOS
+    # - KVM provides near-native performance for x86_64 emulation
+    # - Recommended by android-emulator-runner maintainers
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        working-directory: android
+        run: chmod +x gradlew
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Cache AVD
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-28-x86_64-ubuntu-latest  # API 28 for stability (proven to work)
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28  # API 28 (Android 9) - proven stable in CI environments
+          target: google_apis
+          arch: x86_64  # x86_64 with KVM hardware acceleration
+          profile: Nexus 6
+          force-avd-creation: false
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Run instrumented tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28  # API 28 (Android 9) - proven stable in CI environments
+          target: google_apis
+          arch: x86_64  # x86_64 with KVM hardware acceleration
+          profile: Nexus 6
+          force-avd-creation: false
+          emulator-boot-timeout: 600  # 10 minutes timeout for boot
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
+          disable-animations: true
+          disable-spellchecker: true
+          disable-linux-hw-accel: false  # Enable KVM (false = don't disable)
+          script: |
+            adb wait-for-device
+            adb shell input keyevent 82
+
+            # Grant runtime permissions for voice recording
+            adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
+            adb shell pm grant com.justspent.app android.permission.MODIFY_AUDIO_SETTINGS
+
+            # Verify permissions were granted
+            echo "Checking granted permissions:"
+            adb shell dumpsys package com.justspent.app | grep permission
+
+            cd android && ./gradlew connectedDebugAndroidTest --stacktrace
+
+      - name: Upload UI Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-ui-test-results
+          path: android/app/build/reports/androidTests/connected/
+
+      - name: Upload UI Test Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-ui-test-screenshots
+          path: android/app/build/outputs/androidTest-results/
