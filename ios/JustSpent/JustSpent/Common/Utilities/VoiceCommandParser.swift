@@ -37,8 +37,13 @@ class VoiceCommandParser {
 
         // Try numeric patterns first (prioritize for performance)
         let patterns = [
-            // Currency symbol formats: $25.50, $25, $1,234.56, $1000
+            // Currency symbol formats: $25.50, ₹20, Rs 500, ₨250
             (#"\$(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "USD"),
+            (#"₹\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "INR"),
+            (#"₨\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "INR"),
+            (#"[Rr]s\.?\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "INR"),
+            (#"€(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "EUR"),
+            (#"£(\d+(?:,\d{3})*(?:\.\d{1,2})?)"#, "GBP"),
 
             // With currency name and decimals: 25.50 dollars, 1,234.56 dollars, 1000.50 dirhams
             (#"(\d+(?:,\d{3})*\.\d{1,2})\s*dollars?"#, "USD"),
@@ -84,8 +89,10 @@ class VoiceCommandParser {
         if amount == nil,
            let parsedAmount = NumberPhraseParser.shared.extractAmountFromCommand(command) {
             amount = parsedAmount
-            // Detect currency from context
-            currency = detectCurrency(from: lowercased)
+            // Use VoiceCurrencyDetector for comprehensive currency detection
+            // Supports: ₹, Rs, ₨, $, €, etc., keywords (rupee, dollar), and ISO codes
+            let detectedCurrency = VoiceCurrencyDetector.shared.detectCurrency(from: command)
+            currency = detectedCurrency.rawValue
         }
 
         // Extract category
@@ -105,17 +112,12 @@ class VoiceCommandParser {
     // MARK: - Private Methods
 
     /// Detect currency from context words in the command
+    /// Note: This method is now deprecated in favor of VoiceCurrencyDetector
+    /// which provides comprehensive currency detection including symbols (₹, Rs, ₨, etc.)
     private func detectCurrency(from command: String) -> String {
-        if command.contains("dirham") || command.contains("aed") {
-            return "AED"
-        } else if command.contains("dollar") || command.contains("usd") {
-            return "USD"
-        } else if command.contains("euro") || command.contains("eur") {
-            return "EUR"
-        } else if command.contains("pound") || command.contains("gbp") {
-            return "GBP"
-        }
-        return AppConstants.Currency.defaultCurrency
+        // Use VoiceCurrencyDetector for comprehensive detection
+        let detectedCurrency = VoiceCurrencyDetector.shared.detectCurrency(from: command)
+        return detectedCurrency.rawValue
     }
 
     /// Extract expense category from command using keyword matching

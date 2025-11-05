@@ -3,11 +3,49 @@
 ## Issue
 Voice transcription "I just spent ₹20" was incorrectly detecting currency as USD instead of INR.
 
-## Root Cause
-The rupee symbol ₹ (U+20B9) was present in voice keywords, but there were potentially issues with:
-1. Alternative Unicode representations not being supported
-2. Common text representations like "Rs" not being included
+## Root Cause Analysis
+After investigation, found **TWO SEPARATE ISSUES**:
+
+### Issue 1: VoiceCurrencyDetector (Original Fix - Completed)
+The rupee symbol ₹ (U+20B9) was present in voice keywords, but:
+1. Alternative Unicode representations weren't supported
+2. Common text representations like "Rs" weren't included
 3. Missing comprehensive test coverage for rupee symbol detection
+
+### Issue 2: VoiceCommandProcessor Not Using VoiceCurrencyDetector (CRITICAL)
+**The main issue:** Both iOS `VoiceCommandParser` and Android `VoiceCommandProcessor` had their own hardcoded currency detection logic that **completely bypassed** the `VoiceCurrencyDetector` utility!
+
+**Android VoiceCommandProcessor.kt (line 122-141):**
+```kotlin
+// Old code - NOT using VoiceCurrencyDetector!
+private fun extractCurrency(command: String, locale: Locale): String {
+    return when {
+        command.contains("rupees?".toRegex()) || command.contains("₹") -> "INR"  // ❌ Wrong regex usage!
+        // ... more hardcoded checks
+    }
+}
+```
+
+**Problems:**
+- Wrong regex syntax: `"rupees?".toRegex()` was passed to `contains()` which expects a String
+- Only checked for exact ₹ symbol, not Rs, ₨, etc.
+- Completely ignored the VoiceCurrencyDetector utility
+
+**iOS VoiceCommandParser.swift (line 108-119):**
+```swift
+// Old code - NOT using VoiceCurrencyDetector!
+private func detectCurrency(from command: String) -> String {
+    if command.contains("rupee") || command.contains("₹") {
+        return "INR"
+    }
+    // ... more hardcoded checks
+}
+```
+
+**Problems:**
+- Didn't check for Rs, ₨, etc.
+- Ignored the VoiceCurrencyDetector utility
+- Missing comprehensive symbol support
 
 ## Solution
 
@@ -65,13 +103,29 @@ Added support for:
 
 ## Files Modified
 
-### Currency Models:
+### Currency Models (Enhanced Keywords):
 - `ios/JustSpent/JustSpent/Models/Currency.swift` (line 100)
+  - Added: Rs, Rs., ₨ to INR voice keywords
 - `android/app/src/main/java/com/justspent/app/data/model/Currency.kt` (line 76)
+  - Added: Rs, Rs., ₨ to INR voice keywords
 
-### Detection Logic:
+### VoiceCurrencyDetector (Enhanced Regex):
 - `ios/JustSpent/JustSpent/Services/VoiceCurrencyDetector.swift` (lines 44, 82-83)
+  - Added ₨ to regex character class
 - `android/app/src/main/java/com/justspent/app/utils/VoiceCurrencyDetector.kt` (lines 31, 69-70)
+  - Added ₨ to regex character class
+
+### **VoiceCommandProcessor (CRITICAL FIX - Now Uses VoiceCurrencyDetector):**
+- `android/app/src/main/java/com/justspent/app/voice/VoiceCommandProcessor.kt`
+  - **Line 3, 6:** Added imports for Currency and VoiceCurrencyDetector
+  - **Lines 70-75:** Added rupee symbol patterns to amount extraction: ₹, ₨, Rs
+  - **Lines 125-139:** Replaced hardcoded currency detection with VoiceCurrencyDetector.detectCurrency()
+
+### **VoiceCommandParser (CRITICAL FIX - Now Uses VoiceCurrencyDetector):**
+- `ios/JustSpent/JustSpent/Common/Utilities/VoiceCommandParser.swift`
+  - **Lines 42-44:** Added rupee symbol patterns: ₹, ₨, Rs
+  - **Lines 89-90:** Updated to use VoiceCurrencyDetector for comprehensive detection
+  - **Lines 112-116:** Replaced detectCurrency method to use VoiceCurrencyDetector
 
 ### Test Files:
 - `ios/JustSpentTests/Services/VoiceCurrencyDetectorTests.swift` (added 7 new tests)
