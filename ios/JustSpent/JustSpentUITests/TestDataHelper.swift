@@ -34,7 +34,7 @@ class TestDataHelper {
 
     /// Configure app with empty state
     static func configureWithEmptyState() -> [String] {
-        return ["--uitesting", "--empty-state"]
+        return ["--uitesting", "--skip-onboarding", "--empty-state"]
     }
 
     // MARK: - Wait Helpers
@@ -60,14 +60,60 @@ class TestDataHelper {
     // MARK: - Query Helpers
 
     /// Find button by accessibility identifier with fallback
+    /// Supports SwiftUI .onTapGesture buttons that appear as "other" element types
+    /// Also searches within cells for SwiftUI List buttons
     func findButton(identifier: String, fallbackLabel: String? = nil) -> XCUIElement {
-        let button = app.buttons[identifier]
+        // First, check within cells (SwiftUI List context)
+        let cells = app.cells.allElementsBoundByIndex
+        for cell in cells {
+            let cellButton = cell.buttons[identifier]
+            if cellButton.exists {
+                return cellButton
+            }
+
+            let cellOther = cell.otherElements[identifier]
+            if cellOther.exists {
+                return cellOther
+            }
+        }
+
+        // Try as button (direct)
+        var button = app.buttons[identifier]
         if button.exists {
             return button
         }
 
+        // Try as "other" element type (SwiftUI .onTapGesture)
+        let otherElement = app.otherElements[identifier]
+        if otherElement.exists {
+            return otherElement
+        }
+
+        // Try fallback label as button
         if let label = fallbackLabel {
-            return app.buttons[label]
+            // Check in cells first
+            for cell in cells {
+                let cellButton = cell.buttons[label]
+                if cellButton.exists {
+                    return cellButton
+                }
+
+                let cellOther = cell.otherElements[label]
+                if cellOther.exists {
+                    return cellOther
+                }
+            }
+
+            button = app.buttons[label]
+            if button.exists {
+                return button
+            }
+
+            // Try fallback label as "other" element type
+            let otherElementByLabel = app.otherElements[label]
+            if otherElementByLabel.exists {
+                return otherElementByLabel
+            }
         }
 
         return button
@@ -154,47 +200,95 @@ class TestDataHelper {
     func scrollToElement(withIdentifier identifier: String, in container: XCUIElement? = nil) -> XCUIElement? {
         let searchContainer = container ?? app
 
-        // First try to find as button
-        var element = searchContainer.buttons[identifier]
+        // CRITICAL: SwiftUI List buttons with .buttonStyle(.plain) are embedded in cells
+        // We need to search through the cell hierarchy, not just top-level elements
+
+        // First, try to find within cells (most common for SwiftUI List)
+        let cells = searchContainer.cells.allElementsBoundByIndex
+        for cell in cells {
+            // Check if this cell contains our identifier
+            let cellButton = cell.buttons[identifier]
+            if cellButton.exists && cellButton.isHittable {
+                return cellButton
+            }
+
+            let cellOther = cell.otherElements[identifier]
+            if cellOther.exists && cellOther.isHittable {
+                return cellOther
+            }
+        }
+
+        // Try direct queries as fallback
+        var element = searchContainer.otherElements[identifier]
         if element.exists && element.isHittable {
             return element
         }
 
-        // Try as static text
+        element = searchContainer.buttons[identifier]
+        if element.exists && element.isHittable {
+            return element
+        }
+
         element = searchContainer.staticTexts[identifier]
         if element.exists && element.isHittable {
             return element
         }
 
-        // Try scrolling the container to find it
-        if !element.exists {
-            // Find the scrollable list
-            let lists = searchContainer.collectionViews.allElementsBoundByIndex +
-                       searchContainer.scrollViews.allElementsBoundByIndex
+        // Try scrolling to find the element
+        let lists = searchContainer.tables.allElementsBoundByIndex +
+                   searchContainer.collectionViews.allElementsBoundByIndex +
+                   searchContainer.scrollViews.allElementsBoundByIndex
 
-            for list in lists {
-                if list.exists {
-                    // Scroll down to find element
-                    var attempts = 0
-                    while attempts < 10 { // Max 10 scroll attempts
-                        // Check if element is now visible
-                        if searchContainer.buttons[identifier].exists {
-                            return searchContainer.buttons[identifier]
-                        }
-                        if searchContainer.staticTexts[identifier].exists {
-                            return searchContainer.staticTexts[identifier]
-                        }
+        for list in lists where list.exists {
+            var attempts = 0
+            while attempts < 10 { // Max 10 scroll attempts
+                // Check within cells first after each scroll
+                let cellsAfterScroll = searchContainer.cells.allElementsBoundByIndex
+                for cell in cellsAfterScroll {
+                    let cellButton = cell.buttons[identifier]
+                    if cellButton.exists && cellButton.isHittable {
+                        return cellButton
+                    }
 
-                        // Scroll down
-                        list.swipeUp()
-                        Thread.sleep(forTimeInterval: 0.2)
-                        attempts += 1
+                    let cellOther = cell.otherElements[identifier]
+                    if cellOther.exists && cellOther.isHittable {
+                        return cellOther
                     }
                 }
+
+                // Also check direct queries
+                if searchContainer.otherElements[identifier].exists {
+                    return searchContainer.otherElements[identifier]
+                }
+                if searchContainer.buttons[identifier].exists {
+                    return searchContainer.buttons[identifier]
+                }
+                if searchContainer.staticTexts[identifier].exists {
+                    return searchContainer.staticTexts[identifier]
+                }
+
+                // Scroll down
+                list.swipeUp()
+                Thread.sleep(forTimeInterval: 0.3)
+                attempts += 1
             }
         }
 
-        // Return what we found (might not be hittable)
+        // Final attempt - return what we found even if not hittable
+        // Check cells first
+        for cell in cells {
+            if cell.buttons[identifier].exists {
+                return cell.buttons[identifier]
+            }
+            if cell.otherElements[identifier].exists {
+                return cell.otherElements[identifier]
+            }
+        }
+
+        // Then check direct
+        if searchContainer.otherElements[identifier].exists {
+            return searchContainer.otherElements[identifier]
+        }
         if searchContainer.buttons[identifier].exists {
             return searchContainer.buttons[identifier]
         }

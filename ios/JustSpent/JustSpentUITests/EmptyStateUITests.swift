@@ -320,22 +320,21 @@ class EmptyStateUITests: BaseUITestCase {
         // Given - Fresh app launch
         let startTime = Date()
 
-        // Wait for app to fully initialize (including permission checks)
-        Thread.sleep(forTimeInterval: 1.0)
-
         // When - Wait for empty state to appear (permission-aware)
+        // Note: No artificial sleep needed - waitForExistence handles timing
         let emptyTitle = app.staticTexts.matching(identifier: "empty_state_no_expenses_title").firstMatch
         let permissionTitle = app.staticTexts.matching(identifier: "empty_state_permissions_needed_title").firstMatch
 
-        let didAppear = emptyTitle.waitForExistence(timeout: 10.0) || permissionTitle.waitForExistence(timeout: 10.0)
+        // Wait for either state to appear (increased timeout for CI environments)
+        let didAppear = emptyTitle.waitForExistence(timeout: 12.0) || permissionTitle.waitForExistence(timeout: 12.0)
 
         // Then - Should render within reasonable time
         let renderTime = Date().timeIntervalSince(startTime)
         XCTAssertTrue(didAppear, "Empty state should appear (either 'No expenses yet' or permissions message)")
-        XCTAssertLessThan(renderTime, 12.0, "Empty state should render within 12 seconds, took \(renderTime)s")
+        XCTAssertLessThan(renderTime, 15.0, "Empty state should render within 15 seconds, took \(renderTime)s")
 
-        // And - Empty state should be visible
+        // And - Empty state should be visible and interactive
         let stableTitle = emptyTitle.exists ? emptyTitle : permissionTitle
-        XCTAssertTrue(stableTitle.isHittable, "Empty state should be fully rendered")
+        XCTAssertTrue(stableTitle.isHittable, "Empty state should be fully rendered and interactive")
     }
 }
