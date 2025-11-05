@@ -281,7 +281,7 @@ class FloatingActionButtonUITest {
     fun recordingIndicator_stateChanges() {
         // Given - Start recording
         composeTestRule.waitForIdle()
-        Thread.sleep(500) // Wait for FAB to be fully rendered
+        Thread.sleep(1000) // Increased wait for CI environment (was 500ms)
 
         val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
@@ -292,11 +292,12 @@ class FloatingActionButtonUITest {
         // When - Wait for recording state to update and indicator to appear
         // The recording indicator appears conditionally based on isRecording state
         // Give more time for recording to initialize and UI to update
-        Thread.sleep(1000)
+        Thread.sleep(1500) // Increased for CI environment (was 1000ms)
         composeTestRule.waitForIdle()
 
         // Wait for either "Listening..." or "Processing..." to appear
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
+        // Increased timeout for CI environment which may be slower
+        composeTestRule.waitUntil(timeoutMillis = 10000) { // Increased from 5000ms to 10000ms
             val listening = composeTestRule.onAllNodesWithText("Listening...", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
             val processing = composeTestRule.onAllNodesWithText("Processing...", useUnmergedTree = true)
