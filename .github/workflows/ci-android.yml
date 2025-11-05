@@ -151,8 +151,8 @@ jobs:
             adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
             echo "Device fully booted"
 
-            echo "=== Building and installing test APKs ==="
-            cd android && ./gradlew assembleDebugAndroidTest --stacktrace
+            echo "=== Building app and test APKs ==="
+            cd android && ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
 
             echo "=== Installing app and test APKs ==="
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
