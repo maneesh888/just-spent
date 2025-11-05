@@ -151,6 +151,14 @@ jobs:
             adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
             echo "Device fully booted"
 
+            echo "=== Building and installing test APKs ==="
+            cd android
+            ./gradlew assembleDebugAndroidTest --stacktrace
+
+            echo "=== Installing app and test APKs ==="
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+
             echo "=== Granting runtime permissions ==="
             adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
             adb shell pm grant com.justspent.app android.permission.MODIFY_AUDIO_SETTINGS
@@ -160,8 +168,6 @@ jobs:
             adb shell dumpsys package com.justspent.app | grep permission || true
 
             echo "=== Starting UI tests with timeout protection ==="
-            cd android
-
             # Run tests with timeout to prevent hanging (35 minutes max for tests)
             # This leaves 10 minutes for emulator boot and cleanup
             timeout 35m ./gradlew connectedDebugAndroidTest --stacktrace --info || {
