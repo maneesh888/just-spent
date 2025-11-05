@@ -27,7 +27,7 @@ jobs:
       - name: Boot Simulator and Grant Permissions
         run: |
           # Get simulator ID for iOS 26.0 with iPhone 17 (iPhone 16 not available with iOS 26.0)
-          SIMULATOR_ID=$(xcrun simctl list devices | grep "iOS 26.0" | grep -E "iPhone 17" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+          SIMULATOR_ID=$(xcrun simctl list devices | awk '/iOS 26.0/,/^--/ {if (/iPhone 17 \(/ && !/unavailable/) {match($0, /\([A-Z0-9-]+\)/, arr); print substr(arr[0], 2, length(arr[0])-2); exit}}')
 
           if [ -z "$SIMULATOR_ID" ]; then
             echo "⚠️  Could not find iPhone 17 with iOS 26.0 simulator"
