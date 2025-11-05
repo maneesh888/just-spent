@@ -97,7 +97,7 @@ enum Currency: String, CaseIterable, Codable {
         case .gbp:
             return ["gbp", "pound", "pounds", "£", "quid", "sterling", "british pound"]
         case .inr:
-            return ["inr", "rupee", "rupees", "₹", "indian rupee"]
+            return ["inr", "rupee", "rupees", "₹", "rs", "rs.", "₨", "indian rupee"]
         case .sar:
             return ["sar", "riyal", "riyals", "﷼", "saudi riyal"]
         }

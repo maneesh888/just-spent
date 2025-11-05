@@ -28,7 +28,7 @@ object VoiceCurrencyDetector {
         val lowercasedText = text.lowercase()
 
         // Check for amount patterns with currency (e.g., "50 dollars", "$100")
-        val amountCurrencyPattern = Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)""")
+        val amountCurrencyPattern = Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)""")
         amountCurrencyPattern.find(lowercasedText)?.let { matchResult ->
             val currencyPart = matchResult.groupValues[2]
             Currency.detectFromText(currencyPart)?.let { return it }
@@ -64,10 +64,10 @@ object VoiceCurrencyDetector {
         val lowercasedText = text.lowercase()
 
         // Pattern: number followed by currency
-        // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100"
+        // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100", "₹20", "Rs 500"
         val patterns = listOf(
-            Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)"""),
-            Regex("""([a-zA-Z\$€£₹﷼د.إ]+)\s*(\d+\.?\d*)""")
+            Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)"""),
+            Regex("""([a-zA-Z\$€£₹₨﷼د.إ]+)\s*(\d+\.?\d*)""")
         )
 
         for (pattern in patterns) {

@@ -41,7 +41,7 @@ class VoiceCurrencyDetector {
         let lowercasedText = text.lowercased()
 
         // Check for amount patterns with currency (e.g., "50 dollars", "$100")
-        if let match = lowercasedText.range(of: #"(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)"#, options: .regularExpression) {
+        if let match = lowercasedText.range(of: #"(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)"#, options: .regularExpression) {
             let matchedText = String(lowercasedText[match])
             if let currency = Currency.detectFromText(matchedText) {
                 return currency
@@ -77,10 +77,10 @@ class VoiceCurrencyDetector {
     ) -> (amount: Decimal, currency: Currency)? {
 
         // Pattern: number followed by currency
-        // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100"
+        // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100", "₹20", "Rs 500"
         let patterns = [
-            #"(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)"#,
-            #"([a-zA-Z\$€£₹﷼د.إ]+)\s*(\d+\.?\d*)"#
+            #"(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)"#,
+            #"([a-zA-Z\$€£₹₨﷼د.إ]+)\s*(\d+\.?\d*)"#
         ]
 
         for pattern in patterns {
