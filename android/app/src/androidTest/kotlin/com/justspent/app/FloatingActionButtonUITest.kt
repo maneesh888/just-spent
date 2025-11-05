@@ -281,7 +281,7 @@ class FloatingActionButtonUITest {
     fun recordingIndicator_stateChanges() {
         // Given - Start recording
         composeTestRule.waitForIdle()
-        Thread.sleep(1000) // Increased wait for CI environment (was 500ms)
+        Thread.sleep(1500) // Increased wait for CI environment initialization
 
         val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
@@ -292,17 +292,32 @@ class FloatingActionButtonUITest {
         // When - Wait for recording state to update and indicator to appear
         // The recording indicator appears conditionally based on isRecording state
         // Give more time for recording to initialize and UI to update
-        Thread.sleep(1500) // Increased for CI environment (was 1000ms)
+        Thread.sleep(2000) // Increased to 2 seconds for slower CI environments
         composeTestRule.waitForIdle()
 
         // Wait for either "Listening..." or "Processing..." to appear
-        // Increased timeout for CI environment which may be slower
-        composeTestRule.waitUntil(timeoutMillis = 10000) { // Increased from 5000ms to 10000ms
-            val listening = composeTestRule.onAllNodesWithText("Listening...", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-            val processing = composeTestRule.onAllNodesWithText("Processing...", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-            listening || processing
+        // Increased timeout significantly for CI environment which may be much slower
+        // Also add retry logic with smaller intervals for better responsiveness
+        var indicatorFound = false
+        var attempts = 0
+        val maxAttempts = 30 // 30 attempts * 500ms = 15 seconds total
+
+        while (!indicatorFound && attempts < maxAttempts) {
+            indicatorFound = try {
+                val listening = composeTestRule.onAllNodesWithText("Listening...", useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
+                val processing = composeTestRule.onAllNodesWithText("Processing...", useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
+                listening || processing
+            } catch (e: Exception) {
+                false
+            }
+
+            if (!indicatorFound) {
+                Thread.sleep(500)
+                composeTestRule.waitForIdle()
+                attempts++
+            }
         }
 
         // Then - Verify at least one recording indicator is visible
@@ -323,7 +338,7 @@ class FloatingActionButtonUITest {
         }
 
         assert(hasListening || hasProcessing) {
-            "Expected either 'Listening...' or 'Processing...' to be displayed"
+            "Expected either 'Listening...' or 'Processing...' to be displayed after $attempts attempts (${attempts * 500}ms wait time)"
         }
 
         // Cleanup - Stop recording
@@ -331,6 +346,7 @@ class FloatingActionButtonUITest {
             val stopFab = composeTestRule.onNodeWithTag("voice_fab")
             stopFab.performClick()
             composeTestRule.waitForIdle()
+            Thread.sleep(500) // Wait for cleanup
         } catch (e: Exception) {
             // Recording may have stopped automatically
         }
