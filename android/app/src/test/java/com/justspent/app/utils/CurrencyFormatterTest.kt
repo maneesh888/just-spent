@@ -137,7 +137,7 @@ class CurrencyFormatterTest {
         val result = CurrencyFormatter.format(amount, currency, showSymbol = true)
 
         // Then
-        assertThat(result).isEqualTo("﷼ 1,234.56")
+        assertThat(result).isEqualTo("ر.س 1,234.56")
     }
 
     // MARK: - Decimal Places Tests

@@ -37,10 +37,12 @@ struct FloatingVoiceButton: View {
                                     .frame(width: 8, height: 8)
                                     .scaleEffect(isRecording ? 1.0 : 0.5)
                                     .animation(.easeInOut(duration: 0.5).repeatForever(), value: isRecording)
+                                    .accessibilityIdentifier("recording_indicator_dot")
                                 Text(hasDetectedSpeech ? LocalizedStrings.voiceProcessing : LocalizedStrings.voiceListening)
                                     .foregroundColor(hasDetectedSpeech ? .green : .red)
                                     .font(.caption)
                                     .fontWeight(.medium)
+                                    .accessibilityIdentifier("recording_status_text")
                             }
 
                             // Auto-stop indicator
@@ -48,12 +50,14 @@ struct FloatingVoiceButton: View {
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
+                                .accessibilityIdentifier("auto_stop_indicator")
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(Color.white)
                         .cornerRadius(20)
                         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .accessibilityIdentifier("recording_indicator_card")
                     }
 
                     // Main floating button
