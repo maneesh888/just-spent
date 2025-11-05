@@ -45,7 +45,10 @@ fun CurrencyOnboardingScreen(
             // Currency Selection List
             CurrencySelectionList(
                 selectedCurrency = selectedCurrency,
-                onCurrencySelected = { selectedCurrency = it }
+                onCurrencySelected = {
+                    selectedCurrency = it
+                    onCurrencySelected(it) // Notify parent immediately
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -58,7 +61,6 @@ fun CurrencyOnboardingScreen(
             // Continue Button
             ContinueButton(
                 onClick = {
-                    onCurrencySelected(selectedCurrency)
                     onComplete()
                 }
             )
@@ -92,7 +94,7 @@ private fun WelcomeHeader() {
 
         // Subtitle
         Text(
-            text = "Select Your Default Currency",
+            text = "We've pre-selected your currency based on your location",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -108,11 +110,15 @@ private fun CurrencySelectionList(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 400.dp),
+            .heightIn(min = 200.dp, max = 500.dp), // Flexible height that works for both production and tests
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 2.dp
     ) {
-        LazyColumn {
+        LazyColumn(
+            modifier = Modifier
+                .height(400.dp) // Fixed height for consistent rendering in tests
+                .testTag("currency_list")
+        ) {
             items(Currency.all) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
@@ -185,7 +191,7 @@ private fun CurrencyOnboardingRow(
 @Composable
 private fun HelperText() {
     Text(
-        text = "This will be used for expenses when no\ncurrency is specified in voice commands.",
+        text = "You can choose a different currency below.\nThis will be used when no currency is specified.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center

@@ -78,9 +78,9 @@ running() {
 # Emulator Detection Functions
 # ============================================================================
 
-# Check if any emulator is currently running
+# Check if any emulator is currently running (including offline state)
 is_emulator_running() {
-  adb devices 2>/dev/null | grep -q "emulator.*device$"
+  adb devices 2>/dev/null | grep -q "emulator"
 }
 
 # Get running emulator serial
@@ -93,6 +93,33 @@ is_emulator_booted() {
   local serial=$1
   local boot_completed=$(adb -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
   [ "$boot_completed" = "1" ]
+}
+
+# Check if emulator is online (not offline)
+is_emulator_online() {
+  local serial=$1
+  adb devices 2>/dev/null | grep "$serial" | grep -q "device$"
+}
+
+# Recover offline emulator by restarting ADB connection
+recover_offline_emulator() {
+  local serial=$1
+  info "Attempting to recover offline emulator: $serial"
+
+  # Restart ADB server
+  adb kill-server >/dev/null 2>&1
+  sleep 2
+  adb start-server >/dev/null 2>&1
+  adb wait-for-device
+
+  # Check if emulator is now online
+  if is_emulator_online "$serial"; then
+    success "Successfully recovered emulator"
+    return 0
+  else
+    warning "Failed to recover emulator - it may need manual restart"
+    return 1
+  fi
 }
 
 # ============================================================================
@@ -451,6 +478,19 @@ cmd_grant_permissions() {
   fi
 
   local serial=$(get_running_emulator)
+
+  # Check if emulator is offline and try to recover
+  if [ -z "$serial" ]; then
+    # No online emulator found, try to get any emulator serial
+    serial=$(adb devices 2>/dev/null | grep "emulator" | head -n 1 | awk '{print $1}')
+    if [ -n "$serial" ]; then
+      warning "Emulator detected but offline: $serial"
+      recover_offline_emulator "$serial" || return 1
+    else
+      error "No emulator found"
+      return 1
+    fi
+  fi
 
   if ! is_emulator_booted "$serial"; then
     warning "Emulator is still booting. Waiting..."

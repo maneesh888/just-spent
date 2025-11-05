@@ -27,7 +27,8 @@ final class AutoRecordingCoordinatorTests: XCTestCase {
         let suiteName = "test.\(UUID().uuidString)"
         mockUserDefaults = UserDefaults(suiteName: suiteName)!
 
-        mockLifecycleManager = AppLifecycleManager(userDefaults: mockUserDefaults)
+        // Use short background threshold for testing (0.1 seconds instead of 30 minutes)
+        mockLifecycleManager = AppLifecycleManager(userDefaults: mockUserDefaults, backgroundThreshold: 0.1)
         sut = AutoRecordingCoordinator(lifecycleManager: mockLifecycleManager)
     }
 
@@ -335,11 +336,14 @@ final class AutoRecordingCoordinatorTests: XCTestCase {
         // 2. App goes to background
         mockLifecycleManager.updateAppState(.background)
 
-        // 3. App returns to foreground
+        // 3. Wait for background threshold to pass (0.1s in tests)
+        try? await Task.sleep(nanoseconds: 150_000_000) // 150ms
+
+        // 4. App returns to foreground
         mockLifecycleManager.updateAppState(.active)
         XCTAssertTrue(mockLifecycleManager.didBecomeActive)
 
-        // 4. Auto-recording should be triggered
+        // 5. Auto-recording should be triggered
         sut.triggerAutoRecordingIfNeeded(
             isRecordingActive: false,
             speechPermissionGranted: true,
@@ -347,16 +351,16 @@ final class AutoRecordingCoordinatorTests: XCTestCase {
             speechRecognitionAvailable: true
         )
 
-        // 5. Should start auto-recording
+        // 6. Should start auto-recording
         XCTAssertTrue(mockLifecycleManager.isAutoRecording)
 
         // Wait for delay
         try? await Task.sleep(nanoseconds: 600_000_000)
 
-        // 6. Should have attempted to trigger recording
+        // 7. Should have attempted to trigger recording
         // (In real app, ContentView would observe shouldStartRecording)
 
-        // 7. Clean up foreground transition
+        // 8. Clean up foreground transition
         mockLifecycleManager.consumeForegroundTransition()
         XCTAssertFalse(mockLifecycleManager.didBecomeActive)
     }

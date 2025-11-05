@@ -67,9 +67,11 @@ struct MultiCurrencyTabbedView: View {
                         Text(LocalizedStrings.appTitle)
                             .font(.largeTitle)
                             .fontWeight(.bold)
+                            .accessibilityIdentifier("multi_currency_app_title")
                         Text(LocalizedStrings.appSubtitle)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("multi_currency_app_subtitle")
                     }
 
                     Spacer()
@@ -78,9 +80,11 @@ struct MultiCurrencyTabbedView: View {
                         Text(LocalizedStrings.totalLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("multi_currency_total_label")
                         Text(formattedTotal)
                             .font(.title2)
                             .fontWeight(.semibold)
+                            .accessibilityIdentifier("multi_currency_total_amount")
                     }
                 }
                 .padding(.horizontal)
@@ -123,6 +127,7 @@ struct CurrencyTabBar: View {
                             selectedCurrency = currency
                         }
                     }
+                    .accessibilityIdentifier("currency_tab_\(currency.rawValue)")
                 }
             }
             .padding(.horizontal, 16)
@@ -130,6 +135,7 @@ struct CurrencyTabBar: View {
         }
         .background(Color(.systemBackground))
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 2)
+        .accessibilityIdentifier("currency_tab_bar")
     }
 }
 
@@ -145,9 +151,11 @@ struct CurrencyTab: View {
             HStack(spacing: 6) {
                 Text(currency.symbol)
                     .font(.system(size: 18, weight: isSelected ? .bold : .medium))
+                    .accessibilityIdentifier("tab_symbol_\(currency.rawValue)")
 
                 Text(currency.rawValue)
                     .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                    .accessibilityIdentifier("tab_code_\(currency.rawValue)")
             }
             .foregroundColor(isSelected ? .white : .primary)
             .padding(.horizontal, 16)
@@ -163,6 +171,7 @@ struct CurrencyTab: View {
                     .fill(Color.blue)
                     .frame(height: 3)
                     .cornerRadius(1.5)
+                    .accessibilityIdentifier("tab_indicator_\(currency.rawValue)")
             } else {
                 Rectangle()
                     .fill(Color.clear)

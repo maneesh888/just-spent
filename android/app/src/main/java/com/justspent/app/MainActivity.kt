@@ -15,9 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.justspent.app.data.preferences.UserPreferences
 import com.justspent.app.lifecycle.AppLifecycleManager
 import com.justspent.app.permissions.PermissionManager
 import com.justspent.app.ui.MainContentScreen
+import com.justspent.app.ui.onboarding.CurrencyOnboardingScreen
 import com.justspent.app.ui.theme.JustSpentTheme
 import com.justspent.app.voice.AutoRecordingCoordinator
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +39,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var autoRecordingCoordinator: AutoRecordingCoordinator
 
+    @Inject
+    lateinit var userPreferences: UserPreferences
+
     private var hasTriggeredInitialAutoRecording = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +52,11 @@ class MainActivity : ComponentActivity() {
         // This must happen after Hilt injection (which happens in super.onCreate())
         androidx.lifecycle.ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleManager)
         android.util.Log.d("MainActivity", "🚀 Lifecycle observer registered")
+
+        // Initialize default currency based on locale if not already set
+        // This ensures app ALWAYS has a default currency (module independence)
+        userPreferences.initializeDefaultCurrency()
+        android.util.Log.d("MainActivity", "💱 Default currency initialized")
 
         // Check permissions on launch
         permissionManager.checkPermissions()
@@ -76,19 +87,40 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // Collect onboarding state
+            val hasCompletedOnboarding by userPreferences.hasCompletedOnboarding.collectAsStateWithLifecycle()
+            var pendingCurrency by remember { mutableStateOf(userPreferences.defaultCurrency.value) }
+
             JustSpentTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainContentScreen(
-                        hasAudioPermission = hasAudioPermission,
-                        onRequestPermission = {
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        },
-                        lifecycleManager = lifecycleManager,
-                        autoRecordingCoordinator = autoRecordingCoordinator
-                    )
+                    if (!hasCompletedOnboarding) {
+                        // Show onboarding screen
+                        CurrencyOnboardingScreen(
+                            onCurrencySelected = { currency ->
+                                // Track selected currency
+                                pendingCurrency = currency
+                                userPreferences.setDefaultCurrency(currency)
+                            },
+                            onComplete = {
+                                // Complete onboarding with selected currency
+                                userPreferences.completeOnboarding(pendingCurrency)
+                                android.util.Log.d("MainActivity", "✅ Onboarding completed with ${pendingCurrency.code}")
+                            }
+                        )
+                    } else {
+                        // Show main app
+                        MainContentScreen(
+                            hasAudioPermission = hasAudioPermission,
+                            onRequestPermission = {
+                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            },
+                            lifecycleManager = lifecycleManager,
+                            autoRecordingCoordinator = autoRecordingCoordinator
+                        )
+                    }
                 }
             }
         }

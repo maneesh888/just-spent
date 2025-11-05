@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -17,6 +16,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * UI tests for the empty state screen
@@ -40,30 +40,32 @@ class EmptyStateUITest {
         Manifest.permission.MODIFY_AUDIO_SETTINGS
     )
 
-    private lateinit var database: JustSpentDatabase
+    @Inject
+    lateinit var database: JustSpentDatabase
+
+    @Inject
+    lateinit var userPreferences: com.justspent.app.data.preferences.UserPreferences
 
     @Before
     fun setUp() {
         hiltRule.inject()
-        // Get database instance
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.databaseBuilder(
-            context,
-            JustSpentDatabase::class.java,
-            "just_spent_database"
-        ).build()
+
+        // Skip onboarding by completing it with default currency
+        // Use UserPreferences.completeOnboarding() to update both SharedPreferences and StateFlow
+        userPreferences.completeOnboarding(com.justspent.app.data.model.Currency.AED)
 
         // Clear all expenses to ensure empty state
         runBlocking {
             database.expenseDao().deleteAllExpenses()
         }
 
-        // Skip onboarding by setting the preference
-        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
+        // Restart activity to pick up preference changes
+        composeTestRule.activityRule.scenario.recreate()
 
+        // Wait for app to fully launch and render
         composeTestRule.waitForIdle()
-        Thread.sleep(1500) // Give time for UI to fully compose and settle
+        Thread.sleep(2000) // Extended wait for activity recreation
+        composeTestRule.waitForIdle()
     }
 
     @After
@@ -266,9 +268,13 @@ class EmptyStateUITest {
     fun emptyState_titleIsAccessible() {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
-        Thread.sleep(1000) // Wait for compose hierarchy to fully render
+
+        // Wait for compose hierarchy to settle and empty state to render
+        Thread.sleep(500)
+        composeTestRule.waitForIdle()
 
         // Then - Title should be accessible for screen readers
+        // Note: Using merged tree (default) as that's how accessibility services see it
         composeTestRule.onNodeWithTag("empty_state_title")
             .assertExists()
             .assertIsDisplayed()

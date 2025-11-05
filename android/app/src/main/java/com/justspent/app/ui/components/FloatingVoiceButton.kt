@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -66,7 +69,8 @@ fun FloatingVoiceButton(
                 },
                 modifier = Modifier
                     .size(60.dp)
-                    .scale(if (isRecording) 1.1f else 1.0f),
+                    .scale(if (isRecording) 1.1f else 1.0f)
+                    .testTag("voice_fab"),
                 containerColor = if (isRecording)
                     MaterialTheme.colorScheme.error
                 else
