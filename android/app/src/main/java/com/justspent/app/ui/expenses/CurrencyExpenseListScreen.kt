@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,29 +32,32 @@ fun CurrencyExpenseListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val expenses = uiState.expenses
 
-    // Filter expenses by currency
-    val currencyExpenses = remember(expenses, currency) {
+    // Filter expenses by currency - explicitly depend on both expenses and currency
+    // Use remember with both keys to ensure proper recomposition
+    val currencyExpenses = remember(expenses, currency.code) {
         expenses.filter { it.currency == currency.code }
     }
 
-    // Expense List
-    if (currencyExpenses.isEmpty()) {
-        // Empty state for this currency
-        EmptyCurrencyState(currency = currency)
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            items(
-                items = currencyExpenses,
-                key = { expense -> expense.id }
-            ) { expense ->
-                CurrencyExpenseRow(
-                    expense = expense,
-                    currency = currency,
-                    onDelete = { viewModel.deleteExpense(expense) }
-                )
+    // Expense List - wrap in key() to force recreation when currency changes
+    key(currency.code) {
+        if (currencyExpenses.isEmpty()) {
+            // Empty state for this currency
+            EmptyCurrencyState(currency = currency)
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(
+                    items = currencyExpenses,
+                    key = { expense -> expense.id }
+                ) { expense ->
+                    CurrencyExpenseRow(
+                        expense = expense,
+                        currency = currency,
+                        onDelete = { viewModel.deleteExpense(expense) }
+                    )
+                }
             }
         }
     }

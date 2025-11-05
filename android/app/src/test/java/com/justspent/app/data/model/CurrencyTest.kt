@@ -84,7 +84,7 @@ class CurrencyTest {
 
         // Then
         assertThat(currency.code).isEqualTo("SAR")
-        assertThat(currency.symbol).isEqualTo("﷼")
+        assertThat(currency.symbol).isEqualTo("ر.س")
         assertThat(currency.displayName).isEqualTo("Saudi Riyal")
         assertThat(currency.isRTL).isTrue()
     }

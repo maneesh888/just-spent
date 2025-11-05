@@ -19,6 +19,18 @@ struct JustSpentApp: App {
 
         // Create auto-recording coordinator with dependency
         _autoRecordingCoordinator = StateObject(wrappedValue: AutoRecordingCoordinator(lifecycleManager: lifecycle))
+
+        // Initialize default currency based on locale if not already set
+        // This ensures app ALWAYS has a default currency (module independence)
+        UserPreferences.shared.initializeDefaultCurrency()
+        print("💱 Default currency initialized")
+
+        // Setup test environment if running UI tests
+        if TestDataManager.isUITesting() {
+            print("🧪 UI Testing mode detected - setting up test environment")
+            let context = persistenceController.container.viewContext
+            TestDataManager.shared.setupTestEnvironment(context: context)
+        }
     }
 
     var body: some Scene {

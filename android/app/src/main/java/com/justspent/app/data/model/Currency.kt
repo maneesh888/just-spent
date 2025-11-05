@@ -78,12 +78,12 @@ sealed class Currency(
 
     object SAR : Currency(
         code = "SAR",
-        symbol = "﷼",
+        symbol = "ر.س",
         displayName = "Saudi Riyal",
         shortName = "Riyal",
         localeIdentifier = "ar_SA",
         isRTL = true,
-        voiceKeywords = listOf("sar", "riyal", "riyals", "﷼", "saudi riyal")
+        voiceKeywords = listOf("sar", "riyal", "riyals", "ر.س", "﷼", "saudi riyal")
     )
 
     // MARK: - Properties

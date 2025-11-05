@@ -1,11 +1,12 @@
 package com.justspent.app
 
+import android.Manifest
 import android.content.Context
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.justspent.app.data.database.JustSpentDatabase
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -15,6 +16,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * UI tests for the empty state screen
@@ -32,30 +34,38 @@ class EmptyStateUITest {
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
-    private lateinit var database: JustSpentDatabase
+    @get:Rule(order = 2)
+    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.MODIFY_AUDIO_SETTINGS
+    )
+
+    @Inject
+    lateinit var database: JustSpentDatabase
+
+    @Inject
+    lateinit var userPreferences: com.justspent.app.data.preferences.UserPreferences
 
     @Before
     fun setUp() {
         hiltRule.inject()
-        // Get database instance
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.databaseBuilder(
-            context,
-            JustSpentDatabase::class.java,
-            "just_spent_database"
-        ).build()
+
+        // Skip onboarding by completing it with default currency
+        // Use UserPreferences.completeOnboarding() to update both SharedPreferences and StateFlow
+        userPreferences.completeOnboarding(com.justspent.app.data.model.Currency.AED)
 
         // Clear all expenses to ensure empty state
         runBlocking {
             database.expenseDao().deleteAllExpenses()
         }
 
-        // Skip onboarding by setting the preference
-        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
+        // Restart activity to pick up preference changes
+        composeTestRule.activityRule.scenario.recreate()
 
+        // Wait for app to fully launch and render
         composeTestRule.waitForIdle()
-        Thread.sleep(1500) // Give time for UI to fully compose and settle
+        Thread.sleep(2000) // Extended wait for activity recreation
+        composeTestRule.waitForIdle()
     }
 
     @After
@@ -120,12 +130,17 @@ class EmptyStateUITest {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
 
-        // Then - Total should show 0.00 or similar (flexible matching)
+        // Then - Total label should exist
         composeTestRule.onNode(
-            hasText("Total", substring = true) or
-            hasText("0", substring = true),
+            hasText("Total", substring = true),
             useUnmergedTree = true
         ).assertExists()
+
+        // And - Total amount should show 0 or currency symbol (flexible matching)
+        composeTestRule.onAllNodes(
+            hasText("0", substring = true),
+            useUnmergedTree = true
+        ).assertAtLeastOne()
     }
 
     @Test
@@ -254,7 +269,12 @@ class EmptyStateUITest {
         // Given - No expenses in database
         composeTestRule.waitForIdle()
 
+        // Wait for compose hierarchy to settle and empty state to render
+        Thread.sleep(500)
+        composeTestRule.waitForIdle()
+
         // Then - Title should be accessible for screen readers
+        // Note: Using merged tree (default) as that's how accessibility services see it
         composeTestRule.onNodeWithTag("empty_state_title")
             .assertExists()
             .assertIsDisplayed()
@@ -294,17 +314,16 @@ class EmptyStateUITest {
         composeTestRule.waitForIdle()
         Thread.sleep(500) // Additional wait for compose hierarchy
 
-        // Then - Should still show empty state after idle
-        // Note: Rotation testing requires ActivityScenario
-        // This is a placeholder for rotation handling
-        try {
-            composeTestRule.onNodeWithTag("empty_state")
-                .assertExists()
-        } catch (e: Exception) {
-            // Fallback: check for empty state title
-            composeTestRule.onNodeWithTag("empty_state_title")
-                .assertExists()
-        }
+        // Then - Should show empty state (rotation testing requires device automation)
+        // Simplified test: verify empty state is stable and renders correctly
+        composeTestRule.onNodeWithTag("empty_state")
+            .assertExists()
+            .assertIsDisplayed()
+
+        // And - Title should still be visible
+        composeTestRule.onNodeWithTag("empty_state_title")
+            .assertExists()
+            .assertIsDisplayed()
     }
 
     @Test
@@ -313,32 +332,24 @@ class EmptyStateUITest {
         composeTestRule.waitForIdle()
         Thread.sleep(500) // Additional wait for initial load
 
-        try {
-            composeTestRule.onNodeWithTag("empty_state_title")
-                .assertExists()
-        } catch (e: Exception) {
-            // If test tag doesn't exist, look for the text
-            composeTestRule.onNode(
-                hasText("No Expenses Yet"),
-                useUnmergedTree = true
-            ).assertExists()
-        }
+        // Then - Should show empty state title
+        composeTestRule.onNodeWithTag("empty_state_title")
+            .assertExists()
+            .assertIsDisplayed()
 
-        // When - Wait and check again
+        // When - Wait and check again (verify stability)
         Thread.sleep(500)
         composeTestRule.waitForIdle()
 
-        // Then - Should still show same empty state
-        try {
-            composeTestRule.onNodeWithTag("empty_state_title")
-                .assertExists()
-                .assertIsDisplayed()
-        } catch (e: Exception) {
-            composeTestRule.onNode(
-                hasText("No Expenses Yet"),
-                useUnmergedTree = true
-            ).assertExists()
-        }
+        // Then - Should still show same empty state (no flickering or recomposition issues)
+        composeTestRule.onNodeWithTag("empty_state_title")
+            .assertExists()
+            .assertIsDisplayed()
+
+        // And - Empty state container should remain stable
+        composeTestRule.onNodeWithTag("empty_state")
+            .assertExists()
+            .assertIsDisplayed()
     }
 
     // MARK: - Performance Tests
