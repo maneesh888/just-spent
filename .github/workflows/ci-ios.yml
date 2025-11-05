@@ -27,7 +27,7 @@ jobs:
       - name: Boot Simulator and Grant Permissions
         run: |
           # Get simulator ID for iOS 18.6 with iPhone 16
-          SIMULATOR_ID=$(xcrun simctl list devices | grep "iOS 18.6" | grep "iPhone 16 (" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+          SIMULATOR_ID=$(xcrun simctl list devices | grep "iOS 18.6" | grep -E "iPhone 16 \(" | grep -v "unavailable" | grep -v "Plus" | grep -v "Pro" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
 
           if [ -z "$SIMULATOR_ID" ]; then
             echo "⚠️  Could not find iPhone 16 with iOS 18.6 simulator"
