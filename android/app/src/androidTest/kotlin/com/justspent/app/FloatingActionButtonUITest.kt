@@ -32,13 +32,6 @@ class FloatingActionButtonUITest {
         composeTestRule.waitForIdle()
     }
 
-    /**
-     * Check if running in CI environment (GitHub Actions)
-     */
-    private fun isRunningInCI(): Boolean {
-        return System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
-    }
-
     // MARK: - Floating Action Button Visibility Tests
 
     @Test
@@ -242,14 +235,6 @@ class FloatingActionButtonUITest {
 
     @Test
     fun recordingIndicator_appearanceWhenRecording() {
-        // Skip this test in CI environment (GitHub Actions) - requires real audio recording
-        // which doesn't work reliably in CI emulators even with permissions granted
-        // The UI depends on isRecording state which requires functional audio hardware
-        org.junit.Assume.assumeFalse(
-            "Skipping recording indicator test in CI - requires real audio hardware",
-            isRunningInCI()
-        )
-
         // Given
         val fab = composeTestRule.onNodeWithTag("voice_fab")
         fab.assertExists()
@@ -294,14 +279,6 @@ class FloatingActionButtonUITest {
 
     @Test
     fun recordingIndicator_stateChanges() {
-        // Skip this test in CI environment (GitHub Actions) - requires real audio recording
-        // which doesn't work reliably in CI emulators even with permissions granted
-        // The UI depends on isRecording state which requires functional audio hardware
-        org.junit.Assume.assumeFalse(
-            "Skipping recording indicator test in CI - requires real audio hardware",
-            isRunningInCI()
-        )
-
         // Given - Start recording
         composeTestRule.waitForIdle()
         Thread.sleep(1500) // Increased wait for CI environment initialization

@@ -112,16 +112,16 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-28-x86_64-ubuntu-latest  # API 28 for stability (proven to work)
+          key: avd-34-x86_64-ubuntu-latest  # API 34 (Android 14) for better compatibility with modern Compose
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28  # API 28 (Android 9) - proven stable in CI environments
+          api-level: 34  # API 34 (Android 14) - better compatibility with Compose UI tests
           target: google_apis
           arch: x86_64  # x86_64 with KVM hardware acceleration
-          profile: Nexus 6
+          profile: pixel_6  # Modern device profile similar to Pixel 9 Pro
           force-avd-creation: false
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
           disable-animations: false
@@ -130,10 +130,10 @@ jobs:
       - name: Run instrumented tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28  # API 28 (Android 9) - proven stable in CI environments
+          api-level: 34  # API 34 (Android 14) - better compatibility with Compose UI tests
           target: google_apis
           arch: x86_64  # x86_64 with KVM hardware acceleration
-          profile: Nexus 6
+          profile: pixel_6  # Modern device profile similar to Pixel 9 Pro
           force-avd-creation: false
           emulator-boot-timeout: 600  # 10 minutes timeout for boot
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
