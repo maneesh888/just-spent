@@ -168,16 +168,8 @@ jobs:
             echo "=== Starting UI tests with timeout protection ==="
             # Run tests with timeout to prevent hanging (35 minutes max for tests)
             # This leaves 10 minutes for emulator boot and cleanup
-            cd android && timeout 35m ./gradlew connectedDebugAndroidTest --stacktrace --info || {
-              EXIT_CODE=$?
-              if [ $EXIT_CODE -eq 124 ]; then
-                echo "ERROR: Tests timed out after 35 minutes"
-                exit 1
-              else
-                echo "ERROR: Tests failed with exit code $EXIT_CODE"
-                exit $EXIT_CODE
-              fi
-            }
+            # If timeout occurs (exit 124), the job will fail appropriately
+            cd android && timeout 35m ./gradlew connectedDebugAndroidTest --stacktrace --info
 
             echo "=== UI tests completed successfully ==="
 
