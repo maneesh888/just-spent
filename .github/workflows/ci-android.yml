@@ -71,7 +71,7 @@ jobs:
     # - KVM provides near-native performance for x86_64 emulation
     # - Recommended by android-emulator-runner maintainers
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45  # Increased from 30 to handle 88 UI tests + emulator boot
 
     steps:
       - name: Checkout code
@@ -123,7 +123,7 @@ jobs:
           arch: x86_64  # x86_64 with KVM hardware acceleration
           profile: Nexus 6
           force-avd-creation: false
-          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
@@ -136,23 +136,46 @@ jobs:
           profile: Nexus 6
           force-avd-creation: false
           emulator-boot-timeout: 600  # 10 minutes timeout for boot
-          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
           disable-animations: true
           disable-spellchecker: true
           disable-linux-hw-accel: false  # Enable KVM (false = don't disable)
           script: |
+            set -e  # Exit on error
+
+            echo "=== Waiting for device to be ready ==="
             adb wait-for-device
             adb shell input keyevent 82
 
-            # Grant runtime permissions for voice recording
+            echo "=== Waiting for boot to complete ==="
+            adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+            echo "Device fully booted"
+
+            echo "=== Granting runtime permissions ==="
             adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
             adb shell pm grant com.justspent.app android.permission.MODIFY_AUDIO_SETTINGS
 
             # Verify permissions were granted
-            echo "Checking granted permissions:"
-            adb shell dumpsys package com.justspent.app | grep permission
+            echo "=== Checking granted permissions ==="
+            adb shell dumpsys package com.justspent.app | grep permission || true
 
-            cd android && ./gradlew connectedDebugAndroidTest --stacktrace
+            echo "=== Starting UI tests with timeout protection ==="
+            cd android
+
+            # Run tests with timeout to prevent hanging (35 minutes max for tests)
+            # This leaves 10 minutes for emulator boot and cleanup
+            timeout 35m ./gradlew connectedDebugAndroidTest --stacktrace --info || {
+              EXIT_CODE=$?
+              if [ $EXIT_CODE -eq 124 ]; then
+                echo "ERROR: Tests timed out after 35 minutes"
+                exit 1
+              else
+                echo "ERROR: Tests failed with exit code $EXIT_CODE"
+                exit $EXIT_CODE
+              fi
+            }
+
+            echo "=== UI tests completed successfully ==="
 
       - name: Upload UI Test Results
         if: always()
