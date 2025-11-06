@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "lastUpdated": "2025-01-29",
   "currencies": [
     {
@@ -12,60 +12,6 @@
       "voiceKeywords": ["aed", "dirham", "dirhams", "د.إ", "dhs", "emirati dirham"]
     },
     {
-      "code": "AFN",
-      "symbol": "؋",
-      "displayName": "Afghan Afghani",
-      "shortName": "Afghani",
-      "localeIdentifier": "fa_AF",
-      "isRTL": true,
-      "voiceKeywords": ["afn", "afghani", "afghanis", "؋"]
-    },
-    {
-      "code": "ALL",
-      "symbol": "L",
-      "displayName": "Albanian Lek",
-      "shortName": "Lek",
-      "localeIdentifier": "sq_AL",
-      "isRTL": false,
-      "voiceKeywords": ["all", "lek", "leke", "albanian lek"]
-    },
-    {
-      "code": "AMD",
-      "symbol": "֏",
-      "displayName": "Armenian Dram",
-      "shortName": "Dram",
-      "localeIdentifier": "hy_AM",
-      "isRTL": false,
-      "voiceKeywords": ["amd", "dram", "drams", "armenian dram"]
-    },
-    {
-      "code": "ANG",
-      "symbol": "ƒ",
-      "displayName": "Netherlands Antillean Guilder",
-      "shortName": "Guilder",
-      "localeIdentifier": "nl_AN",
-      "isRTL": false,
-      "voiceKeywords": ["ang", "guilder", "guilders", "florin"]
-    },
-    {
-      "code": "AOA",
-      "symbol": "Kz",
-      "displayName": "Angolan Kwanza",
-      "shortName": "Kwanza",
-      "localeIdentifier": "pt_AO",
-      "isRTL": false,
-      "voiceKeywords": ["aoa", "kwanza", "kwanzas"]
-    },
-    {
-      "code": "ARS",
-      "symbol": "$",
-      "displayName": "Argentine Peso",
-      "shortName": "Peso",
-      "localeIdentifier": "es_AR",
-      "isRTL": false,
-      "voiceKeywords": ["ars", "peso", "pesos", "argentine peso", "argentinian peso"]
-    },
-    {
       "code": "AUD",
       "symbol": "$",
       "displayName": "Australian Dollar",
@@ -73,60 +19,6 @@
       "localeIdentifier": "en_AU",
       "isRTL": false,
       "voiceKeywords": ["aud", "dollar", "dollars", "australian dollar", "aussie dollar"]
-    },
-    {
-      "code": "AWG",
-      "symbol": "ƒ",
-      "displayName": "Aruban Florin",
-      "shortName": "Florin",
-      "localeIdentifier": "nl_AW",
-      "isRTL": false,
-      "voiceKeywords": ["awg", "florin", "florins", "aruban florin"]
-    },
-    {
-      "code": "AZN",
-      "symbol": "₼",
-      "displayName": "Azerbaijani Manat",
-      "shortName": "Manat",
-      "localeIdentifier": "az_AZ",
-      "isRTL": false,
-      "voiceKeywords": ["azn", "manat", "manats", "azerbaijani manat"]
-    },
-    {
-      "code": "BAM",
-      "symbol": "KM",
-      "displayName": "Bosnia-Herzegovina Convertible Mark",
-      "shortName": "Mark",
-      "localeIdentifier": "bs_BA",
-      "isRTL": false,
-      "voiceKeywords": ["bam", "mark", "marks", "convertible mark"]
-    },
-    {
-      "code": "BBD",
-      "symbol": "$",
-      "displayName": "Barbadian Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_BB",
-      "isRTL": false,
-      "voiceKeywords": ["bbd", "dollar", "dollars", "barbadian dollar", "bajan dollar"]
-    },
-    {
-      "code": "BDT",
-      "symbol": "৳",
-      "displayName": "Bangladeshi Taka",
-      "shortName": "Taka",
-      "localeIdentifier": "bn_BD",
-      "isRTL": false,
-      "voiceKeywords": ["bdt", "taka", "takas", "bangladeshi taka"]
-    },
-    {
-      "code": "BGN",
-      "symbol": "лв",
-      "displayName": "Bulgarian Lev",
-      "shortName": "Lev",
-      "localeIdentifier": "bg_BG",
-      "isRTL": false,
-      "voiceKeywords": ["bgn", "lev", "leva", "bulgarian lev"]
     },
     {
       "code": "BHD",
@@ -138,42 +30,6 @@
       "voiceKeywords": ["bhd", "dinar", "dinars", "bahraini dinar"]
     },
     {
-      "code": "BIF",
-      "symbol": "FBu",
-      "displayName": "Burundian Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_BI",
-      "isRTL": false,
-      "voiceKeywords": ["bif", "franc", "francs", "burundian franc"]
-    },
-    {
-      "code": "BMD",
-      "symbol": "$",
-      "displayName": "Bermudian Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_BM",
-      "isRTL": false,
-      "voiceKeywords": ["bmd", "dollar", "dollars", "bermudian dollar"]
-    },
-    {
-      "code": "BND",
-      "symbol": "$",
-      "displayName": "Brunei Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "ms_BN",
-      "isRTL": false,
-      "voiceKeywords": ["bnd", "dollar", "dollars", "brunei dollar"]
-    },
-    {
-      "code": "BOB",
-      "symbol": "Bs.",
-      "displayName": "Bolivian Boliviano",
-      "shortName": "Boliviano",
-      "localeIdentifier": "es_BO",
-      "isRTL": false,
-      "voiceKeywords": ["bob", "boliviano", "bolivianos"]
-    },
-    {
       "code": "BRL",
       "symbol": "R$",
       "displayName": "Brazilian Real",
@@ -181,51 +37,6 @@
       "localeIdentifier": "pt_BR",
       "isRTL": false,
       "voiceKeywords": ["brl", "real", "reais", "brazilian real"]
-    },
-    {
-      "code": "BSD",
-      "symbol": "$",
-      "displayName": "Bahamian Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_BS",
-      "isRTL": false,
-      "voiceKeywords": ["bsd", "dollar", "dollars", "bahamian dollar"]
-    },
-    {
-      "code": "BTN",
-      "symbol": "Nu.",
-      "displayName": "Bhutanese Ngultrum",
-      "shortName": "Ngultrum",
-      "localeIdentifier": "dz_BT",
-      "isRTL": false,
-      "voiceKeywords": ["btn", "ngultrum", "ngultrums"]
-    },
-    {
-      "code": "BWP",
-      "symbol": "P",
-      "displayName": "Botswanan Pula",
-      "shortName": "Pula",
-      "localeIdentifier": "en_BW",
-      "isRTL": false,
-      "voiceKeywords": ["bwp", "pula", "pulas"]
-    },
-    {
-      "code": "BYN",
-      "symbol": "Br",
-      "displayName": "Belarusian Ruble",
-      "shortName": "Ruble",
-      "localeIdentifier": "be_BY",
-      "isRTL": false,
-      "voiceKeywords": ["byn", "ruble", "rubles", "belarusian ruble"]
-    },
-    {
-      "code": "BZD",
-      "symbol": "$",
-      "displayName": "Belize Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_BZ",
-      "isRTL": false,
-      "voiceKeywords": ["bzd", "dollar", "dollars", "belize dollar"]
     },
     {
       "code": "CAD",
@@ -237,15 +48,6 @@
       "voiceKeywords": ["cad", "dollar", "dollars", "canadian dollar", "loonie"]
     },
     {
-      "code": "CDF",
-      "symbol": "FC",
-      "displayName": "Congolese Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_CD",
-      "isRTL": false,
-      "voiceKeywords": ["cdf", "franc", "francs", "congolese franc"]
-    },
-    {
       "code": "CHF",
       "symbol": "CHF",
       "displayName": "Swiss Franc",
@@ -253,15 +55,6 @@
       "localeIdentifier": "de_CH",
       "isRTL": false,
       "voiceKeywords": ["chf", "franc", "francs", "swiss franc", "swiss francs"]
-    },
-    {
-      "code": "CLP",
-      "symbol": "$",
-      "displayName": "Chilean Peso",
-      "shortName": "Peso",
-      "localeIdentifier": "es_CL",
-      "isRTL": false,
-      "voiceKeywords": ["clp", "peso", "pesos", "chilean peso"]
     },
     {
       "code": "CNY",
@@ -273,42 +66,6 @@
       "voiceKeywords": ["cny", "yuan", "renminbi", "rmb", "¥"]
     },
     {
-      "code": "COP",
-      "symbol": "$",
-      "displayName": "Colombian Peso",
-      "shortName": "Peso",
-      "localeIdentifier": "es_CO",
-      "isRTL": false,
-      "voiceKeywords": ["cop", "peso", "pesos", "colombian peso"]
-    },
-    {
-      "code": "CRC",
-      "symbol": "₡",
-      "displayName": "Costa Rican Colón",
-      "shortName": "Colón",
-      "localeIdentifier": "es_CR",
-      "isRTL": false,
-      "voiceKeywords": ["crc", "colon", "colones"]
-    },
-    {
-      "code": "CUP",
-      "symbol": "$",
-      "displayName": "Cuban Peso",
-      "shortName": "Peso",
-      "localeIdentifier": "es_CU",
-      "isRTL": false,
-      "voiceKeywords": ["cup", "peso", "pesos", "cuban peso"]
-    },
-    {
-      "code": "CVE",
-      "symbol": "$",
-      "displayName": "Cape Verdean Escudo",
-      "shortName": "Escudo",
-      "localeIdentifier": "pt_CV",
-      "isRTL": false,
-      "voiceKeywords": ["cve", "escudo", "escudos"]
-    },
-    {
       "code": "CZK",
       "symbol": "Kč",
       "displayName": "Czech Koruna",
@@ -316,15 +73,6 @@
       "localeIdentifier": "cs_CZ",
       "isRTL": false,
       "voiceKeywords": ["czk", "koruna", "korunas", "crown"]
-    },
-    {
-      "code": "DJF",
-      "symbol": "Fdj",
-      "displayName": "Djiboutian Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_DJ",
-      "isRTL": false,
-      "voiceKeywords": ["djf", "franc", "francs", "djiboutian franc"]
     },
     {
       "code": "DKK",
@@ -336,51 +84,6 @@
       "voiceKeywords": ["dkk", "krone", "kroner", "danish krone"]
     },
     {
-      "code": "DOP",
-      "symbol": "$",
-      "displayName": "Dominican Peso",
-      "shortName": "Peso",
-      "localeIdentifier": "es_DO",
-      "isRTL": false,
-      "voiceKeywords": ["dop", "peso", "pesos", "dominican peso"]
-    },
-    {
-      "code": "DZD",
-      "symbol": "د.ج",
-      "displayName": "Algerian Dinar",
-      "shortName": "Dinar",
-      "localeIdentifier": "ar_DZ",
-      "isRTL": true,
-      "voiceKeywords": ["dzd", "dinar", "dinars", "algerian dinar"]
-    },
-    {
-      "code": "EGP",
-      "symbol": "£",
-      "displayName": "Egyptian Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "ar_EG",
-      "isRTL": true,
-      "voiceKeywords": ["egp", "pound", "pounds", "egyptian pound", "gineh"]
-    },
-    {
-      "code": "ERN",
-      "symbol": "Nfk",
-      "displayName": "Eritrean Nakfa",
-      "shortName": "Nakfa",
-      "localeIdentifier": "ti_ER",
-      "isRTL": false,
-      "voiceKeywords": ["ern", "nakfa", "nakfas"]
-    },
-    {
-      "code": "ETB",
-      "symbol": "Br",
-      "displayName": "Ethiopian Birr",
-      "shortName": "Birr",
-      "localeIdentifier": "am_ET",
-      "isRTL": false,
-      "voiceKeywords": ["etb", "birr", "birrs"]
-    },
-    {
       "code": "EUR",
       "symbol": "€",
       "displayName": "Euro",
@@ -388,33 +91,6 @@
       "localeIdentifier": "en_DE",
       "isRTL": false,
       "voiceKeywords": ["eur", "euro", "euros", "€"]
-    },
-    {
-      "code": "FJD",
-      "symbol": "$",
-      "displayName": "Fijian Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_FJ",
-      "isRTL": false,
-      "voiceKeywords": ["fjd", "dollar", "dollars", "fijian dollar"]
-    },
-    {
-      "code": "FKP",
-      "symbol": "£",
-      "displayName": "Falkland Islands Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_FK",
-      "isRTL": false,
-      "voiceKeywords": ["fkp", "pound", "pounds", "falkland pound"]
-    },
-    {
-      "code": "FOK",
-      "symbol": "kr",
-      "displayName": "Faroese Króna",
-      "shortName": "Króna",
-      "localeIdentifier": "fo_FO",
-      "isRTL": false,
-      "voiceKeywords": ["fok", "krona", "kronur"]
     },
     {
       "code": "GBP",
@@ -426,78 +102,6 @@
       "voiceKeywords": ["gbp", "pound", "pounds", "£", "quid", "sterling", "british pound"]
     },
     {
-      "code": "GEL",
-      "symbol": "₾",
-      "displayName": "Georgian Lari",
-      "shortName": "Lari",
-      "localeIdentifier": "ka_GE",
-      "isRTL": false,
-      "voiceKeywords": ["gel", "lari", "laris"]
-    },
-    {
-      "code": "GGP",
-      "symbol": "£",
-      "displayName": "Guernsey Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_GG",
-      "isRTL": false,
-      "voiceKeywords": ["ggp", "pound", "pounds", "guernsey pound"]
-    },
-    {
-      "code": "GHS",
-      "symbol": "₵",
-      "displayName": "Ghanaian Cedi",
-      "shortName": "Cedi",
-      "localeIdentifier": "en_GH",
-      "isRTL": false,
-      "voiceKeywords": ["ghs", "cedi", "cedis"]
-    },
-    {
-      "code": "GIP",
-      "symbol": "£",
-      "displayName": "Gibraltar Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_GI",
-      "isRTL": false,
-      "voiceKeywords": ["gip", "pound", "pounds", "gibraltar pound"]
-    },
-    {
-      "code": "GMD",
-      "symbol": "D",
-      "displayName": "Gambian Dalasi",
-      "shortName": "Dalasi",
-      "localeIdentifier": "en_GM",
-      "isRTL": false,
-      "voiceKeywords": ["gmd", "dalasi", "dalasis"]
-    },
-    {
-      "code": "GNF",
-      "symbol": "FG",
-      "displayName": "Guinean Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_GN",
-      "isRTL": false,
-      "voiceKeywords": ["gnf", "franc", "francs", "guinean franc"]
-    },
-    {
-      "code": "GTQ",
-      "symbol": "Q",
-      "displayName": "Guatemalan Quetzal",
-      "shortName": "Quetzal",
-      "localeIdentifier": "es_GT",
-      "isRTL": false,
-      "voiceKeywords": ["gtq", "quetzal", "quetzales"]
-    },
-    {
-      "code": "GYD",
-      "symbol": "$",
-      "displayName": "Guyanese Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_GY",
-      "isRTL": false,
-      "voiceKeywords": ["gyd", "dollar", "dollars", "guyanese dollar"]
-    },
-    {
       "code": "HKD",
       "symbol": "$",
       "displayName": "Hong Kong Dollar",
@@ -505,33 +109,6 @@
       "localeIdentifier": "zh_HK",
       "isRTL": false,
       "voiceKeywords": ["hkd", "dollar", "dollars", "hong kong dollar"]
-    },
-    {
-      "code": "HNL",
-      "symbol": "L",
-      "displayName": "Honduran Lempira",
-      "shortName": "Lempira",
-      "localeIdentifier": "es_HN",
-      "isRTL": false,
-      "voiceKeywords": ["hnl", "lempira", "lempiras"]
-    },
-    {
-      "code": "HRK",
-      "symbol": "kn",
-      "displayName": "Croatian Kuna",
-      "shortName": "Kuna",
-      "localeIdentifier": "hr_HR",
-      "isRTL": false,
-      "voiceKeywords": ["hrk", "kuna", "kunas"]
-    },
-    {
-      "code": "HTG",
-      "symbol": "G",
-      "displayName": "Haitian Gourde",
-      "shortName": "Gourde",
-      "localeIdentifier": "fr_HT",
-      "isRTL": false,
-      "voiceKeywords": ["htg", "gourde", "gourdes"]
     },
     {
       "code": "HUF",
@@ -552,24 +129,6 @@
       "voiceKeywords": ["idr", "rupiah", "rupiahs"]
     },
     {
-      "code": "ILS",
-      "symbol": "₪",
-      "displayName": "Israeli New Shekel",
-      "shortName": "Shekel",
-      "localeIdentifier": "he_IL",
-      "isRTL": true,
-      "voiceKeywords": ["ils", "shekel", "shekels", "sheqel", "₪"]
-    },
-    {
-      "code": "IMP",
-      "symbol": "£",
-      "displayName": "Isle of Man Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_IM",
-      "isRTL": false,
-      "voiceKeywords": ["imp", "pound", "pounds", "manx pound"]
-    },
-    {
       "code": "INR",
       "symbol": "₹",
       "displayName": "Indian Rupee",
@@ -579,60 +138,6 @@
       "voiceKeywords": ["inr", "rupee", "rupees", "₹", "rs", "rs.", "₨", "indian rupee"]
     },
     {
-      "code": "IQD",
-      "symbol": "ع.د",
-      "displayName": "Iraqi Dinar",
-      "shortName": "Dinar",
-      "localeIdentifier": "ar_IQ",
-      "isRTL": true,
-      "voiceKeywords": ["iqd", "dinar", "dinars", "iraqi dinar"]
-    },
-    {
-      "code": "IRR",
-      "symbol": "﷼",
-      "displayName": "Iranian Rial",
-      "shortName": "Rial",
-      "localeIdentifier": "fa_IR",
-      "isRTL": true,
-      "voiceKeywords": ["irr", "rial", "rials", "iranian rial"]
-    },
-    {
-      "code": "ISK",
-      "symbol": "kr",
-      "displayName": "Icelandic Króna",
-      "shortName": "Króna",
-      "localeIdentifier": "is_IS",
-      "isRTL": false,
-      "voiceKeywords": ["isk", "krona", "kronur", "icelandic krona"]
-    },
-    {
-      "code": "JEP",
-      "symbol": "£",
-      "displayName": "Jersey Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_JE",
-      "isRTL": false,
-      "voiceKeywords": ["jep", "pound", "pounds", "jersey pound"]
-    },
-    {
-      "code": "JMD",
-      "symbol": "$",
-      "displayName": "Jamaican Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_JM",
-      "isRTL": false,
-      "voiceKeywords": ["jmd", "dollar", "dollars", "jamaican dollar"]
-    },
-    {
-      "code": "JOD",
-      "symbol": "د.ا",
-      "displayName": "Jordanian Dinar",
-      "shortName": "Dinar",
-      "localeIdentifier": "ar_JO",
-      "isRTL": true,
-      "voiceKeywords": ["jod", "dinar", "dinars", "jordanian dinar"]
-    },
-    {
       "code": "JPY",
       "symbol": "¥",
       "displayName": "Japanese Yen",
@@ -640,51 +145,6 @@
       "localeIdentifier": "ja_JP",
       "isRTL": false,
       "voiceKeywords": ["jpy", "yen", "¥"]
-    },
-    {
-      "code": "KES",
-      "symbol": "KSh",
-      "displayName": "Kenyan Shilling",
-      "shortName": "Shilling",
-      "localeIdentifier": "sw_KE",
-      "isRTL": false,
-      "voiceKeywords": ["kes", "shilling", "shillings", "kenyan shilling"]
-    },
-    {
-      "code": "KGS",
-      "symbol": "с",
-      "displayName": "Kyrgyzstani Som",
-      "shortName": "Som",
-      "localeIdentifier": "ky_KG",
-      "isRTL": false,
-      "voiceKeywords": ["kgs", "som", "soms"]
-    },
-    {
-      "code": "KHR",
-      "symbol": "៛",
-      "displayName": "Cambodian Riel",
-      "shortName": "Riel",
-      "localeIdentifier": "km_KH",
-      "isRTL": false,
-      "voiceKeywords": ["khr", "riel", "riels"]
-    },
-    {
-      "code": "KID",
-      "symbol": "$",
-      "displayName": "Kiribati Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_KI",
-      "isRTL": false,
-      "voiceKeywords": ["kid", "dollar", "dollars", "kiribati dollar"]
-    },
-    {
-      "code": "KMF",
-      "symbol": "CF",
-      "displayName": "Comorian Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_KM",
-      "isRTL": false,
-      "voiceKeywords": ["kmf", "franc", "francs", "comorian franc"]
     },
     {
       "code": "KRW",
@@ -705,177 +165,6 @@
       "voiceKeywords": ["kwd", "dinar", "dinars", "kuwaiti dinar"]
     },
     {
-      "code": "KYD",
-      "symbol": "$",
-      "displayName": "Cayman Islands Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_KY",
-      "isRTL": false,
-      "voiceKeywords": ["kyd", "dollar", "dollars", "cayman dollar"]
-    },
-    {
-      "code": "KZT",
-      "symbol": "₸",
-      "displayName": "Kazakhstani Tenge",
-      "shortName": "Tenge",
-      "localeIdentifier": "kk_KZ",
-      "isRTL": false,
-      "voiceKeywords": ["kzt", "tenge", "tenges"]
-    },
-    {
-      "code": "LAK",
-      "symbol": "₭",
-      "displayName": "Lao Kip",
-      "shortName": "Kip",
-      "localeIdentifier": "lo_LA",
-      "isRTL": false,
-      "voiceKeywords": ["lak", "kip", "kips"]
-    },
-    {
-      "code": "LBP",
-      "symbol": "ل.ل",
-      "displayName": "Lebanese Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "ar_LB",
-      "isRTL": true,
-      "voiceKeywords": ["lbp", "pound", "pounds", "lebanese pound", "lira"]
-    },
-    {
-      "code": "LKR",
-      "symbol": "Rs",
-      "displayName": "Sri Lankan Rupee",
-      "shortName": "Rupee",
-      "localeIdentifier": "si_LK",
-      "isRTL": false,
-      "voiceKeywords": ["lkr", "rupee", "rupees", "sri lankan rupee"]
-    },
-    {
-      "code": "LRD",
-      "symbol": "$",
-      "displayName": "Liberian Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_LR",
-      "isRTL": false,
-      "voiceKeywords": ["lrd", "dollar", "dollars", "liberian dollar"]
-    },
-    {
-      "code": "LSL",
-      "symbol": "L",
-      "displayName": "Lesotho Loti",
-      "shortName": "Loti",
-      "localeIdentifier": "en_LS",
-      "isRTL": false,
-      "voiceKeywords": ["lsl", "loti", "maloti"]
-    },
-    {
-      "code": "LYD",
-      "symbol": "ل.د",
-      "displayName": "Libyan Dinar",
-      "shortName": "Dinar",
-      "localeIdentifier": "ar_LY",
-      "isRTL": true,
-      "voiceKeywords": ["lyd", "dinar", "dinars", "libyan dinar"]
-    },
-    {
-      "code": "MAD",
-      "symbol": "د.م.",
-      "displayName": "Moroccan Dirham",
-      "shortName": "Dirham",
-      "localeIdentifier": "ar_MA",
-      "isRTL": true,
-      "voiceKeywords": ["mad", "dirham", "dirhams", "moroccan dirham"]
-    },
-    {
-      "code": "MDL",
-      "symbol": "L",
-      "displayName": "Moldovan Leu",
-      "shortName": "Leu",
-      "localeIdentifier": "ro_MD",
-      "isRTL": false,
-      "voiceKeywords": ["mdl", "leu", "lei"]
-    },
-    {
-      "code": "MGA",
-      "symbol": "Ar",
-      "displayName": "Malagasy Ariary",
-      "shortName": "Ariary",
-      "localeIdentifier": "mg_MG",
-      "isRTL": false,
-      "voiceKeywords": ["mga", "ariary", "ariarys"]
-    },
-    {
-      "code": "MKD",
-      "symbol": "ден",
-      "displayName": "Macedonian Denar",
-      "shortName": "Denar",
-      "localeIdentifier": "mk_MK",
-      "isRTL": false,
-      "voiceKeywords": ["mkd", "denar", "denars"]
-    },
-    {
-      "code": "MMK",
-      "symbol": "K",
-      "displayName": "Myanmar Kyat",
-      "shortName": "Kyat",
-      "localeIdentifier": "my_MM",
-      "isRTL": false,
-      "voiceKeywords": ["mmk", "kyat", "kyats"]
-    },
-    {
-      "code": "MNT",
-      "symbol": "₮",
-      "displayName": "Mongolian Tögrög",
-      "shortName": "Tögrög",
-      "localeIdentifier": "mn_MN",
-      "isRTL": false,
-      "voiceKeywords": ["mnt", "tugrik", "togrogs"]
-    },
-    {
-      "code": "MOP",
-      "symbol": "P",
-      "displayName": "Macanese Pataca",
-      "shortName": "Pataca",
-      "localeIdentifier": "zh_MO",
-      "isRTL": false,
-      "voiceKeywords": ["mop", "pataca", "patacas"]
-    },
-    {
-      "code": "MRU",
-      "symbol": "UM",
-      "displayName": "Mauritanian Ouguiya",
-      "shortName": "Ouguiya",
-      "localeIdentifier": "ar_MR",
-      "isRTL": true,
-      "voiceKeywords": ["mru", "ouguiya", "ouguiyas"]
-    },
-    {
-      "code": "MUR",
-      "symbol": "₨",
-      "displayName": "Mauritian Rupee",
-      "shortName": "Rupee",
-      "localeIdentifier": "en_MU",
-      "isRTL": false,
-      "voiceKeywords": ["mur", "rupee", "rupees", "mauritian rupee"]
-    },
-    {
-      "code": "MVR",
-      "symbol": "Rf",
-      "displayName": "Maldivian Rufiyaa",
-      "shortName": "Rufiyaa",
-      "localeIdentifier": "dv_MV",
-      "isRTL": true,
-      "voiceKeywords": ["mvr", "rufiyaa", "rufiyaas"]
-    },
-    {
-      "code": "MWK",
-      "symbol": "MK",
-      "displayName": "Malawian Kwacha",
-      "shortName": "Kwacha",
-      "localeIdentifier": "en_MW",
-      "isRTL": false,
-      "voiceKeywords": ["mwk", "kwacha", "kwachas"]
-    },
-    {
       "code": "MXN",
       "symbol": "$",
       "displayName": "Mexican Peso",
@@ -894,42 +183,6 @@
       "voiceKeywords": ["myr", "ringgit", "ringgits"]
     },
     {
-      "code": "MZN",
-      "symbol": "MT",
-      "displayName": "Mozambican Metical",
-      "shortName": "Metical",
-      "localeIdentifier": "pt_MZ",
-      "isRTL": false,
-      "voiceKeywords": ["mzn", "metical", "meticais"]
-    },
-    {
-      "code": "NAD",
-      "symbol": "$",
-      "displayName": "Namibian Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_NA",
-      "isRTL": false,
-      "voiceKeywords": ["nad", "dollar", "dollars", "namibian dollar"]
-    },
-    {
-      "code": "NGN",
-      "symbol": "₦",
-      "displayName": "Nigerian Naira",
-      "shortName": "Naira",
-      "localeIdentifier": "en_NG",
-      "isRTL": false,
-      "voiceKeywords": ["ngn", "naira", "nairas"]
-    },
-    {
-      "code": "NIO",
-      "symbol": "C$",
-      "displayName": "Nicaraguan Córdoba",
-      "shortName": "Córdoba",
-      "localeIdentifier": "es_NI",
-      "isRTL": false,
-      "voiceKeywords": ["nio", "cordoba", "cordobas"]
-    },
-    {
       "code": "NOK",
       "symbol": "kr",
       "displayName": "Norwegian Krone",
@@ -937,15 +190,6 @@
       "localeIdentifier": "no_NO",
       "isRTL": false,
       "voiceKeywords": ["nok", "krone", "kroner", "norwegian krone"]
-    },
-    {
-      "code": "NPR",
-      "symbol": "₨",
-      "displayName": "Nepalese Rupee",
-      "shortName": "Rupee",
-      "localeIdentifier": "ne_NP",
-      "isRTL": false,
-      "voiceKeywords": ["npr", "rupee", "rupees", "nepalese rupee"]
     },
     {
       "code": "NZD",
@@ -966,33 +210,6 @@
       "voiceKeywords": ["omr", "rial", "rials", "omani rial"]
     },
     {
-      "code": "PAB",
-      "symbol": "B/.",
-      "displayName": "Panamanian Balboa",
-      "shortName": "Balboa",
-      "localeIdentifier": "es_PA",
-      "isRTL": false,
-      "voiceKeywords": ["pab", "balboa", "balboas"]
-    },
-    {
-      "code": "PEN",
-      "symbol": "S/",
-      "displayName": "Peruvian Sol",
-      "shortName": "Sol",
-      "localeIdentifier": "es_PE",
-      "isRTL": false,
-      "voiceKeywords": ["pen", "sol", "soles"]
-    },
-    {
-      "code": "PGK",
-      "symbol": "K",
-      "displayName": "Papua New Guinean Kina",
-      "shortName": "Kina",
-      "localeIdentifier": "en_PG",
-      "isRTL": false,
-      "voiceKeywords": ["pgk", "kina", "kinas"]
-    },
-    {
       "code": "PHP",
       "symbol": "₱",
       "displayName": "Philippine Peso",
@@ -1002,15 +219,6 @@
       "voiceKeywords": ["php", "peso", "pesos", "philippine peso"]
     },
     {
-      "code": "PKR",
-      "symbol": "₨",
-      "displayName": "Pakistani Rupee",
-      "shortName": "Rupee",
-      "localeIdentifier": "ur_PK",
-      "isRTL": true,
-      "voiceKeywords": ["pkr", "rupee", "rupees", "pakistani rupee"]
-    },
-    {
       "code": "PLN",
       "symbol": "zł",
       "displayName": "Polish Złoty",
@@ -1018,15 +226,6 @@
       "localeIdentifier": "pl_PL",
       "isRTL": false,
       "voiceKeywords": ["pln", "zloty", "zlotys"]
-    },
-    {
-      "code": "PYG",
-      "symbol": "₲",
-      "displayName": "Paraguayan Guaraní",
-      "shortName": "Guaraní",
-      "localeIdentifier": "es_PY",
-      "isRTL": false,
-      "voiceKeywords": ["pyg", "guarani", "guaranis"]
     },
     {
       "code": "QAR",
@@ -1047,15 +246,6 @@
       "voiceKeywords": ["ron", "leu", "lei", "romanian leu"]
     },
     {
-      "code": "RSD",
-      "symbol": "дин",
-      "displayName": "Serbian Dinar",
-      "shortName": "Dinar",
-      "localeIdentifier": "sr_RS",
-      "isRTL": false,
-      "voiceKeywords": ["rsd", "dinar", "dinars", "serbian dinar"]
-    },
-    {
       "code": "RUB",
       "symbol": "₽",
       "displayName": "Russian Ruble",
@@ -1065,15 +255,6 @@
       "voiceKeywords": ["rub", "ruble", "rubles", "rouble"]
     },
     {
-      "code": "RWF",
-      "symbol": "FRw",
-      "displayName": "Rwandan Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "rw_RW",
-      "isRTL": false,
-      "voiceKeywords": ["rwf", "franc", "francs", "rwandan franc"]
-    },
-    {
       "code": "SAR",
       "symbol": "ر.س",
       "displayName": "Saudi Riyal",
@@ -1081,33 +262,6 @@
       "localeIdentifier": "ar_SA",
       "isRTL": true,
       "voiceKeywords": ["sar", "riyal", "riyals", "ر.س", "﷼", "saudi riyal"]
-    },
-    {
-      "code": "SBD",
-      "symbol": "$",
-      "displayName": "Solomon Islands Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_SB",
-      "isRTL": false,
-      "voiceKeywords": ["sbd", "dollar", "dollars", "solomon dollar"]
-    },
-    {
-      "code": "SCR",
-      "symbol": "₨",
-      "displayName": "Seychellois Rupee",
-      "shortName": "Rupee",
-      "localeIdentifier": "en_SC",
-      "isRTL": false,
-      "voiceKeywords": ["scr", "rupee", "rupees", "seychellois rupee"]
-    },
-    {
-      "code": "SDG",
-      "symbol": "ج.س.",
-      "displayName": "Sudanese Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "ar_SD",
-      "isRTL": true,
-      "voiceKeywords": ["sdg", "pound", "pounds", "sudanese pound"]
     },
     {
       "code": "SEK",
@@ -1128,78 +282,6 @@
       "voiceKeywords": ["sgd", "dollar", "dollars", "singapore dollar"]
     },
     {
-      "code": "SHP",
-      "symbol": "£",
-      "displayName": "Saint Helena Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_SH",
-      "isRTL": false,
-      "voiceKeywords": ["shp", "pound", "pounds", "saint helena pound"]
-    },
-    {
-      "code": "SLE",
-      "symbol": "Le",
-      "displayName": "Sierra Leonean Leone",
-      "shortName": "Leone",
-      "localeIdentifier": "en_SL",
-      "isRTL": false,
-      "voiceKeywords": ["sle", "leone", "leones"]
-    },
-    {
-      "code": "SOS",
-      "symbol": "Sh",
-      "displayName": "Somali Shilling",
-      "shortName": "Shilling",
-      "localeIdentifier": "so_SO",
-      "isRTL": false,
-      "voiceKeywords": ["sos", "shilling", "shillings", "somali shilling"]
-    },
-    {
-      "code": "SRD",
-      "symbol": "$",
-      "displayName": "Surinamese Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "nl_SR",
-      "isRTL": false,
-      "voiceKeywords": ["srd", "dollar", "dollars", "surinamese dollar"]
-    },
-    {
-      "code": "SSP",
-      "symbol": "£",
-      "displayName": "South Sudanese Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "en_SS",
-      "isRTL": false,
-      "voiceKeywords": ["ssp", "pound", "pounds", "south sudanese pound"]
-    },
-    {
-      "code": "STN",
-      "symbol": "Db",
-      "displayName": "São Tomé and Príncipe Dobra",
-      "shortName": "Dobra",
-      "localeIdentifier": "pt_ST",
-      "isRTL": false,
-      "voiceKeywords": ["stn", "dobra", "dobras"]
-    },
-    {
-      "code": "SYP",
-      "symbol": "£",
-      "displayName": "Syrian Pound",
-      "shortName": "Pound",
-      "localeIdentifier": "ar_SY",
-      "isRTL": true,
-      "voiceKeywords": ["syp", "pound", "pounds", "syrian pound", "lira"]
-    },
-    {
-      "code": "SZL",
-      "symbol": "L",
-      "displayName": "Eswatini Lilangeni",
-      "shortName": "Lilangeni",
-      "localeIdentifier": "en_SZ",
-      "isRTL": false,
-      "voiceKeywords": ["szl", "lilangeni", "emalangeni"]
-    },
-    {
       "code": "THB",
       "symbol": "฿",
       "displayName": "Thai Baht",
@@ -1207,42 +289,6 @@
       "localeIdentifier": "th_TH",
       "isRTL": false,
       "voiceKeywords": ["thb", "baht", "bahts"]
-    },
-    {
-      "code": "TJS",
-      "symbol": "ЅМ",
-      "displayName": "Tajikistani Somoni",
-      "shortName": "Somoni",
-      "localeIdentifier": "tg_TJ",
-      "isRTL": false,
-      "voiceKeywords": ["tjs", "somoni", "somonis"]
-    },
-    {
-      "code": "TMT",
-      "symbol": "m",
-      "displayName": "Turkmenistan Manat",
-      "shortName": "Manat",
-      "localeIdentifier": "tk_TM",
-      "isRTL": false,
-      "voiceKeywords": ["tmt", "manat", "manats"]
-    },
-    {
-      "code": "TND",
-      "symbol": "د.ت",
-      "displayName": "Tunisian Dinar",
-      "shortName": "Dinar",
-      "localeIdentifier": "ar_TN",
-      "isRTL": true,
-      "voiceKeywords": ["tnd", "dinar", "dinars", "tunisian dinar"]
-    },
-    {
-      "code": "TOP",
-      "symbol": "T$",
-      "displayName": "Tongan Paʻanga",
-      "shortName": "Paʻanga",
-      "localeIdentifier": "to_TO",
-      "isRTL": false,
-      "voiceKeywords": ["top", "paanga", "paangas"]
     },
     {
       "code": "TRY",
@@ -1254,60 +300,6 @@
       "voiceKeywords": ["try", "lira", "liras", "turkish lira"]
     },
     {
-      "code": "TTD",
-      "symbol": "$",
-      "displayName": "Trinidad and Tobago Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_TT",
-      "isRTL": false,
-      "voiceKeywords": ["ttd", "dollar", "dollars", "trinidad dollar"]
-    },
-    {
-      "code": "TVD",
-      "symbol": "$",
-      "displayName": "Tuvaluan Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_TV",
-      "isRTL": false,
-      "voiceKeywords": ["tvd", "dollar", "dollars", "tuvaluan dollar"]
-    },
-    {
-      "code": "TWD",
-      "symbol": "NT$",
-      "displayName": "New Taiwan Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "zh_TW",
-      "isRTL": false,
-      "voiceKeywords": ["twd", "dollar", "dollars", "taiwan dollar"]
-    },
-    {
-      "code": "TZS",
-      "symbol": "Sh",
-      "displayName": "Tanzanian Shilling",
-      "shortName": "Shilling",
-      "localeIdentifier": "sw_TZ",
-      "isRTL": false,
-      "voiceKeywords": ["tzs", "shilling", "shillings", "tanzanian shilling"]
-    },
-    {
-      "code": "UAH",
-      "symbol": "₴",
-      "displayName": "Ukrainian Hryvnia",
-      "shortName": "Hryvnia",
-      "localeIdentifier": "uk_UA",
-      "isRTL": false,
-      "voiceKeywords": ["uah", "hryvnia", "hryvnias"]
-    },
-    {
-      "code": "UGX",
-      "symbol": "Sh",
-      "displayName": "Ugandan Shilling",
-      "shortName": "Shilling",
-      "localeIdentifier": "en_UG",
-      "isRTL": false,
-      "voiceKeywords": ["ugx", "shilling", "shillings", "ugandan shilling"]
-    },
-    {
       "code": "USD",
       "symbol": "$",
       "displayName": "US Dollar",
@@ -1315,33 +307,6 @@
       "localeIdentifier": "en_US",
       "isRTL": false,
       "voiceKeywords": ["usd", "dollar", "dollars", "$", "buck", "bucks", "us dollar"]
-    },
-    {
-      "code": "UYU",
-      "symbol": "$",
-      "displayName": "Uruguayan Peso",
-      "shortName": "Peso",
-      "localeIdentifier": "es_UY",
-      "isRTL": false,
-      "voiceKeywords": ["uyu", "peso", "pesos", "uruguayan peso"]
-    },
-    {
-      "code": "UZS",
-      "symbol": "so'm",
-      "displayName": "Uzbekistani Som",
-      "shortName": "Som",
-      "localeIdentifier": "uz_UZ",
-      "isRTL": false,
-      "voiceKeywords": ["uzs", "som", "soms"]
-    },
-    {
-      "code": "VES",
-      "symbol": "Bs.",
-      "displayName": "Venezuelan Bolívar",
-      "shortName": "Bolívar",
-      "localeIdentifier": "es_VE",
-      "isRTL": false,
-      "voiceKeywords": ["ves", "bolivar", "bolivars"]
     },
     {
       "code": "VND",
@@ -1353,78 +318,6 @@
       "voiceKeywords": ["vnd", "dong", "dongs"]
     },
     {
-      "code": "VUV",
-      "symbol": "Vt",
-      "displayName": "Vanuatu Vatu",
-      "shortName": "Vatu",
-      "localeIdentifier": "en_VU",
-      "isRTL": false,
-      "voiceKeywords": ["vuv", "vatu", "vatus"]
-    },
-    {
-      "code": "WST",
-      "symbol": "T",
-      "displayName": "Samoan Tālā",
-      "shortName": "Tālā",
-      "localeIdentifier": "sm_WS",
-      "isRTL": false,
-      "voiceKeywords": ["wst", "tala", "talas"]
-    },
-    {
-      "code": "XAF",
-      "symbol": "FCFA",
-      "displayName": "Central African CFA Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_CF",
-      "isRTL": false,
-      "voiceKeywords": ["xaf", "franc", "francs", "cfa franc"]
-    },
-    {
-      "code": "XCD",
-      "symbol": "$",
-      "displayName": "East Caribbean Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_LC",
-      "isRTL": false,
-      "voiceKeywords": ["xcd", "dollar", "dollars", "east caribbean dollar"]
-    },
-    {
-      "code": "XDR",
-      "symbol": "SDR",
-      "displayName": "Special Drawing Rights",
-      "shortName": "SDR",
-      "localeIdentifier": "en_US",
-      "isRTL": false,
-      "voiceKeywords": ["xdr", "sdr", "special drawing rights"]
-    },
-    {
-      "code": "XOF",
-      "symbol": "CFA",
-      "displayName": "West African CFA Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_BF",
-      "isRTL": false,
-      "voiceKeywords": ["xof", "franc", "francs", "cfa franc"]
-    },
-    {
-      "code": "XPF",
-      "symbol": "₣",
-      "displayName": "CFP Franc",
-      "shortName": "Franc",
-      "localeIdentifier": "fr_PF",
-      "isRTL": false,
-      "voiceKeywords": ["xpf", "franc", "francs", "cfp franc"]
-    },
-    {
-      "code": "YER",
-      "symbol": "﷼",
-      "displayName": "Yemeni Rial",
-      "shortName": "Rial",
-      "localeIdentifier": "ar_YE",
-      "isRTL": true,
-      "voiceKeywords": ["yer", "rial", "rials", "yemeni rial"]
-    },
-    {
       "code": "ZAR",
       "symbol": "R",
       "displayName": "South African Rand",
@@ -1432,24 +325,6 @@
       "localeIdentifier": "en_ZA",
       "isRTL": false,
       "voiceKeywords": ["zar", "rand", "rands", "south african rand"]
-    },
-    {
-      "code": "ZMW",
-      "symbol": "ZK",
-      "displayName": "Zambian Kwacha",
-      "shortName": "Kwacha",
-      "localeIdentifier": "en_ZM",
-      "isRTL": false,
-      "voiceKeywords": ["zmw", "kwacha", "kwachas", "zambian kwacha"]
-    },
-    {
-      "code": "ZWL",
-      "symbol": "$",
-      "displayName": "Zimbabwean Dollar",
-      "shortName": "Dollar",
-      "localeIdentifier": "en_ZW",
-      "isRTL": false,
-      "voiceKeywords": ["zwl", "dollar", "dollars", "zimbabwean dollar"]
     }
   ]
 }

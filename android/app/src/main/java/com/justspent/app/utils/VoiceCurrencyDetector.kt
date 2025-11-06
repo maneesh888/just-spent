@@ -146,14 +146,43 @@ object VoiceCurrencyDetector {
      *
      * Useful for normalization before processing
      *
+     * Priority: USD first for $ symbol (most common), then other common currencies
+     * Preserves spacing: "$50" → "USD50", "د.إ 100" → "AED 100"
+     *
+     * Uses placeholders to avoid double-replacement (e.g., EUR's R becoming ZAR)
+     *
      * @param text Input text
      * @return Text with symbols replaced by codes
      */
     fun normalizeCurrencySymbols(text: String): String {
         var normalized = text
+        val replacements = mutableMapOf<String, String>()
+        var placeholderIndex = 0
 
-        Currency.all.forEach { currency ->
-            normalized = normalized.replace(currency.symbol, currency.code)
+        // First pass: Replace symbols with unique placeholders to avoid conflicts
+        // Use emoji placeholders which won't conflict with any currency symbols
+        // Process common currencies first for $ ambiguity (USD not AUD)
+        Currency.common.forEach { currency ->
+            if (normalized.contains(currency.symbol)) {
+                val placeholder = "🪙${placeholderIndex++}🪙"
+                replacements[placeholder] = currency.code
+                normalized = normalized.replace(currency.symbol, placeholder)
+            }
+        }
+
+        // Then process remaining currencies
+        Currency.all.filterNot { it.code in listOf("AED", "USD", "EUR", "GBP", "INR", "SAR") }
+            .forEach { currency ->
+                if (normalized.contains(currency.symbol)) {
+                    val placeholder = "🪙${placeholderIndex++}🪙"
+                    replacements[placeholder] = currency.code
+                    normalized = normalized.replace(currency.symbol, placeholder)
+                }
+            }
+
+        // Second pass: Replace placeholders with actual currency codes
+        replacements.forEach { (placeholder, code) ->
+            normalized = normalized.replace(placeholder, code)
         }
 
         return normalized

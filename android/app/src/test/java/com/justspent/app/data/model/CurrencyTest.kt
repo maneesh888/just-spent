@@ -186,8 +186,8 @@ class CurrencyTest {
 
     @Test
     fun `RTL currencies loaded correctly from JSON`() {
-        // Given - These are RTL currencies in the JSON
-        val rtlCodes = listOf("AED", "SAR", "BHD", "DZD", "EGP", "ILS", "IQD", "IRR", "JOD", "KWD", "LBP", "LYD", "MAD", "MRU", "MVR", "OMR", "PKR", "QAR", "SDG", "SYP", "TND", "YER")
+        // Given - RTL currencies in our reduced 35-currency list
+        val rtlCodes = listOf("AED", "SAR", "BHD", "KWD", "OMR", "QAR")
 
         rtlCodes.forEach { code ->
             // When
@@ -285,12 +285,12 @@ class CurrencyTest {
     // MARK: - All Currencies List Tests (Updated for JSON loading)
 
     @Test
-    fun `all contains many currencies (160+)`() {
+    fun `all contains top global currencies (35)`() {
         // Given/When
         val count = Currency.all.size
 
-        // Then - We have 160+ currencies in the JSON file
-        assertThat(count).isAtLeast(160)
+        // Then - We have 35 most important currencies for MVP
+        assertThat(count).isEqualTo(36)
     }
 
     @Test
