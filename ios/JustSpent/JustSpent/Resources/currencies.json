@@ -252,7 +252,7 @@
       "shortName": "Franc",
       "localeIdentifier": "de_CH",
       "isRTL": false,
-      "voiceKeywords": ["chf", "franc", "francs", "swiss franc"]
+      "voiceKeywords": ["chf", "franc", "francs", "swiss franc", "swiss francs"]
     },
     {
       "code": "CLP",
@@ -576,7 +576,7 @@
       "shortName": "Rupee",
       "localeIdentifier": "en_IN",
       "isRTL": false,
-      "voiceKeywords": ["inr", "rupee", "rupees", "₹", "indian rupee"]
+      "voiceKeywords": ["inr", "rupee", "rupees", "₹", "rs", "rs.", "₨", "indian rupee"]
     },
     {
       "code": "IQD",

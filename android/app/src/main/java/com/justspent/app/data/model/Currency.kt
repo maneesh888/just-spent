@@ -129,6 +129,8 @@ data class Currency(
 
         /**
          * Detect currency from text input (voice commands, manual entry)
+         * Prioritizes common currencies (AED, USD, EUR, GBP, INR, SAR) before checking all currencies
+         * Uses word boundary matching for better accuracy and prioritizes longer keywords
          *
          * @param text Input text to analyze
          * @return Detected currency or null if no match found
@@ -136,13 +138,40 @@ data class Currency(
         fun detectFromText(text: String): Currency? {
             val lowercasedText = text.lowercase()
 
-            for (currency in all) {
-                for (keyword in currency.voiceKeywords) {
-                    if (lowercasedText.contains(keyword.lowercase())) {
-                        return currency
+            // Helper function to check if keyword matches (whole word or symbol)
+            fun matchesKeyword(text: String, keyword: String): Boolean {
+                val lowercaseKeyword = keyword.lowercase()
+
+                // For single character or symbol keywords, use contains
+                if (keyword.length <= 2 && keyword.any { !it.isLetterOrDigit() }) {
+                    return text.contains(lowercaseKeyword)
+                }
+
+                // For word keywords, use word boundary matching
+                return text.contains(Regex("\\b${Regex.escape(lowercaseKeyword)}\\b"))
+            }
+
+            // Helper function to find best match (prioritize longer keywords for better specificity)
+            fun findMatch(currencies: List<Currency>): Currency? {
+                val matches = mutableListOf<Pair<Currency, String>>()
+
+                for (currency in currencies) {
+                    for (keyword in currency.voiceKeywords) {
+                        if (matchesKeyword(lowercasedText, keyword)) {
+                            matches.add(currency to keyword)
+                        }
                     }
                 }
+
+                // Return currency with longest matching keyword (more specific)
+                return matches.maxByOrNull { it.second.length }?.first
             }
+
+            // First check common currencies for better accuracy
+            findMatch(common)?.let { return it }
+
+            // Then check all other currencies
+            findMatch(all.filterNot { it.code in commonCodes })?.let { return it }
 
             return null
         }

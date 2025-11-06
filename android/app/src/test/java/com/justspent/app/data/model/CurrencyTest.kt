@@ -467,7 +467,7 @@ class CurrencyTest {
         val tests = mapOf(
             "I spent 1000 yen on sushi" to "JPY",
             "I paid 50 yuan for the book" to "CNY",
-            "The watch cost 100 francs" to "CHF"
+            "The watch cost 100 swiss francs" to "CHF"  // Use "swiss francs" to be specific
         )
 
         tests.forEach { (text, expectedCode) ->
