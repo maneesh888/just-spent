@@ -37,6 +37,12 @@ android {
         // Tests run directly via Gradle without orchestrator overhead
         // execution = "ANDROIDX_TEST_ORCHESTRATOR"
         animationsDisabled = true
+
+        // Configure Robolectric for unit tests
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 
     buildTypes {

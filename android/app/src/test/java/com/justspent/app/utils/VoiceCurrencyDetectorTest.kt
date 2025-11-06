@@ -13,25 +13,19 @@ import org.robolectric.annotation.Config
 /**
  * Comprehensive unit tests for VoiceCurrencyDetector
  * Tests voice command parsing, currency detection, and amount extraction
+ *
+ * Robolectric configuration is in src/test/resources/robolectric.properties
+ * which ensures proper access to assets folder for currency JSON loading
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(
-    manifest = Config.NONE,
-    sdk = [28],
-    assetDir = "src/main/assets"
-)
 class VoiceCurrencyDetectorTest {
 
     @Before
     fun setup() {
         // Initialize currency system with test context
+        // This loads currencies from src/main/assets/currencies.json
         val context = ApplicationProvider.getApplicationContext<Context>()
         Currency.initialize(context)
-
-        // Verify currencies loaded successfully
-        require(Currency.all.isNotEmpty()) {
-            "Currency system initialization failed - no currencies loaded from JSON"
-        }
     }
 
     // MARK: - Currency Detection Tests

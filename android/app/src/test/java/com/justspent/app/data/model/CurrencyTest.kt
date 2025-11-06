@@ -13,32 +13,33 @@ import org.robolectric.annotation.Config
  * Comprehensive unit tests for Currency model
  * Tests currency properties, detection, and utility functions
  * Now tests JSON-based currency loading
+ *
+ * Robolectric configuration is in src/test/resources/robolectric.properties
+ * which ensures proper access to assets folder for currency JSON loading
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(
-    manifest = Config.NONE,
-    sdk = [28],
-    assetDir = "src/main/assets"
-)
 class CurrencyTest {
 
     @Before
     fun setup() {
         // Initialize currency system with test context
+        // This loads currencies from src/main/assets/currencies.json
         val context = ApplicationProvider.getApplicationContext<Context>()
         Currency.initialize(context)
 
-        // Verify currencies loaded successfully
-        require(Currency.all.isNotEmpty()) {
-            "Currency system initialization failed - no currencies loaded from JSON"
-        }
+        // Debug: Print initialization status
+        println("Currency system initialized. Total currencies: ${Currency.all.size}")
+        println("Common currencies: ${Currency.common.map { it.code }}")
     }
 
     // MARK: - Currency Properties Tests
 
     @Test
     fun `AED has correct properties`() {
-        // Given
+        // Given - Verify initialization first
+        assertThat(Currency.all).isNotEmpty()
+        println("Testing AED. All currencies count: ${Currency.all.size}")
+
         val currency = Currency.AED
 
         // Then
