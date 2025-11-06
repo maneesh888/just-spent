@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
@@ -151,9 +152,9 @@ dependencies {
     // Date & Time
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
     
-    // JSON Serialization
+    // JSON Serialization (kotlinx-serialization for Currency loading)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
@@ -166,6 +167,7 @@ dependencies {
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("com.google.truth:truth:1.1.4")
     testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("androidx.test:core:1.5.0")  // For ApplicationProvider in Robolectric tests
     
     // Multidex
     implementation("androidx.multidex:multidex:2.0.1")

@@ -3,11 +3,14 @@ package com.justspent.app
 import android.app.Application
 import android.content.Context
 import androidx.test.runner.AndroidJUnitRunner
-import dagger.hilt.android.testing.HiltTestApplication
 
 /**
  * Custom test runner for Hilt-based instrumented tests
- * This replaces JustSpentApplication with HiltTestApplication during tests
+ *
+ * This replaces JustSpentApplication with JustSpentTestApplication during tests.
+ * JustSpentTestApplication extends HiltTestApplication to maintain Hilt functionality
+ * while also initializing app-specific systems (like Currency) that are normally
+ * initialized in the production application.
  */
 class HiltTestRunner : AndroidJUnitRunner() {
     override fun newApplication(
@@ -15,6 +18,7 @@ class HiltTestRunner : AndroidJUnitRunner() {
         className: String?,
         context: Context?
     ): Application {
-        return super.newApplication(cl, HiltTestApplication::class.java.name, context)
+        return super.newApplication(cl, JustSpentTestApplication::class.java.name, context)
     }
 }
+

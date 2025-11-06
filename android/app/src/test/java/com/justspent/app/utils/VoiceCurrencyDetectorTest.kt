@@ -1,14 +1,38 @@
 package com.justspent.app.utils
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.justspent.app.data.model.Currency
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Comprehensive unit tests for VoiceCurrencyDetector
  * Tests voice command parsing, currency detection, and amount extraction
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(
+    manifest = Config.NONE,
+    sdk = [28],
+    assetDir = "src/main/assets"
+)
 class VoiceCurrencyDetectorTest {
+
+    @Before
+    fun setup() {
+        // Initialize currency system with test context
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        Currency.initialize(context)
+
+        // Verify currencies loaded successfully
+        require(Currency.all.isNotEmpty()) {
+            "Currency system initialization failed - no currencies loaded from JSON"
+        }
+    }
 
     // MARK: - Currency Detection Tests
 

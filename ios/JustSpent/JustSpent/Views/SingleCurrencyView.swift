@@ -23,7 +23,7 @@ struct SingleCurrencyView: View {
         self.currency = currency
 
         // Initialize FetchRequest with currency filter
-        let predicate = NSPredicate(format: "currency == %@", currency.rawValue)
+        let predicate = NSPredicate(format: "currency == %@", currency.code)
         _expenses = FetchRequest<Expense>(
             sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
             predicate: predicate,

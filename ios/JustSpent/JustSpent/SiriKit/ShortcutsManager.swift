@@ -26,7 +26,7 @@ class ShortcutsManager {
         intent.currency = "USD" // Default, should be user's preferred currency
         
         let interaction = INInteraction(intent: intent, response: nil)
-        interaction.identifier = "logExpense_\(amount)_\(category.rawValue)"
+        interaction.identifier = "logExpense_\(amount)_\(category.code)"
         interaction.groupIdentifier = "logExpense"
         
         interaction.donate { error in
@@ -45,7 +45,7 @@ class ShortcutsManager {
         intent.timePeriod = timePeriod
         
         let interaction = INInteraction(intent: intent, response: nil)
-        interaction.identifier = "viewExpenses_\(category?.rawValue ?? "all")_\(timePeriod ?? "allTime")"
+        interaction.identifier = "viewExpenses_\(category?.code ?? "all")_\(timePeriod ?? "allTime")"
         interaction.groupIdentifier = "viewExpenses"
         
         interaction.donate { error in

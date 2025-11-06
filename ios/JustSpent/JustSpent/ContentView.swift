@@ -246,7 +246,7 @@ struct ContentView: View {
                     let repository = ExpenseRepository()
                     let expenseData = ExpenseData(
                         amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.Currency.defaultCurrency,
+                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
                         category: category,
                         merchant: extractedData.merchant,
                         notes: LocalizedStrings.expenseAddedViaIntelligent,
@@ -315,7 +315,7 @@ struct ContentView: View {
                     let repository = ExpenseRepository()
                     let expenseData = ExpenseData(
                         amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.Currency.defaultCurrency,
+                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
                         category: category,
                         merchant: extractedData.merchant,
                         notes: LocalizedStrings.expenseAddedViaVoice,
