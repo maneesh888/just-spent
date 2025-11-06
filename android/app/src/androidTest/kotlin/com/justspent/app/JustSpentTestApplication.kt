@@ -1,28 +1,37 @@
 package com.justspent.app
 
+import android.app.Application
 import com.justspent.app.data.model.Currency
-import dagger.hilt.android.testing.HiltTestApplication
+import dagger.hilt.android.testing.CustomTestApplication
 
 /**
- * Custom test application for instrumented tests
+ * Base application for custom test application
  *
- * Extends HiltTestApplication to maintain Hilt dependency injection functionality
- * while also initializing app-specific systems (like Currency) that are normally
+ * This is used with @CustomTestApplication annotation to create a test application
+ * that initializes app-specific systems (like Currency) that are normally
  * initialized in JustSpentApplication.onCreate()
  *
- * This ensures tests run in an environment similar to production while maintaining
- * the testing benefits of HiltTestApplication.
+ * Note: Do NOT extend HiltTestApplication directly - it's final. Instead, use this
+ * pattern with @CustomTestApplication annotation to let Hilt generate the proper
+ * test application class.
  */
-class JustSpentTestApplication : HiltTestApplication() {
+open class JustSpentTestApplicationBase : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
         // Initialize currency system from JSON
-        // This is normally done in JustSpentApplication.onCreate() but HiltTestRunner
-        // replaces JustSpentApplication with HiltTestApplication, so we need to do it here
+        // This is normally done in JustSpentApplication.onCreate() but during tests
+        // the application is replaced with a Hilt-generated test application
         Currency.initialize(this)
 
         android.util.Log.d("JustSpentTestApplication", "✅ Test application created with Currency system initialized")
     }
 }
+
+/**
+ * Custom test application annotation that tells Hilt to generate a test application
+ * based on JustSpentTestApplicationBase
+ */
+@CustomTestApplication(JustSpentTestApplicationBase::class)
+interface JustSpentTestApplication
