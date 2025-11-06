@@ -25,13 +25,14 @@ class VoiceCommandProcessor @Inject constructor() {
      */
     fun processVoiceCommand(
         command: String,
-        locale: Locale = Locale.getDefault()
+        locale: Locale = Locale.getDefault(),
+        defaultCurrency: String = "USD"
     ): Result<ExpenseData> {
         return try {
             val cleanCommand = command.trim().lowercase()
-            
+
             val amount = extractAmount(cleanCommand)
-            val currency = extractCurrency(cleanCommand, locale)
+            val currency = extractCurrency(cleanCommand, locale, defaultCurrency)
             val category = extractCategory(cleanCommand)
             val merchant = extractMerchant(cleanCommand)
             val notes = extractNotes(cleanCommand)
@@ -124,22 +125,16 @@ class VoiceCommandProcessor @Inject constructor() {
     }
     
     /**
-     * Extract currency from command or determine from locale
+     * Extract currency from command, using user's default currency as fallback
      * Uses VoiceCurrencyDetector for comprehensive currency detection
      */
-    private fun extractCurrency(command: String, locale: Locale): String {
-        // Determine default currency from locale
-        val defaultCurrency = when (locale.country) {
-            "AE" -> Currency.AED
-            "GB" -> Currency.GBP
-            "IN" -> Currency.INR
-            "SA" -> Currency.SAR
-            else -> Currency.USD
-        }
+    private fun extractCurrency(command: String, locale: Locale, defaultCurrency: String): String {
+        // Convert user's default currency code to Currency object
+        val defaultCurrencyObj = Currency.fromCode(defaultCurrency) ?: Currency.USD
 
         // Use VoiceCurrencyDetector for comprehensive detection
         // Supports: symbols (₹, Rs, ₨, $, €, etc.), keywords (rupee, dollar, etc.), and ISO codes
-        val detectedCurrency = VoiceCurrencyDetector.detectCurrency(command, defaultCurrency)
+        val detectedCurrency = VoiceCurrencyDetector.detectCurrency(command, defaultCurrencyObj)
         return detectedCurrency.code
     }
     
