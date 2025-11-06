@@ -79,22 +79,47 @@ class VoiceCurrencyDetector {
         // Pattern: number followed by currency
         // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100", "₹20", "Rs 500"
         let patterns = [
-            #"(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)"#,
-            #"([a-zA-Z\$€£₹₨﷼د.إ]+)\s*(\d+\.?\d*)"#
+            // Specific currency symbol patterns (highest priority)
+            (#"₹\s*(\d+\.?\d*)"#, "INR"),         // ₹20, ₹ 500
+            (#"₨\s*(\d+\.?\d*)"#, "INR"),         // ₨20, ₨ 500
+            (#"[Rr]s\.?\s+(\d+\.?\d*)"#, "INR"),  // Rs 500, rs. 500 (with space)
+            (#"\$(\d+\.?\d*)"#, "USD"),           // $50
+            (#"€(\d+\.?\d*)"#, "EUR"),            // €50
+            (#"£(\d+\.?\d*)"#, "GBP"),            // £50
+            (#"د\.إ\s*(\d+\.?\d*)"#, "AED"),      // د.إ 100
+            (#"﷼\s*(\d+\.?\d*)"#, "SAR"),         // ﷼100
+
+            // Currency symbol after number
+            (#"(\d+\.?\d*)\s*₹"#, "INR"),
+            (#"(\d+\.?\d*)\s*₨"#, "INR"),
+            (#"(\d+\.?\d*)\s+[Rr]s\.?"#, "INR"),  // 500 Rs, 500 rs.
+
+            // Generic patterns (lower priority)
+            (#"(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)"#, nil),
+            (#"([a-zA-Z\$€£₹₨﷼د.إ]+)\s*(\d+\.?\d*)"#, nil)
         ]
 
-        for pattern in patterns {
-            if let match = text.range(of: pattern, options: .regularExpression) {
-                let matchedText = String(text[match])
-                let components = matchedText.components(separatedBy: CharacterSet.decimalDigits.inverted)
+        for (pattern, explicitCurrency) in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+               let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)) {
 
-                // Extract amount
-                if let amountString = components.first(where: { !$0.isEmpty }),
-                   let amount = Decimal(string: amountString) {
+                // Extract amount from first capture group
+                if match.numberOfRanges > 1,
+                   let amountRange = Range(match.range(at: 1), in: text) {
+                    let amountString = String(text[amountRange])
+                    if let amount = Decimal(string: amountString) {
 
-                    // Detect currency from the matched text
-                    let currency = detectCurrency(from: matchedText, default: defaultCurrency)
-                    return (amount: amount, currency: currency)
+                        // Use explicit currency if provided (for specific symbol patterns)
+                        if let currencyCode = explicitCurrency,
+                           let currency = Currency(rawValue: currencyCode) {
+                            return (amount: amount, currency: currency)
+                        }
+
+                        // Otherwise detect from matched text
+                        let matchedText = String(text[Range(match.range, in: text)!])
+                        let currency = detectCurrency(from: matchedText, default: defaultCurrency)
+                        return (amount: amount, currency: currency)
+                    }
                 }
             }
         }
