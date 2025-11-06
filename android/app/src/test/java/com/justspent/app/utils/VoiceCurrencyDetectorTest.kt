@@ -193,6 +193,42 @@ class VoiceCurrencyDetectorTest {
     }
 
     @Test
+    fun `detectCurrency finds INR from symbol with no space`() {
+        // Given
+        val text = "I just spent ₹20"
+
+        // When
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+
+        // Then
+        assertThat(result).isEqualTo(Currency.INR)
+    }
+
+    @Test
+    fun `detectCurrency finds INR from Rs abbreviation`() {
+        // Given
+        val text = "I spent Rs 500 on groceries"
+
+        // When
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+
+        // Then
+        assertThat(result).isEqualTo(Currency.INR)
+    }
+
+    @Test
+    fun `detectCurrency finds INR from alternative rupee symbol`() {
+        // Given
+        val text = "I spent ₨500 on groceries"
+
+        // When
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+
+        // Then
+        assertThat(result).isEqualTo(Currency.INR)
+    }
+
+    @Test
     fun `detectCurrency finds SAR from riyal keyword`() {
         // Given
         val text = "I spent 100 riyals at the mall"
@@ -357,6 +393,48 @@ class VoiceCurrencyDetectorTest {
         // Then
         assertThat(result).isNotNull()
         assertThat(result?.first).isEqualTo(500.0)
+        assertThat(result?.second).isEqualTo(Currency.INR)
+    }
+
+    @Test
+    fun `extractAmountAndCurrency handles rupee symbol with no space`() {
+        // Given
+        val text = "I just spent ₹20"
+
+        // When
+        val result = VoiceCurrencyDetector.extractAmountAndCurrency(text)
+
+        // Then
+        assertThat(result).isNotNull()
+        assertThat(result?.first).isEqualTo(20.0)
+        assertThat(result?.second).isEqualTo(Currency.INR)
+    }
+
+    @Test
+    fun `extractAmountAndCurrency handles Rs abbreviation`() {
+        // Given
+        val text = "I spent Rs 500 on groceries"
+
+        // When
+        val result = VoiceCurrencyDetector.extractAmountAndCurrency(text)
+
+        // Then
+        assertThat(result).isNotNull()
+        assertThat(result?.first).isEqualTo(500.0)
+        assertThat(result?.second).isEqualTo(Currency.INR)
+    }
+
+    @Test
+    fun `extractAmountAndCurrency handles alternative rupee symbol`() {
+        // Given
+        val text = "I paid ₨250 for taxi"
+
+        // When
+        val result = VoiceCurrencyDetector.extractAmountAndCurrency(text)
+
+        // Then
+        assertThat(result).isNotNull()
+        assertThat(result?.first).isEqualTo(250.0)
         assertThat(result?.second).isEqualTo(Currency.INR)
     }
 

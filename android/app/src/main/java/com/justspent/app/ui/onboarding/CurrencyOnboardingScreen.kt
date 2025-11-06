@@ -116,8 +116,9 @@ private fun CurrencySelectionList(
     ) {
         LazyColumn(
             modifier = Modifier
-                .height(400.dp) // Fixed height for consistent rendering in tests
-                .testTag("currency_list")
+                .fillMaxSize()
+                .testTag("currency_list"),
+            contentPadding = PaddingValues(vertical = 4.dp)
         ) {
             items(Currency.all) { currency ->
                 CurrencyOnboardingRow(

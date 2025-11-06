@@ -90,6 +90,27 @@ final class VoiceCurrencyDetectorTests: XCTestCase {
         XCTAssertEqual(result, "INR", "Should detect INR from 'rupees' keyword")
     }
 
+    func testDetectRupeeSymbol() throws {
+        let transcript = "I spent ₹500 on groceries"
+        let result = detector.detectCurrency(from: transcript)
+
+        XCTAssertEqual(result, "INR", "Should detect INR from ₹ symbol")
+    }
+
+    func testDetectRupeeSymbolNoSpace() throws {
+        let transcript = "I just spent ₹20"
+        let result = detector.detectCurrency(from: transcript)
+
+        XCTAssertEqual(result, "INR", "Should detect INR from ₹ symbol without space")
+    }
+
+    func testDetectRsAbbreviation() throws {
+        let transcript = "I spent Rs 500 on groceries"
+        let result = detector.detectCurrency(from: transcript)
+
+        XCTAssertEqual(result, "INR", "Should detect INR from Rs abbreviation")
+    }
+
     func testDetectRiyalsKeyword() throws {
         let transcript = "I spent 100 riyals on shopping"
         let result = detector.detectCurrency(from: transcript)
@@ -152,6 +173,22 @@ final class VoiceCurrencyDetectorTests: XCTestCase {
 
         XCTAssertEqual(amount, 12.99, accuracy: 0.01, "Should extract decimal amount correctly")
         XCTAssertEqual(currency, "USD", "Should extract correct currency")
+    }
+
+    func testExtractAmountWithRupeeSymbol() throws {
+        let transcript = "I just spent ₹20"
+        let (amount, currency) = detector.extractAmountAndCurrency(from: transcript)
+
+        XCTAssertEqual(amount, 20.0, accuracy: 0.01, "Should extract amount from ₹20")
+        XCTAssertEqual(currency, "INR", "Should detect INR from ₹ symbol")
+    }
+
+    func testExtractAmountWithRsAbbreviation() throws {
+        let transcript = "I spent Rs 500 on groceries"
+        let (amount, currency) = detector.extractAmountAndCurrency(from: transcript)
+
+        XCTAssertEqual(amount, 500.0, accuracy: 0.01, "Should extract amount with Rs")
+        XCTAssertEqual(currency, "INR", "Should detect INR from Rs abbreviation")
     }
 
     // MARK: - Written Number Detection Tests

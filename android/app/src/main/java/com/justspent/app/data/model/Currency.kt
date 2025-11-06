@@ -73,7 +73,7 @@ sealed class Currency(
         shortName = "Rupee",
         localeIdentifier = "en_IN",
         isRTL = false,
-        voiceKeywords = listOf("inr", "rupee", "rupees", "₹", "indian rupee")
+        voiceKeywords = listOf("inr", "rupee", "rupees", "₹", "rs", "rs.", "₨", "indian rupee")
     )
 
     object SAR : Currency(

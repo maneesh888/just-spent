@@ -1,7 +1,9 @@
 package com.justspent.app.voice
 
+import com.justspent.app.data.model.Currency
 import com.justspent.app.data.model.ExpenseData
 import com.justspent.app.utils.NumberPhraseParser
+import com.justspent.app.utils.VoiceCurrencyDetector
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -65,8 +67,13 @@ class VoiceCommandProcessor @Inject constructor() {
         // Patterns for different amount formats (ordered by specificity)
         // FIXED: Changed \d{1,3} to \d+ to handle any number of digits (e.g., 1000, 25000, etc.)
         val patterns = listOf(
-            // Currency symbol formats: $25.50, $25, $1,234.56, $1000
+            // Currency symbol formats: $25.50, ₹20, Rs 500, ₨250
             Regex("""\$(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""₹\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""₨\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""[Rr]s\.?\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""€(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""£(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
 
             // With currency name and decimals: 25.50 dollars, 1,234.56 dollars, 1000.50 dirhams
             Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*dollars?""", RegexOption.IGNORE_CASE),
@@ -119,33 +126,16 @@ class VoiceCommandProcessor @Inject constructor() {
     
     /**
      * Extract currency from command, using user's default currency as fallback
+     * Uses VoiceCurrencyDetector for comprehensive currency detection
      */
     private fun extractCurrency(command: String, locale: Locale, defaultCurrency: String): String {
-        // Check for explicit currency mentions using proper regex patterns
-        return when {
-            Regex("dollars?").containsMatchIn(command) || command.contains("$") ||
-            Regex("usd").containsMatchIn(command) -> "USD"
+        // Convert user's default currency code to Currency object
+        val defaultCurrencyObj = Currency.fromCode(defaultCurrency) ?: Currency.USD
 
-            Regex("dirhams?").containsMatchIn(command) || command.contains("د.إ") ||
-            Regex("aed").containsMatchIn(command) || Regex("dhs").containsMatchIn(command) -> "AED"
-
-            Regex("euros?").containsMatchIn(command) || command.contains("€") ||
-            Regex("eur").containsMatchIn(command) -> "EUR"
-
-            Regex("pounds?").containsMatchIn(command) || command.contains("£") ||
-            Regex("gbp").containsMatchIn(command) || Regex("quid").containsMatchIn(command) -> "GBP"
-
-            Regex("rupees?").containsMatchIn(command) || command.contains("₹") ||
-            Regex("inr").containsMatchIn(command) -> "INR"
-
-            Regex("riyals?").containsMatchIn(command) || command.contains("ر.س") ||
-            Regex("sar").containsMatchIn(command) || command.contains("﷼") -> "SAR"
-
-            else -> {
-                // No explicit currency found - use user's default currency
-                defaultCurrency
-            }
-        }
+        // Use VoiceCurrencyDetector for comprehensive detection
+        // Supports: symbols (₹, Rs, ₨, $, €, etc.), keywords (rupee, dollar, etc.), and ISO codes
+        val detectedCurrency = VoiceCurrencyDetector.detectCurrency(command, defaultCurrencyObj)
+        return detectedCurrency.code
     }
     
     /**
