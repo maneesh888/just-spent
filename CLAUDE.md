@@ -3,6 +3,7 @@
 @just-spent-master-plan.md
 @data-models-spec.md
 @TESTING-GUIDE.md
+@docs/GIT-WORKFLOW-RULES.md
 
 ## 🎯 Current Context
 
@@ -254,12 +255,42 @@ Reference: @LOCAL-CI.md for complete documentation
 
 ### Pre-Commit Hook
 
-Automatically runs `./local-ci.sh --all --quick` before each commit.
+Automatically enforces TDD practices before each commit:
+- ✅ Validates test coverage for all changed files
+- ✅ Runs `./local-ci.sh --all --quick` to verify tests pass
+- ✅ Blocks commits with failing tests or missing test coverage
 
-**To bypass** (for WIP commits):
+**To bypass** (for WIP commits only):
 ```bash
 git commit --no-verify -m "WIP: message"
+# Or start message with "WIP:" to auto-bypass
+git commit -m "WIP: Implementing feature"
 ```
+
+**When to bypass**: Only for WIP commits on feature branches. Never bypass on main branch.
+
+### Git Amend Workflow
+
+When you discover a bug immediately after committing, use `git commit --amend` instead of creating a "fix" commit:
+
+```bash
+# You just committed code
+git commit -m "feat: Add currency formatter"
+
+# You discover a bug immediately
+# Fix the bug, run tests
+./local-ci.sh --all --quick
+
+# Stage the fixes
+git add <fixed-files>
+
+# Amend the commit (keeps history clean)
+git commit --amend --no-edit
+```
+
+**⚠️ IMPORTANT**: Only use `--amend` BEFORE pushing to remote!
+
+**See @docs/GIT-WORKFLOW-RULES.md for complete git workflow documentation**
 
 ### Viewing Results
 
