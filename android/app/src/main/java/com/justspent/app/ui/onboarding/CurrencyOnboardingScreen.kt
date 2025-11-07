@@ -120,13 +120,13 @@ private fun CurrencySelectionList(
                 .testTag("currency_list"),
             contentPadding = PaddingValues(vertical = 4.dp)
         ) {
-            items(Currency.common) { currency ->
+            items(Currency.all.sortedBy { it.displayName }) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
                     isSelected = currency == selectedCurrency,
                     onClick = { onCurrencySelected(currency) }
                 )
-                if (currency != Currency.common.last()) {
+                if (currency != Currency.all.last()) {
                     Divider()
                 }
             }
@@ -192,7 +192,7 @@ private fun CurrencyOnboardingRow(
 @Composable
 private fun HelperText() {
     Text(
-        text = "You can choose a different currency below.\nThis will be used when no currency is specified.",
+        text = "Choose from 36 world currencies.\nScroll to find your preferred currency.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
