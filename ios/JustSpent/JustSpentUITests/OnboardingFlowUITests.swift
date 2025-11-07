@@ -24,8 +24,8 @@ class OnboardingFlowUITests: BaseUITestCase {
         }
     }
 
-    func testOnboardingShowsAllSixCurrencies() throws {
-        // Verify all 6 currency options are present (with scrolling support)
+    func testOnboardingShowsAllSevenCurrencies() throws {
+        // Verify all 7 common currency options are present (with scrolling support)
         let currencies = TestDataHelper.allCurrencyCodes
 
         var foundCurrencies = 0
@@ -36,7 +36,7 @@ class OnboardingFlowUITests: BaseUITestCase {
             }
         }
 
-        XCTAssertGreaterThanOrEqual(foundCurrencies, 6, "Should show all 6 currency options (with scroll)")
+        XCTAssertGreaterThanOrEqual(foundCurrencies, 7, "Should show all 7 common currency options (with scroll)")
     }
 
     func testOnboardingDisplaysAEDOption() throws {
@@ -175,7 +175,7 @@ class OnboardingFlowUITests: BaseUITestCase {
             }
         }
 
-        XCTAssertGreaterThanOrEqual(foundSymbols, 6, "Should show all 6 currency symbols (with scroll), found \(foundSymbols)")
+        XCTAssertGreaterThanOrEqual(foundSymbols, 7, "Should show all 7 currency symbols (with scroll), found \(foundSymbols)")
     }
 
     func testOnboardingHasInstructionalText() throws {
@@ -283,8 +283,8 @@ class OnboardingFlowUITests: BaseUITestCase {
             }
         }
 
-        // All 6 currencies should be visible in the grid/list
-        XCTAssertEqual(visibleCurrencies, 6, "All 6 currencies should be visible in grid/list (with scroll), found \(visibleCurrencies)")
+        // All 7 common currencies should be visible in the grid/list
+        XCTAssertEqual(visibleCurrencies, 7, "All 7 common currencies should be visible in grid/list (with scroll), found \(visibleCurrencies)")
     }
 
     // MARK: - Edge Case Tests (2 tests)
