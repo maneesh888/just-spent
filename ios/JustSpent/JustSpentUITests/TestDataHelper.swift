@@ -153,7 +153,8 @@ class TestDataHelper {
         "EUR": "€",
         "GBP": "£",
         "INR": "₹",
-        "SAR": "﷼"
+        "SAR": "﷼",
+        "JPY": "¥"
     ]
 
     /// Get currency display name
@@ -163,11 +164,12 @@ class TestDataHelper {
         "EUR": "Euro",
         "GBP": "British Pound",
         "INR": "Indian Rupee",
-        "SAR": "Saudi Riyal"
+        "SAR": "Saudi Riyal",
+        "JPY": "Japanese Yen"
     ]
 
     /// All supported currency codes
-    static let allCurrencyCodes = ["AED", "USD", "EUR", "GBP", "INR", "SAR"]
+    static let allCurrencyCodes = ["AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY"]
 
     // MARK: - Common Test Actions
 

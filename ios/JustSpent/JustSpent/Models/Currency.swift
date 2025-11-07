@@ -72,7 +72,7 @@ struct Currency: Codable, Identifiable, Hashable {
 
     /// Commonly used currencies (for onboarding UI)
     static var common: [Currency] {
-        let commonCodes = ["AED", "USD", "EUR", "GBP", "INR", "SAR"]
+        let commonCodes = ["AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY"]
         return all.filter { commonCodes.contains($0.code) }
     }
 
