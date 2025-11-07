@@ -583,4 +583,280 @@ class CurrencyFormatterTest {
             assertThat(result).isEqualTo(BigDecimal("100.00"))
         }
     }
+
+    // MARK: - All 36 Currencies Formatting Tests
+
+    @Test
+    fun `format works correctly for all 36 supported currencies`() {
+        // Given - Test amount
+        val amount = BigDecimal("1234.56")
+
+        // Map of currency codes to expected formatted outputs (with symbol)
+        val expectedFormats = mapOf(
+            "AED" to "د.إ 1,234.56",
+            "AUD" to "$1,234.56",
+            "BHD" to ".د.ب 1,234.56",
+            "BRL" to "R$1,234.56",
+            "CAD" to "$1,234.56",
+            "CHF" to "CHF 1,234.56",
+            "CNY" to "¥1,234.56",
+            "CZK" to "Kč 1,234.56",
+            "DKK" to "kr 1,234.56",
+            "EUR" to "1,234.56€",
+            "GBP" to "£1,234.56",
+            "HKD" to "$1,234.56",
+            "HUF" to "Ft 1,234.56",
+            "IDR" to "Rp 1,234.56",
+            "INR" to "₹1,234.56",
+            "JPY" to "¥1,234.56",
+            "KRW" to "₩1,234.56",
+            "KWD" to "د.ك 1,234.56",
+            "MXN" to "$1,234.56",
+            "MYR" to "RM 1,234.56",
+            "NOK" to "kr 1,234.56",
+            "NZD" to "$1,234.56",
+            "OMR" to "ر.ع. 1,234.56",
+            "PHP" to "₱1,234.56",
+            "PLN" to "zł 1,234.56",
+            "QAR" to "ر.ق 1,234.56",
+            "RON" to "lei 1,234.56",
+            "RUB" to "₽1,234.56",
+            "SAR" to "ر.س 1,234.56",
+            "SEK" to "kr 1,234.56",
+            "SGD" to "$1,234.56",
+            "THB" to "฿1,234.56",
+            "TRY" to "₺1,234.56",
+            "USD" to "$1,234.56",
+            "VND" to "₫1,234.56",
+            "ZAR" to "R 1,234.56"
+        )
+
+        expectedFormats.forEach { (code, expectedOutput) ->
+            // When
+            val currency = Currency.fromCode(code)
+            assertThat(currency).isNotNull()
+
+            val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
+
+            // Then
+            assertThat(result)
+                .withMessage("Currency $code formatting failed")
+                .isEqualTo(expectedOutput)
+        }
+    }
+
+    @Test
+    fun `format without symbol works for all 36 currencies`() {
+        // Given
+        val amount = BigDecimal("1234.56")
+
+        Currency.all.forEach { currency ->
+            // When
+            val result = CurrencyFormatter.format(amount, currency, showSymbol = false)
+
+            // Then - All should use consistent formatting
+            assertThat(result)
+                .withMessage("Currency ${currency.code} failed")
+                .isEqualTo("1,234.56")
+        }
+    }
+
+    @Test
+    fun `formatCompact works for all 36 currencies`() {
+        // Given
+        val amount = BigDecimal("150.00")
+
+        Currency.all.forEach { currency ->
+            // When
+            val result = CurrencyFormatter.formatCompact(amount, currency)
+
+            // Then - Should include symbol but not code
+            assertThat(result)
+                .withMessage("Currency ${currency.code} failed")
+                .contains("150.00")
+            assertThat(result)
+                .withMessage("Currency ${currency.code} should not include code in compact format")
+                .doesNotContain(currency.code)
+        }
+    }
+
+    @Test
+    fun `formatDetailed works for all 36 currencies`() {
+        // Given
+        val amount = BigDecimal("150.00")
+
+        Currency.all.forEach { currency ->
+            // When
+            val result = CurrencyFormatter.formatDetailed(amount, currency)
+
+            // Then - Should include both symbol and code
+            assertThat(result)
+                .withMessage("Currency ${currency.code} failed")
+                .contains("150.00")
+            assertThat(result)
+                .withMessage("Currency ${currency.code} should include code in detailed format")
+                .contains(currency.code)
+        }
+    }
+
+    @Test
+    fun `parse works for all 36 currencies`() {
+        // Given
+        val amount = BigDecimal("1234.56")
+
+        Currency.all.forEach { currency ->
+            // When
+            val formatted = CurrencyFormatter.format(amount, currency, showSymbol = true)
+            val parsed = CurrencyFormatter.parse(formatted, currency)
+
+            // Then - Should parse back to original amount
+            assertThat(parsed)
+                .withMessage("Currency ${currency.code} parsing failed from '$formatted'")
+                .isEqualTo(amount)
+        }
+    }
+
+    @Test
+    fun `zero amount formats correctly for all 36 currencies`() {
+        // Given
+        val amount = BigDecimal.ZERO
+
+        Currency.all.forEach { currency ->
+            // When
+            val result = CurrencyFormatter.format(amount, currency, showSymbol = true)
+
+            // Then - Should show 0.00 with proper symbol
+            assertThat(result)
+                .withMessage("Currency ${currency.code} failed")
+                .contains("0.00")
+            assertThat(result)
+                .withMessage("Currency ${currency.code} should include symbol")
+                .isNotEqualTo("0.00") // Should have symbol
+        }
+    }
+
+    @Test
+    fun `large amounts format correctly for all 36 currencies`() {
+        // Given - One million
+        val amount = BigDecimal("1000000.00")
+
+        Currency.all.forEach { currency ->
+            // When
+            val result = CurrencyFormatter.format(amount, currency, showSymbol = false)
+
+            // Then - Should have proper grouping
+            assertThat(result)
+                .withMessage("Currency ${currency.code} failed")
+                .isEqualTo("1,000,000.00")
+        }
+    }
+
+    @Test
+    fun `RTL currencies format correctly`() {
+        // Given - RTL currencies in our list
+        val rtlCurrencies = listOf("AED", "SAR", "BHD", "KWD", "OMR", "QAR")
+        val amount = BigDecimal("100.00")
+
+        rtlCurrencies.forEach { code ->
+            // When
+            val currency = Currency.fromCode(code)
+            assertThat(currency).isNotNull()
+            assertThat(currency!!.isRTL).isTrue()
+
+            val result = CurrencyFormatter.format(amount, currency, showSymbol = true)
+
+            // Then - Should format correctly (symbol typically before amount for RTL)
+            assertThat(result)
+                .withMessage("RTL Currency $code failed")
+                .contains("100.00")
+            assertThat(result)
+                .withMessage("RTL Currency $code should include symbol")
+                .contains(currency.symbol)
+        }
+    }
+
+    @Test
+    fun `decimal rounding works consistently for all currencies`() {
+        // Given - Amount requiring rounding
+        val amount = BigDecimal("100.999")
+
+        Currency.all.forEach { currency ->
+            // When
+            val result = CurrencyFormatter.format(amount, currency, showSymbol = false)
+
+            // Then - All should round to 101.00
+            assertThat(result)
+                .withMessage("Currency ${currency.code} rounding failed")
+                .isEqualTo("101.00")
+        }
+    }
+
+    // MARK: - Symbol Position Tests
+
+    @Test
+    fun `EUR symbol appears after amount`() {
+        // Given
+        val amount = BigDecimal("100.00")
+        val currency = Currency.EUR
+
+        // When
+        val result = CurrencyFormatter.format(amount, currency, showSymbol = true)
+
+        // Then - EUR symbol should be after amount
+        assertThat(result).isEqualTo("100.00€")
+    }
+
+    @Test
+    fun `dollar currencies have symbol before amount`() {
+        // Given - Dollar currencies
+        val dollarCurrencies = listOf("USD", "AUD", "CAD", "HKD", "SGD", "NZD")
+        val amount = BigDecimal("100.00")
+
+        dollarCurrencies.forEach { code ->
+            // When
+            val currency = Currency.fromCode(code)
+            val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
+
+            // Then - Should start with $
+            assertThat(result)
+                .withMessage("Dollar currency $code failed")
+                .startsWith("$")
+        }
+    }
+
+    @Test
+    fun `yen currencies share same symbol`() {
+        // Given - JPY and CNY both use ¥
+        val yenCurrencies = listOf("JPY", "CNY")
+        val amount = BigDecimal("1000.00")
+
+        yenCurrencies.forEach { code ->
+            // When
+            val currency = Currency.fromCode(code)
+            val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
+
+            // Then - Should contain ¥ symbol
+            assertThat(result)
+                .withMessage("Yen currency $code failed")
+                .contains("¥")
+        }
+    }
+
+    @Test
+    fun `scandinavian currencies use kr symbol`() {
+        // Given - SEK, NOK, DKK all use kr
+        val krCurrencies = listOf("SEK", "NOK", "DKK")
+        val amount = BigDecimal("500.00")
+
+        krCurrencies.forEach { code ->
+            // When
+            val currency = Currency.fromCode(code)
+            val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
+
+            // Then - Should contain kr symbol
+            assertThat(result)
+                .withMessage("Scandinavian currency $code failed")
+                .contains("kr")
+        }
+    }
 }

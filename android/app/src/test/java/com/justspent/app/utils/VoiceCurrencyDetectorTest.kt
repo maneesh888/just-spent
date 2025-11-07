@@ -803,4 +803,417 @@ class VoiceCurrencyDetectorTest {
         assertThat(result).isNotNull()
         assertThat(result?.second).isEqualTo(Currency.EUR) // Should use EUR, not default USD
     }
+
+    // MARK: - Comprehensive Voice Recognition Tests for All 36 Currencies
+
+    @Test
+    fun `detectCurrency finds JPY from yen keyword`() {
+        val text = "I spent 1000 yen on sushi"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("JPY"))
+    }
+
+    @Test
+    fun `detectCurrency finds JPY from symbol`() {
+        val text = "paid ¥5000 for hotel"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("JPY"))
+    }
+
+    @Test
+    fun `detectCurrency finds CNY from yuan keyword`() {
+        val text = "I spent 500 yuan on shopping"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CNY"))
+    }
+
+    @Test
+    fun `detectCurrency finds CNY from renminbi keyword`() {
+        val text = "paid 300 renminbi for dinner"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CNY"))
+    }
+
+    @Test
+    fun `detectCurrency finds CAD from canadian dollar keyword`() {
+        val text = "I spent 75 canadian dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CAD"))
+    }
+
+    @Test
+    fun `detectCurrency finds CAD from loonie keyword`() {
+        val text = "that cost 20 loonies"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CAD"))
+    }
+
+    @Test
+    fun `detectCurrency finds AUD from australian dollar keyword`() {
+        val text = "I paid 150 australian dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("AUD"))
+    }
+
+    @Test
+    fun `detectCurrency finds AUD from aussie dollar keyword`() {
+        val text = "spent 50 aussie dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("AUD"))
+    }
+
+    @Test
+    fun `detectCurrency finds CHF from swiss franc keyword`() {
+        val text = "I spent 100 swiss francs on watch"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CHF"))
+    }
+
+    @Test
+    fun `detectCurrency finds CHF from franc keyword with word boundary`() {
+        val text = "paid 200 francs at Geneva"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CHF"))
+    }
+
+    @Test
+    fun `detectCurrency finds SEK from krona keyword`() {
+        val text = "I spent 500 swedish krona"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("SEK"))
+    }
+
+    @Test
+    fun `detectCurrency finds NOK from norwegian krone keyword`() {
+        val text = "paid 400 norwegian krone"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("NOK"))
+    }
+
+    @Test
+    fun `detectCurrency finds DKK from danish krone keyword`() {
+        val text = "I spent 300 danish krone"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("DKK"))
+    }
+
+    @Test
+    fun `detectCurrency finds NZD from new zealand dollar keyword`() {
+        val text = "paid 80 new zealand dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("NZD"))
+    }
+
+    @Test
+    fun `detectCurrency finds NZD from kiwi dollar keyword`() {
+        val text = "spent 50 kiwi dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("NZD"))
+    }
+
+    @Test
+    fun `detectCurrency finds SGD from singapore dollar keyword`() {
+        val text = "I paid 120 singapore dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("SGD"))
+    }
+
+    @Test
+    fun `detectCurrency finds HKD from hong kong dollar keyword`() {
+        val text = "spent 500 hong kong dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("HKD"))
+    }
+
+    @Test
+    fun `detectCurrency finds KRW from won keyword`() {
+        val text = "I spent 50000 won in Seoul"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("KRW"))
+    }
+
+    @Test
+    fun `detectCurrency finds KRW from korean won keyword`() {
+        val text = "paid 25000 korean won"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("KRW"))
+    }
+
+    @Test
+    fun `detectCurrency finds BRL from real keyword`() {
+        val text = "I spent 200 reais on groceries"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("BRL"))
+    }
+
+    @Test
+    fun `detectCurrency finds BRL from brazilian real keyword`() {
+        val text = "paid 150 brazilian real"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("BRL"))
+    }
+
+    @Test
+    fun `detectCurrency finds MXN from peso keyword`() {
+        val text = "I spent 500 pesos in Mexico"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("MXN"))
+    }
+
+    @Test
+    fun `detectCurrency finds MXN from mexican peso keyword`() {
+        val text = "paid 300 mexican pesos"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("MXN"))
+    }
+
+    @Test
+    fun `detectCurrency finds RUB from ruble keyword`() {
+        val text = "I spent 5000 rubles in Moscow"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("RUB"))
+    }
+
+    @Test
+    fun `detectCurrency finds RUB from rouble keyword`() {
+        val text = "paid 3000 roubles for hotel"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("RUB"))
+    }
+
+    @Test
+    fun `detectCurrency finds ZAR from rand keyword`() {
+        val text = "I spent 800 rand in Cape Town"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("ZAR"))
+    }
+
+    @Test
+    fun `detectCurrency finds ZAR from south african rand keyword`() {
+        val text = "paid 500 south african rand"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("ZAR"))
+    }
+
+    @Test
+    fun `detectCurrency finds THB from baht keyword`() {
+        val text = "I spent 2000 baht in Bangkok"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("THB"))
+    }
+
+    @Test
+    fun `detectCurrency finds MYR from ringgit keyword`() {
+        val text = "paid 300 ringgit in Kuala Lumpur"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("MYR"))
+    }
+
+    @Test
+    fun `detectCurrency finds IDR from rupiah keyword`() {
+        val text = "I spent 500000 rupiah in Bali"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("IDR"))
+    }
+
+    @Test
+    fun `detectCurrency finds PHP from philippine peso keyword`() {
+        val text = "paid 2000 philippine pesos"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("PHP"))
+    }
+
+    @Test
+    fun `detectCurrency finds VND from dong keyword`() {
+        val text = "I spent 500000 dong in Hanoi"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("VND"))
+    }
+
+    @Test
+    fun `detectCurrency finds TRY from lira keyword`() {
+        val text = "I spent 500 liras in Istanbul"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("TRY"))
+    }
+
+    @Test
+    fun `detectCurrency finds TRY from turkish lira keyword`() {
+        val text = "paid 300 turkish lira"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("TRY"))
+    }
+
+    @Test
+    fun `detectCurrency finds PLN from zloty keyword`() {
+        val text = "I spent 400 zlotys in Warsaw"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("PLN"))
+    }
+
+    @Test
+    fun `detectCurrency finds CZK from koruna keyword`() {
+        val text = "paid 1000 korunas in Prague"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CZK"))
+    }
+
+    @Test
+    fun `detectCurrency finds CZK from crown keyword`() {
+        val text = "I spent 500 crowns on dinner"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("CZK"))
+    }
+
+    @Test
+    fun `detectCurrency finds HUF from forint keyword`() {
+        val text = "paid 15000 forints in Budapest"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("HUF"))
+    }
+
+    @Test
+    fun `detectCurrency finds RON from leu keyword`() {
+        val text = "I spent 200 lei in Bucharest"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("RON"))
+    }
+
+    @Test
+    fun `detectCurrency finds RON from romanian leu keyword`() {
+        val text = "paid 150 romanian leu"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("RON"))
+    }
+
+    @Test
+    fun `detectCurrency finds BHD from bahraini dinar keyword`() {
+        val text = "I spent 50 bahraini dinars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("BHD"))
+    }
+
+    @Test
+    fun `detectCurrency finds KWD from kuwaiti dinar keyword`() {
+        val text = "paid 30 kuwaiti dinars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("KWD"))
+    }
+
+    @Test
+    fun `detectCurrency finds OMR from omani rial keyword`() {
+        val text = "I spent 40 omani rials"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("OMR"))
+    }
+
+    @Test
+    fun `detectCurrency finds QAR from qatari riyal keyword`() {
+        val text = "paid 200 qatari riyals"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+        assertThat(result).isEqualTo(Currency.fromCode("QAR"))
+    }
+
+    // MARK: - extractAmountAndCurrency Tests for All Currencies
+
+    @Test
+    fun `extractAmountAndCurrency handles all 36 currencies with keywords`() {
+        // Given - Map of voice commands to expected currencies
+        val testCases = mapOf(
+            "spent 100 dirhams" to "AED",
+            "paid 75 australian dollars" to "AUD",
+            "50 bahraini dinars" to "BHD",
+            "200 brazilian real" to "BRL",
+            "80 canadian dollars" to "CAD",
+            "150 swiss francs" to "CHF",
+            "500 yuan" to "CNY",
+            "1000 korunas" to "CZK",
+            "300 danish krone" to "DKK",
+            "75 euros" to "EUR",
+            "45 pounds" to "GBP",
+            "500 hong kong dollars" to "HKD",
+            "15000 forints" to "HUF",
+            "500000 rupiah" to "IDR",
+            "500 rupees" to "INR",
+            "1000 yen" to "JPY",
+            "50000 won" to "KRW",
+            "30 kuwaiti dinars" to "KWD",
+            "500 mexican pesos" to "MXN",
+            "300 ringgit" to "MYR",
+            "400 norwegian krone" to "NOK",
+            "80 new zealand dollars" to "NZD",
+            "40 omani rials" to "OMR",
+            "2000 philippine pesos" to "PHP",
+            "400 zlotys" to "PLN",
+            "200 qatari riyals" to "QAR",
+            "200 romanian leu" to "RON",
+            "5000 rubles" to "RUB",
+            "100 saudi riyals" to "SAR",
+            "500 swedish krona" to "SEK",
+            "120 singapore dollars" to "SGD",
+            "2000 baht" to "THB",
+            "500 turkish lira" to "TRY",
+            "50 dollars" to "USD",
+            "500000 dong" to "VND",
+            "800 south african rand" to "ZAR"
+        )
+
+        testCases.forEach { (text, expectedCode) ->
+            // When
+            val result = VoiceCurrencyDetector.extractAmountAndCurrency("I $text")
+
+            // Then
+            assertThat(result).isNotNull()
+            assertThat(result?.second?.code).isEqualTo(expectedCode)
+        }
+    }
+
+    // MARK: - Disambiguation Tests (Word Boundary Validation)
+
+    @Test
+    fun `detectCurrency distinguishes between similar currency keywords`() {
+        // Test that word boundaries prevent false matches
+        val testCases = mapOf(
+            "I spent swiss francs" to "CHF",  // Not "franc" matching other currencies
+            "paid in canadian dollars" to "CAD",  // Not "dollar" matching USD/AUD/etc
+            "used indian rupees" to "INR",  // Not "rupee" matching IDR
+            "bought with norwegian krone" to "NOK",  // Not "krone" matching DKK/SEK
+            "paid bahraini dinars" to "BHD",  // Not "dinar" matching KWD
+            "spent omani rials" to "OMR",  // Not "rial" matching QAR
+            "used mexican pesos" to "MXN"  // Not "peso" matching PHP
+        )
+
+        testCases.forEach { (text, expectedCode) ->
+            val result = VoiceCurrencyDetector.detectCurrency(text)
+            assertThat(result?.code).isEqualTo(expectedCode)
+        }
+    }
+
+    @Test
+    fun `detectCurrency prioritizes longer keywords for specificity`() {
+        // "swiss franc" should win over "franc" alone
+        val text1 = "I spent 100 swiss francs"
+        val result1 = VoiceCurrencyDetector.detectCurrency(text1)
+        assertThat(result1?.code).isEqualTo("CHF")
+
+        // "canadian dollar" should be detected correctly
+        val text2 = "paid with canadian dollars"
+        val result2 = VoiceCurrencyDetector.detectCurrency(text2)
+        assertThat(result2?.code).isEqualTo("CAD")
+
+        // "south african rand" should match completely
+        val text3 = "used south african rand"
+        val result3 = VoiceCurrencyDetector.detectCurrency(text3)
+        assertThat(result3?.code).isEqualTo("ZAR")
+    }
+
+    @Test
+    fun `detectCurrency prioritizes common currencies when ambiguous`() {
+        // When multiple currencies match, common currencies (AED, USD, EUR, GBP, INR, SAR) should win
+        val text = "I spent dollars"
+        val result = VoiceCurrencyDetector.detectCurrency(text)
+
+        // USD is common, so should be detected over AUD/CAD/HKD/SGD/NZD
+        assertThat(result?.code).isEqualTo("USD")
+    }
 }
