@@ -66,8 +66,8 @@ class OnboardingFlowUITest {
     fun onboarding_showsAllSixCurrencies() {
         composeTestRule.waitForIdle()
 
-        // Verify all 6 currency options are present using test tags
-        val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
+        // Verify all 7 common currency options are present using test tags
+        val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY")
 
         currencies.forEach { code ->
             // Scroll to make item visible if needed - scroll the list first, then assert
@@ -203,7 +203,7 @@ class OnboardingFlowUITest {
         composeTestRule.waitForIdle()
 
         // Check that currency symbols are present (they're in separate Text elements)
-        val symbols = listOf("د.إ", "$", "€", "£", "₹", "﷼")
+        val symbols = listOf("د.إ", "$", "€", "£", "₹", "﷼", "¥")
 
         var foundSymbols = 0
         symbols.forEach { symbol ->
@@ -217,7 +217,7 @@ class OnboardingFlowUITest {
             }
         }
 
-        assert(foundSymbols >= 4) { "Expected at least 4 currency symbols, found $foundSymbols" }
+        assert(foundSymbols >= 5) { "Expected at least 5 currency symbols, found $foundSymbols" }
     }
 
     @Test
@@ -303,8 +303,8 @@ class OnboardingFlowUITest {
     fun onboarding_currenciesAreInGrid() {
         composeTestRule.waitForIdle()
 
-        // Verify all 6 currencies are visible
-        val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
+        // Verify all 7 common currencies are visible
+        val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY")
 
         var foundCurrencies = 0
         currencies.forEach { code ->
@@ -322,8 +322,8 @@ class OnboardingFlowUITest {
             }
         }
 
-        // All 6 currencies should be visible
-        assert(foundCurrencies == 6) { "Expected 6 currencies, found $foundCurrencies" }
+        // All 7 common currencies should be visible
+        assert(foundCurrencies == 7) { "Expected 7 currencies, found $foundCurrencies" }
     }
 
     // MARK: - Edge Case Tests
