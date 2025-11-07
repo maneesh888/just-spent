@@ -1,0 +1,193 @@
+{
+  "version": "1.0.0",
+  "description": "Validation rules for expense data and voice input",
+  "last_updated": "2025-01-29",
+  "validation_rules": {
+    "amount": {
+      "min": 0.01,
+      "max": 999999.99,
+      "decimal_places": 2,
+      "allow_zero": false,
+      "allow_negative": false,
+      "error_messages": {
+        "too_small": "Amount must be at least 0.01",
+        "too_large": "Amount cannot exceed 999,999.99",
+        "invalid_format": "Please enter a valid amount",
+        "zero_not_allowed": "Amount must be greater than zero",
+        "negative_not_allowed": "Amount cannot be negative",
+        "too_many_decimals": "Amount can have at most 2 decimal places"
+      }
+    },
+    "currency": {
+      "required": true,
+      "format": "ISO_4217",
+      "supported_currencies": [
+        "AED", "USD", "EUR", "GBP", "INR", "SAR",
+        "JPY", "CNY", "CAD", "AUD", "CHF", "SEK",
+        "NOK", "DKK", "NZD", "SGD", "HKD", "KRW",
+        "BRL", "MXN", "RUB", "ZAR", "THB", "MYR",
+        "IDR", "PHP", "VND", "TRY", "PLN", "CZK",
+        "HUF", "RON", "BHD", "KWD", "OMR", "QAR"
+      ],
+      "error_messages": {
+        "required": "Currency is required",
+        "invalid_code": "Invalid currency code",
+        "unsupported": "Currency is not supported"
+      }
+    },
+    "category": {
+      "required": true,
+      "max_length": 100,
+      "allowed_categories": [
+        "Food & Dining",
+        "Grocery",
+        "Transportation",
+        "Shopping",
+        "Entertainment",
+        "Bills & Utilities",
+        "Healthcare",
+        "Education",
+        "Other"
+      ],
+      "error_messages": {
+        "required": "Category is required",
+        "invalid": "Invalid category",
+        "too_long": "Category name is too long (max 100 characters)"
+      }
+    },
+    "merchant": {
+      "required": false,
+      "max_length": 100,
+      "trim_whitespace": true,
+      "sanitize_html": true,
+      "error_messages": {
+        "too_long": "Merchant name is too long (max 100 characters)",
+        "invalid_characters": "Merchant name contains invalid characters"
+      }
+    },
+    "notes": {
+      "required": false,
+      "max_length": 500,
+      "trim_whitespace": true,
+      "sanitize_html": true,
+      "error_messages": {
+        "too_long": "Notes are too long (max 500 characters)"
+      }
+    },
+    "transaction_date": {
+      "required": true,
+      "max_future_days": 0,
+      "max_past_days": 365,
+      "error_messages": {
+        "required": "Transaction date is required",
+        "future_date": "Transaction date cannot be in the future",
+        "too_old": "Transaction date cannot be more than 1 year ago",
+        "invalid_format": "Invalid date format"
+      }
+    },
+    "voice_transcript": {
+      "required_when_source_voice": true,
+      "max_length": 1000,
+      "trim_whitespace": true,
+      "error_messages": {
+        "required": "Voice transcript is required for voice-sourced expenses",
+        "too_long": "Voice transcript is too long (max 1000 characters)"
+      }
+    }
+  },
+  "test_cases": {
+    "valid": [
+      {
+        "id": "valid_minimum_amount",
+        "amount": 0.01,
+        "currency": "USD",
+        "category": "Other",
+        "transaction_date": "today",
+        "should_pass": true
+      },
+      {
+        "id": "valid_maximum_amount",
+        "amount": 999999.99,
+        "currency": "USD",
+        "category": "Shopping",
+        "transaction_date": "today",
+        "should_pass": true
+      },
+      {
+        "id": "valid_with_all_fields",
+        "amount": 150.00,
+        "currency": "AED",
+        "category": "Grocery",
+        "merchant": "Carrefour",
+        "notes": "Weekly groceries",
+        "transaction_date": "today",
+        "should_pass": true
+      }
+    ],
+    "invalid": [
+      {
+        "id": "invalid_amount_too_small",
+        "amount": 0.00,
+        "currency": "USD",
+        "category": "Other",
+        "transaction_date": "today",
+        "expected_error": "zero_not_allowed",
+        "should_pass": false
+      },
+      {
+        "id": "invalid_amount_negative",
+        "amount": -50.00,
+        "currency": "USD",
+        "category": "Other",
+        "transaction_date": "today",
+        "expected_error": "negative_not_allowed",
+        "should_pass": false
+      },
+      {
+        "id": "invalid_amount_too_large",
+        "amount": 1000000.00,
+        "currency": "USD",
+        "category": "Other",
+        "transaction_date": "today",
+        "expected_error": "too_large",
+        "should_pass": false
+      },
+      {
+        "id": "invalid_currency_code",
+        "amount": 100.00,
+        "currency": "XXX",
+        "category": "Other",
+        "transaction_date": "today",
+        "expected_error": "unsupported",
+        "should_pass": false
+      },
+      {
+        "id": "invalid_missing_category",
+        "amount": 100.00,
+        "currency": "USD",
+        "category": null,
+        "transaction_date": "today",
+        "expected_error": "required",
+        "should_pass": false
+      },
+      {
+        "id": "invalid_future_date",
+        "amount": 100.00,
+        "currency": "USD",
+        "category": "Other",
+        "transaction_date": "tomorrow",
+        "expected_error": "future_date",
+        "should_pass": false
+      },
+      {
+        "id": "invalid_date_too_old",
+        "amount": 100.00,
+        "currency": "USD",
+        "category": "Other",
+        "transaction_date": "400_days_ago",
+        "expected_error": "too_old",
+        "should_pass": false
+      }
+    ]
+  }
+}

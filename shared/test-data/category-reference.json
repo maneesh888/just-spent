@@ -1,0 +1,270 @@
+{
+  "version": "1.0.0",
+  "description": "Category reference data with voice keywords and metadata",
+  "last_updated": "2025-01-29",
+  "categories": [
+    {
+      "id": "food_dining",
+      "name": "Food & Dining",
+      "icon": "restaurant",
+      "color": "#FF6B6B",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 1,
+      "voice_keywords": [
+        "food",
+        "restaurant",
+        "lunch",
+        "dinner",
+        "breakfast",
+        "meal",
+        "eat",
+        "eating",
+        "dining",
+        "cafe",
+        "coffee",
+        "snack"
+      ],
+      "common_merchants": [
+        "McDonald's",
+        "Starbucks",
+        "KFC",
+        "Subway",
+        "Pizza Hut",
+        "Domino's",
+        "Burger King",
+        "Tim Hortons",
+        "Dunkin' Donuts"
+      ]
+    },
+    {
+      "id": "grocery",
+      "name": "Grocery",
+      "icon": "shopping_cart",
+      "color": "#4ECDC4",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 2,
+      "voice_keywords": [
+        "grocery",
+        "groceries",
+        "supermarket",
+        "market",
+        "food shopping",
+        "shopping"
+      ],
+      "common_merchants": [
+        "Carrefour",
+        "Lulu",
+        "Spinneys",
+        "Walmart",
+        "Target",
+        "Tesco",
+        "Sainsbury's",
+        "Auchan",
+        "Leclerc"
+      ]
+    },
+    {
+      "id": "transportation",
+      "name": "Transportation",
+      "icon": "directions_car",
+      "color": "#45B7D1",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 3,
+      "voice_keywords": [
+        "transport",
+        "transportation",
+        "taxi",
+        "uber",
+        "lyft",
+        "gas",
+        "fuel",
+        "petrol",
+        "parking",
+        "toll",
+        "train",
+        "bus",
+        "metro",
+        "subway"
+      ],
+      "common_merchants": [
+        "Uber",
+        "Lyft",
+        "ENOC",
+        "ADNOC",
+        "Shell",
+        "BP",
+        "National Rail",
+        "Ola"
+      ]
+    },
+    {
+      "id": "shopping",
+      "name": "Shopping",
+      "icon": "shopping_bag",
+      "color": "#96CEB4",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 4,
+      "voice_keywords": [
+        "shopping",
+        "clothes",
+        "clothing",
+        "mall",
+        "store",
+        "purchase",
+        "buy",
+        "bought"
+      ],
+      "common_merchants": [
+        "Amazon",
+        "H&M",
+        "Zara",
+        "IKEA",
+        "Marks & Spencer",
+        "Mall of Emirates",
+        "Dubai Mall"
+      ]
+    },
+    {
+      "id": "entertainment",
+      "name": "Entertainment",
+      "icon": "movie",
+      "color": "#FECA57",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 5,
+      "voice_keywords": [
+        "movie",
+        "cinema",
+        "concert",
+        "entertainment",
+        "fun",
+        "games",
+        "gaming",
+        "show",
+        "theater",
+        "theatre"
+      ],
+      "common_merchants": [
+        "VOX Cinemas",
+        "Netflix",
+        "Spotify",
+        "PlayStation",
+        "Xbox",
+        "Steam"
+      ]
+    },
+    {
+      "id": "bills_utilities",
+      "name": "Bills & Utilities",
+      "icon": "receipt",
+      "color": "#48BFE3",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 6,
+      "voice_keywords": [
+        "bill",
+        "bills",
+        "utility",
+        "utilities",
+        "electricity",
+        "water",
+        "internet",
+        "phone",
+        "rent",
+        "insurance"
+      ],
+      "common_merchants": [
+        "DEWA",
+        "Etisalat",
+        "Du",
+        "Electricity Company",
+        "Water Authority"
+      ]
+    },
+    {
+      "id": "healthcare",
+      "name": "Healthcare",
+      "icon": "local_hospital",
+      "color": "#74C0FC",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 7,
+      "voice_keywords": [
+        "doctor",
+        "hospital",
+        "medicine",
+        "pharmacy",
+        "health",
+        "medical",
+        "clinic",
+        "dentist",
+        "checkup"
+      ],
+      "common_merchants": [
+        "Pharmacy",
+        "Hospital",
+        "Clinic",
+        "Doctor"
+      ]
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "icon": "school",
+      "color": "#B197FC",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 8,
+      "voice_keywords": [
+        "education",
+        "school",
+        "course",
+        "training",
+        "books",
+        "learning",
+        "tuition",
+        "class",
+        "university",
+        "college"
+      ],
+      "common_merchants": [
+        "University",
+        "School",
+        "Udemy",
+        "Coursera",
+        "Khan Academy"
+      ]
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "icon": "category",
+      "color": "#868E96",
+      "is_system": true,
+      "is_active": true,
+      "sort_order": 99,
+      "voice_keywords": [
+        "other",
+        "misc",
+        "miscellaneous",
+        "various"
+      ],
+      "common_merchants": []
+    }
+  ],
+  "category_matching_rules": {
+    "description": "Rules for matching voice input to categories",
+    "priority_order": [
+      "exact_keyword_match",
+      "merchant_match",
+      "fuzzy_keyword_match",
+      "default_to_other"
+    ],
+    "fuzzy_match_threshold": 0.8,
+    "case_sensitive": false
+  }
+}
