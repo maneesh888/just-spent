@@ -64,13 +64,13 @@ struct SettingsView: View {
 
     private var currencyPicker: some View {
         Picker("Default Currency", selection: $preferences.defaultCurrency) {
-            ForEach(Currency.allCases) { currency in
+            ForEach(Currency.all.sorted(by: { $0.displayName < $1.displayName })) { currency in
                 HStack {
                     Text(currency.symbol)
                         .font(.title3)
                     Text(currency.displayName)
                     Spacer()
-                    Text(currency.rawValue)
+                    Text(currency.code)
                         .foregroundColor(.secondary)
                         .font(.caption)
                 }
@@ -163,7 +163,7 @@ struct CurrencySelectionView: View {
 
     var body: some View {
         List {
-            ForEach(Currency.allCases) { currency in
+            ForEach(Currency.all.sorted(by: { $0.displayName < $1.displayName })) { currency in
                 CurrencyRow(currency: currency, isSelected: currency == selectedCurrency)
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -171,7 +171,7 @@ struct CurrencySelectionView: View {
                     }
             }
         }
-        .navigationTitle("Select Currency")
+        .navigationTitle("Select Currency (160+)")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -195,7 +195,7 @@ struct CurrencyRow: View {
                 Text(currency.displayName)
                     .font(.body)
 
-                Text(currency.rawValue)
+                Text(currency.code)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

@@ -3,6 +3,7 @@
 @just-spent-master-plan.md
 @data-models-spec.md
 @TESTING-GUIDE.md
+@docs/GIT-WORKFLOW-RULES.md
 
 ## 🎯 Current Context
 
@@ -30,11 +31,126 @@
 - **Strategy**: Local-first, offline-capable, voice-optimized
 
 ### Core Standards
+- **TEST DRIVEN DEVELOPMENT (TDD) MANDATORY** - Write tests BEFORE implementation
 - SOLID principles mandatory
 - 80%+ test coverage
 - Clean Architecture: Presentation → Domain → Data
 - Comprehensive error handling
 - Voice processing <1.5s target
+
+## ⚠️ TEST DRIVEN DEVELOPMENT (TDD) - MANDATORY
+
+**CRITICAL RULE**: ALL code changes MUST follow TDD workflow. NO EXCEPTIONS.
+
+### TDD Workflow (Red-Green-Refactor)
+
+**ALWAYS follow this sequence:**
+
+1. **🔴 RED**: Write a failing test first
+   - Write the test for the feature/fix BEFORE any implementation
+   - Run the test and verify it fails (for the right reason)
+   - Never skip this step, even for "simple" changes
+
+2. **🟢 GREEN**: Write minimal code to pass the test
+   - Implement just enough code to make the test pass
+   - Don't add extra features or "nice-to-haves"
+   - Run the test and verify it passes
+
+3. **♻️ REFACTOR**: Clean up the code
+   - Improve code quality while keeping tests green
+   - Apply SOLID principles
+   - Ensure readability and maintainability
+
+### TDD Rules for This Project
+
+- ✅ **Test first, code second** - No exceptions
+- ✅ **One test at a time** - Focus on one behavior per test
+- ✅ **Run tests frequently** - After every small change
+- ✅ **Commit only when green** - All tests must pass before commit
+- ✅ **Test behavior, not implementation** - Focus on what, not how
+- ❌ **Never write production code without a failing test**
+- ❌ **Never commit failing tests** (except in WIP branches with --no-verify)
+- ❌ **Never skip tests** because "it's too simple" or "I'll add them later"
+
+### TDD for iOS (XCTest)
+```swift
+// 1. RED: Write failing test
+func testCurrencyFormatter_formatAED_returnsCorrectFormat() {
+    let result = CurrencyFormatter.shared.format(
+        amount: Decimal(1234.56),
+        currency: .AED
+    )
+    XCTAssertEqual("د.إ 1,234.56", result) // FAILS - formatter doesn't exist
+}
+
+// 2. GREEN: Implement minimal code
+class CurrencyFormatter {
+    static let shared = CurrencyFormatter()
+    func format(amount: Decimal, currency: Currency) -> String {
+        return "\(currency.symbol) 1,234.56" // Simplest implementation
+    }
+}
+
+// 3. REFACTOR: Improve implementation while keeping tests green
+```
+
+### TDD for Android (JUnit + Kotlin)
+```kotlin
+// 1. RED: Write failing test
+@Test
+fun formatAED_withSymbolAndGrouping_returnsCorrectFormat() {
+    val result = CurrencyFormatter.format(
+        amount = BigDecimal("1234.56"),
+        currency = Currency.AED
+    )
+    assertEquals("د.إ 1,234.56", result) // FAILS - formatter doesn't exist
+}
+
+// 2. GREEN: Implement minimal code
+object CurrencyFormatter {
+    fun format(amount: BigDecimal, currency: Currency): String {
+        return "${currency.symbol} 1,234.56" // Simplest implementation
+    }
+}
+
+// 3. REFACTOR: Improve implementation while keeping tests green
+```
+
+### When Claude Code Implements Features
+
+**Every implementation request MUST follow this pattern:**
+
+1. **Ask for clarification** if test requirements are unclear
+2. **Write the test file first** with failing tests
+3. **Run tests** and confirm they fail
+4. **Implement the feature** with minimal code
+5. **Run tests** and confirm they pass
+6. **Refactor** if needed while keeping tests green
+7. **Show test results** to confirm all tests pass
+
+### Pre-Commit Checklist (TDD Edition)
+
+Before every commit, verify:
+- [ ] All new code has corresponding tests
+- [ ] Tests were written BEFORE implementation
+- [ ] All tests pass (`./local-ci.sh --all --quick`)
+- [ ] Test coverage remains ≥85%
+- [ ] No test files are skipped or commented out
+
+### TDD Benefits Reminder
+
+- ✅ **Confidence**: Tests prove the code works
+- ✅ **Design**: Tests force better API design
+- ✅ **Documentation**: Tests show how to use the code
+- ✅ **Refactoring Safety**: Change code without fear
+- ✅ **Bug Prevention**: Catch issues before they reach production
+- ✅ **Faster Development**: Less debugging, more building
+
+---
+
+**REMEMBER: If you don't have a failing test, you don't write production code. Period.**
+
+---
 
 ## 🎤 Voice Integration Essentials
 
@@ -72,11 +188,13 @@ source: ExpenseSource, voiceTranscript: String?
 
 Reference: @comprehensive-test-plan.md, @TESTING-GUIDE.md
 
+**⚠️ CRITICAL**: All tests must be written BEFORE implementation (TDD mandatory)
+
 ### Coverage Targets
-- Unit Tests: 85% minimum
-- Voice Integration: All patterns tested
-- Performance: <1.5s voice processing
-- Security: OWASP Mobile Top 10 compliance
+- Unit Tests: 85% minimum (written BEFORE implementation)
+- Voice Integration: All patterns tested (test-first approach)
+- Performance: <1.5s voice processing (with performance tests)
+- Security: OWASP Mobile Top 10 compliance (with security tests)
 
 ### Running Tests
 **iOS:**
@@ -137,12 +255,42 @@ Reference: @LOCAL-CI.md for complete documentation
 
 ### Pre-Commit Hook
 
-Automatically runs `./local-ci.sh --all --quick` before each commit.
+Automatically enforces TDD practices before each commit:
+- ✅ Validates test coverage for all changed files
+- ✅ Runs `./local-ci.sh --all --quick` to verify tests pass
+- ✅ Blocks commits with failing tests or missing test coverage
 
-**To bypass** (for WIP commits):
+**To bypass** (for WIP commits only):
 ```bash
 git commit --no-verify -m "WIP: message"
+# Or start message with "WIP:" to auto-bypass
+git commit -m "WIP: Implementing feature"
 ```
+
+**When to bypass**: Only for WIP commits on feature branches. Never bypass on main branch.
+
+### Git Amend Workflow
+
+When you discover a bug immediately after committing, use `git commit --amend` instead of creating a "fix" commit:
+
+```bash
+# You just committed code
+git commit -m "feat: Add currency formatter"
+
+# You discover a bug immediately
+# Fix the bug, run tests
+./local-ci.sh --all --quick
+
+# Stage the fixes
+git add <fixed-files>
+
+# Amend the commit (keeps history clean)
+git commit --amend --no-edit
+```
+
+**⚠️ IMPORTANT**: Only use `--amend` BEFORE pushing to remote!
+
+**See @docs/GIT-WORKFLOW-RULES.md for complete git workflow documentation**
 
 ### Viewing Results
 
@@ -198,12 +346,14 @@ Reference @ui-design-spec.md for complete design specifications.
 10. ⏳ Implement swipe to delete
 
 ### Code Generation Requests (iOS)
-When asking Claude Code:
-- "Implement CurrencyFormatter utility in Swift matching Android design"
-- "Create header card with gradient background for SwiftUI"
-- "Build custom FAB with recording indicator in SwiftUI"
-- "Implement scrollable currency tabs for SwiftUI"
-- "Create dynamic total calculation matching Android pattern"
+When asking Claude Code, ALWAYS follow TDD:
+- "Write tests first for CurrencyFormatter utility, then implement in Swift matching Android design"
+- "Write tests for header card component, then create with gradient background for SwiftUI"
+- "Write tests for FAB component, then build custom FAB with recording indicator in SwiftUI"
+- "Write tests for currency tabs, then implement scrollable currency tabs for SwiftUI"
+- "Write tests for total calculation, then create dynamic total calculation matching Android pattern"
+
+**REMINDER**: Every request should start with "Write tests first for..." to enforce TDD
 
 ## 🔧 Development Patterns
 
@@ -328,9 +478,22 @@ Continue to onboarding check
 
 ## 🎯 Success Metrics
 
-**This Week**: Voice-log a test expense successfully  
-**Quality Gates**: All tests pass, no security issues  
+**This Week**: Voice-log a test expense successfully
+**Quality Gates**: All tests pass, no security issues
 **Performance**: Voice processing under target times
+
+---
+
+## 🚨 FINAL REMINDER: TEST DRIVEN DEVELOPMENT IS MANDATORY
+
+**Before writing ANY production code, ask yourself:**
+1. Do I have a failing test for this?
+2. Have I run the test to confirm it fails?
+3. Am I writing the minimal code to make it pass?
+
+**If the answer to any of these is "NO", STOP and write the test first.**
+
+**TDD is not optional. It's how we build quality software in this project.**
 
 ---
 

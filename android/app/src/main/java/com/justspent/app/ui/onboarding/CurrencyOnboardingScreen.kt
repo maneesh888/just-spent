@@ -116,16 +116,17 @@ private fun CurrencySelectionList(
     ) {
         LazyColumn(
             modifier = Modifier
-                .height(400.dp) // Fixed height for consistent rendering in tests
-                .testTag("currency_list")
+                .fillMaxSize()
+                .testTag("currency_list"),
+            contentPadding = PaddingValues(vertical = 4.dp)
         ) {
-            items(Currency.all) { currency ->
+            items(Currency.common) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
                     isSelected = currency == selectedCurrency,
                     onClick = { onCurrencySelected(currency) }
                 )
-                if (currency != Currency.all.last()) {
+                if (currency != Currency.common.last()) {
                     Divider()
                 }
             }

@@ -34,7 +34,7 @@ struct MultiCurrencyTabbedView: View {
         _selectedCurrency = State(initialValue: initialCurrency)
 
         // Initialize FetchRequest with initial currency filter
-        let predicate = NSPredicate(format: "currency == %@", initialCurrency.rawValue)
+        let predicate = NSPredicate(format: "currency == %@", initialCurrency.code)
         _expenses = FetchRequest<Expense>(
             sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
             predicate: predicate,
@@ -127,7 +127,7 @@ struct CurrencyTabBar: View {
                             selectedCurrency = currency
                         }
                     }
-                    .accessibilityIdentifier("currency_tab_\(currency.rawValue)")
+                    .accessibilityIdentifier("currency_tab_\(currency.code)")
                 }
             }
             .padding(.horizontal, 16)
@@ -151,11 +151,11 @@ struct CurrencyTab: View {
             HStack(spacing: 6) {
                 Text(currency.symbol)
                     .font(.system(size: 18, weight: isSelected ? .bold : .medium))
-                    .accessibilityIdentifier("tab_symbol_\(currency.rawValue)")
+                    .accessibilityIdentifier("tab_symbol_\(currency.code)")
 
-                Text(currency.rawValue)
+                Text(currency.code)
                     .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                    .accessibilityIdentifier("tab_code_\(currency.rawValue)")
+                    .accessibilityIdentifier("tab_code_\(currency.code)")
             }
             .foregroundColor(isSelected ? .white : .primary)
             .padding(.horizontal, 16)
@@ -171,7 +171,7 @@ struct CurrencyTab: View {
                     .fill(Color.blue)
                     .frame(height: 3)
                     .cornerRadius(1.5)
-                    .accessibilityIdentifier("tab_indicator_\(currency.rawValue)")
+                    .accessibilityIdentifier("tab_indicator_\(currency.code)")
             } else {
                 Rectangle()
                     .fill(Color.clear)

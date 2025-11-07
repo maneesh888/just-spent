@@ -4,131 +4,91 @@
 //
 //  Created by Claude Code on 2025-10-19.
 //  Comprehensive currency model with metadata and utilities
+//  Now loads from shared currencies.json for easy updates
 //
 
 import Foundation
 
-/// Represents supported currencies in the Just Spent application
-/// Follows ISO 4217 standards with extended metadata for localization and display
-enum Currency: String, CaseIterable, Codable {
-    case aed = "AED"  // UAE Dirham
-    case usd = "USD"  // US Dollar
-    case eur = "EUR"  // Euro
-    case gbp = "GBP"  // British Pound
-    case inr = "INR"  // Indian Rupee
-    case sar = "SAR"  // Saudi Riyal
+/// Represents a currency in the Just Spent application
+/// Loaded dynamically from currencies.json for flexibility and easy updates
+struct Currency: Codable, Identifiable, Hashable {
+    let code: String
+    let symbol: String
+    let displayName: String
+    let shortName: String
+    let localeIdentifier: String
+    let isRTL: Bool
+    let voiceKeywords: [String]
 
-    // MARK: - Display Properties
+    // MARK: - Identifiable
+    var id: String { code }
 
-    /// Currency symbol for display (e.g., "$", "د.إ")
-    var symbol: String {
-        switch self {
-        case .aed: return "د.إ"
-        case .usd: return "$"
-        case .eur: return "€"
-        case .gbp: return "£"
-        case .inr: return "₹"
-        case .sar: return "﷼"
-        }
-    }
-
-    /// Localized currency name in English
-    var displayName: String {
-        switch self {
-        case .aed: return "UAE Dirham"
-        case .usd: return "US Dollar"
-        case .eur: return "Euro"
-        case .gbp: return "British Pound"
-        case .inr: return "Indian Rupee"
-        case .sar: return "Saudi Riyal"
-        }
-    }
-
-    /// Short display name for compact views
-    var shortName: String {
-        switch self {
-        case .aed: return "Dirham"
-        case .usd: return "Dollar"
-        case .eur: return "Euro"
-        case .gbp: return "Pound"
-        case .inr: return "Rupee"
-        case .sar: return "Riyal"
-        }
-    }
-
-    /// Locale identifier for proper number formatting
-    var localeIdentifier: String {
-        switch self {
-        case .aed: return "ar_AE"
-        case .usd: return "en_US"
-        case .eur: return "en_DE"  // Using German format for Euro
-        case .gbp: return "en_GB"
-        case .inr: return "en_IN"
-        case .sar: return "ar_SA"
-        }
-    }
+    // MARK: - Computed Properties
 
     /// Locale object for formatting operations
     var locale: Locale {
         return Locale(identifier: localeIdentifier)
     }
 
-    /// Whether this currency uses right-to-left text direction
-    var isRTL: Bool {
-        switch self {
-        case .aed, .sar:
-            return true
-        default:
-            return false
-        }
-    }
-
-    // MARK: - Voice Recognition Keywords
-
-    /// Keywords for voice command detection (symbols, names, colloquial terms)
-    var voiceKeywords: [String] {
-        switch self {
-        case .aed:
-            return ["aed", "dirham", "dirhams", "د.إ", "dhs", "emirati dirham"]
-        case .usd:
-            return ["usd", "dollar", "dollars", "$", "buck", "bucks", "us dollar"]
-        case .eur:
-            return ["eur", "euro", "euros", "€"]
-        case .gbp:
-            return ["gbp", "pound", "pounds", "£", "quid", "sterling", "british pound"]
-        case .inr:
-            return ["inr", "rupee", "rupees", "₹", "indian rupee"]
-        case .sar:
-            return ["sar", "riyal", "riyals", "﷼", "saudi riyal"]
-        }
-    }
-
-    // MARK: - Formatting Configuration
-
     /// Number of decimal places for this currency
     var decimalPlaces: Int {
-        // All supported currencies use 2 decimal places
         return 2
     }
 
     /// Decimal separator character
     var decimalSeparator: String {
-        return locale.decimalSeparator ?? "."
+        return "."
     }
 
     /// Thousands grouping separator
     var groupingSeparator: String {
-        return locale.groupingSeparator ?? ","
+        return ","
     }
 
-    // MARK: - Static Utilities
+    // MARK: - Currency Loading
+
+    /// Cached currencies loaded from JSON
+    private static var _allCurrencies: [Currency]?
+
+    /// Initialize the currency system
+    /// Should be called once during app initialization
+    static func initialize() {
+        if _allCurrencies == nil {
+            print("🔄 Currency: Starting initialization...")
+            _allCurrencies = CurrencyLoader.loadCurrencies()
+            print("🔄 Currency: Initialization complete. Loaded \(_allCurrencies?.count ?? 0) currencies")
+        } else {
+            print("⚠️ Currency: Already initialized with \(_allCurrencies?.count ?? 0) currencies")
+        }
+    }
+
+    /// All supported currencies
+    static var all: [Currency] {
+        if _allCurrencies == nil {
+            initialize()
+        }
+        return _allCurrencies ?? []
+    }
+
+    /// Commonly used currencies (for onboarding UI)
+    static var common: [Currency] {
+        let commonCodes = ["AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY"]
+        return all.filter { commonCodes.contains($0.code) }
+    }
 
     /// Default currency for new users (based on device locale)
     static var `default`: Currency {
         let deviceLocale = Locale.current
         let currencyCode = deviceLocale.currencyCode?.uppercased() ?? "USD"
 
-        return Currency(rawValue: currencyCode) ?? .usd
+        return from(isoCode: currencyCode) ?? from(isoCode: "USD")!
+    }
+
+    /// Create currency from ISO code string
+    /// - Parameter code: ISO 4217 currency code
+    /// - Returns: Currency struct or nil if invalid
+    static func from(isoCode code: String) -> Currency? {
+        return all.first { $0.code.uppercased() == code.uppercased() }
     }
 
     /// Detect currency from text input (voice commands, manual entry)
@@ -137,7 +97,7 @@ enum Currency: String, CaseIterable, Codable {
     static func detectFromText(_ text: String) -> Currency? {
         let lowercasedText = text.lowercased()
 
-        for currency in Currency.allCases {
+        for currency in all {
             for keyword in currency.voiceKeywords {
                 if lowercasedText.contains(keyword.lowercased()) {
                     return currency
@@ -148,27 +108,21 @@ enum Currency: String, CaseIterable, Codable {
         return nil
     }
 
-    /// Create currency from ISO code string
-    /// - Parameter code: ISO 4217 currency code
-    /// - Returns: Currency enum or nil if invalid
-    static func from(isoCode code: String) -> Currency? {
-        return Currency(rawValue: code.uppercased())
-    }
+    // MARK: - Legacy Accessors for Backward Compatibility
+
+    static var aed: Currency { from(isoCode: "AED")! }
+    static var usd: Currency { from(isoCode: "USD")! }
+    static var eur: Currency { from(isoCode: "EUR")! }
+    static var gbp: Currency { from(isoCode: "GBP")! }
+    static var inr: Currency { from(isoCode: "INR")! }
+    static var sar: Currency { from(isoCode: "SAR")! }
 }
 
 // MARK: - CustomStringConvertible
 
 extension Currency: CustomStringConvertible {
     var description: String {
-        return "\(symbol) \(rawValue)"
-    }
-}
-
-// MARK: - Identifiable
-
-extension Currency: Identifiable {
-    var id: String {
-        return rawValue
+        return "\(symbol) \(code)"
     }
 }
 
@@ -177,5 +131,60 @@ extension Currency: Identifiable {
 extension Currency: Comparable {
     static func < (lhs: Currency, rhs: Currency) -> Bool {
         return lhs.displayName < rhs.displayName
+    }
+}
+
+// MARK: - Internal Loading Mechanism
+
+/// Internal data structure for JSON parsing
+private struct CurrenciesData: Codable {
+    let version: String
+    let lastUpdated: String
+    let currencies: [Currency]
+}
+
+/// Utility object to load currencies from JSON resource file
+private struct CurrencyLoader {
+    static func loadCurrencies() -> [Currency] {
+        print("📂 Currency: Searching for currencies.json in bundle...")
+
+        guard let url = Bundle.main.url(forResource: "currencies", withExtension: "json") else {
+            print("❌ Currency: currencies.json NOT FOUND in bundle")
+            print("📂 Currency: Bundle path: \(Bundle.main.bundlePath)")
+            print("📂 Currency: Available resources: \(Bundle.main.paths(forResourcesOfType: "json", inDirectory: nil))")
+            return []
+        }
+
+        print("✅ Currency: Found currencies.json at: \(url.path)")
+
+        do {
+            let data = try Data(contentsOf: url)
+            print("📊 Currency: JSON file size: \(data.count) bytes")
+
+            let decoder = JSONDecoder()
+            let currenciesData = try decoder.decode(CurrenciesData.self, from: data)
+            print("✅ Currency: Successfully decoded JSON")
+            print("✅ Currency: Loaded \(currenciesData.currencies.count) currencies from JSON (version \(currenciesData.version))")
+            print("✅ Currency: Sample currencies: \(currenciesData.currencies.prefix(3).map { $0.code }.joined(separator: ", "))")
+            return currenciesData.currencies
+        } catch let decodingError as DecodingError {
+            print("❌ Currency: JSON DECODING ERROR: \(decodingError)")
+            switch decodingError {
+            case .keyNotFound(let key, let context):
+                print("   Missing key: \(key.stringValue) at \(context.codingPath)")
+            case .typeMismatch(let type, let context):
+                print("   Type mismatch for type: \(type) at \(context.codingPath)")
+            case .valueNotFound(let type, let context):
+                print("   Value not found for type: \(type) at \(context.codingPath)")
+            case .dataCorrupted(let context):
+                print("   Data corrupted at \(context.codingPath): \(context.debugDescription)")
+            @unknown default:
+                print("   Unknown decoding error")
+            }
+            return []
+        } catch {
+            print("❌ Currency: Failed to load currencies from JSON: \(error)")
+            return []
+        }
     }
 }

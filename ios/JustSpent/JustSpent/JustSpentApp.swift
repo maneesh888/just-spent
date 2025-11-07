@@ -20,6 +20,10 @@ struct JustSpentApp: App {
         // Create auto-recording coordinator with dependency
         _autoRecordingCoordinator = StateObject(wrappedValue: AutoRecordingCoordinator(lifecycleManager: lifecycle))
 
+        // Initialize currency system from JSON
+        Currency.initialize()
+        print("✅ Currency system initialized with \(Currency.all.count) currencies")
+
         // Initialize default currency based on locale if not already set
         // This ensures app ALWAYS has a default currency (module independence)
         UserPreferences.shared.initializeDefaultCurrency()
@@ -143,7 +147,7 @@ struct JustSpentApp: App {
                     let repository = ExpenseRepository()
                     let expenseData = ExpenseData(
                         amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.Currency.defaultCurrency,
+                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
                         category: category,
                         merchant: extractedData.merchant,
                         notes: LocalizedStrings.expenseAddedViaIntelligent,

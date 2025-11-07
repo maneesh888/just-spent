@@ -3,6 +3,7 @@ package com.justspent.app.ui.voice
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.justspent.app.data.model.ExpenseData
+import com.justspent.app.data.preferences.UserPreferences
 import com.justspent.app.data.repository.ExpenseRepositoryInterface
 import com.justspent.app.voice.VoiceCommandProcessor
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +42,7 @@ data class ExtractedVoiceData(
 class VoiceExpenseViewModel @Inject constructor(
     private val repository: ExpenseRepositoryInterface,
     private val voiceCommandProcessor: VoiceCommandProcessor,
+    private val userPreferences: UserPreferences,
     val voiceRecordingManager: com.justspent.app.voice.VoiceRecordingManager
 ) : ViewModel() {
 
@@ -87,8 +89,12 @@ class VoiceExpenseViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                // Get user's default currency
+                val defaultCurrency = userPreferences.defaultCurrency.value.code
+                android.util.Log.d("VoiceExpenseViewModel", "Using default currency: $defaultCurrency")
+
                 android.util.Log.d("VoiceExpenseViewModel", "Calling voiceCommandProcessor.processVoiceCommand()")
-                val result = voiceCommandProcessor.processVoiceCommand(command, locale)
+                val result = voiceCommandProcessor.processVoiceCommand(command, locale, defaultCurrency)
                 val confidenceScore = voiceCommandProcessor.getConfidenceScore(command)
 
                 android.util.Log.d("VoiceExpenseViewModel", "Confidence score: $confidenceScore")
@@ -149,12 +155,18 @@ class VoiceExpenseViewModel @Inject constructor(
     fun confirmExpense() {
         val currentState = _uiState.value
         val extractedData = currentState.extractedData
-        
+
         if (extractedData != null) {
             viewModelScope.launch {
                 try {
+                    // Get user's default currency
+                    val defaultCurrency = userPreferences.defaultCurrency.value.code
+
                     // Re-process to get ExpenseData object
-                    val result = voiceCommandProcessor.processVoiceCommand(extractedData.originalCommand)
+                    val result = voiceCommandProcessor.processVoiceCommand(
+                        extractedData.originalCommand,
+                        defaultCurrency = defaultCurrency
+                    )
                     result.fold(
                         onSuccess = { expenseData ->
                             saveExpenseData(expenseData, extractedData, currentState.confidenceScore)
