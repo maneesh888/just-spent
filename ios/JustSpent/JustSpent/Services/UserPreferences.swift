@@ -46,11 +46,11 @@ class UserPreferences: ObservableObject {
 
         // Load default currency from UserDefaults or use system default
         if let currencyCode = UserDefaults.standard.string(forKey: Keys.defaultCurrency),
-           let currency = Currency(rawValue: currencyCode) {
+           let currency = Currency.from(isoCode: currencyCode) {
             self.defaultCurrency = currency
         } else {
             self.defaultCurrency = Currency.default
-            UserDefaults.standard.set(Currency.default.rawValue, forKey: Keys.defaultCurrency)
+            UserDefaults.standard.set(Currency.default.code, forKey: Keys.defaultCurrency)
         }
 
         // Load or create default user
@@ -69,9 +69,9 @@ class UserPreferences: ObservableObject {
     func initializeDefaultCurrency() -> Currency {
         // Check if default currency already exists in UserDefaults
         if let existingCode = UserDefaults.standard.string(forKey: Keys.defaultCurrency),
-           let existingCurrency = Currency(rawValue: existingCode) {
+           let existingCurrency = Currency.from(isoCode: existingCode) {
             // Default currency already set - return existing
-            print("UserPreferences: Using existing default currency: \(existingCurrency.rawValue)")
+            print("UserPreferences: Using existing default currency: \(existingCurrency.code)")
             return existingCurrency
         }
 
@@ -79,12 +79,12 @@ class UserPreferences: ObservableObject {
         let localeCurrency = Currency.default // Uses Locale.current.currencyCode
 
         // Save to UserDefaults
-        UserDefaults.standard.set(localeCurrency.rawValue, forKey: Keys.defaultCurrency)
+        UserDefaults.standard.set(localeCurrency.code, forKey: Keys.defaultCurrency)
 
         // Update published property
         self.defaultCurrency = localeCurrency
 
-        print("UserPreferences: Initialized default currency from locale: \(localeCurrency.rawValue)")
+        print("UserPreferences: Initialized default currency from locale: \(localeCurrency.code)")
         return localeCurrency
     }
 
@@ -95,7 +95,7 @@ class UserPreferences: ObservableObject {
 
         // Update the user entity
         if let user = currentUser {
-            user.defaultCurrency = currency.rawValue
+            user.defaultCurrency = currency.code
             user.updatedAt = Date()
             saveContext()
         }
@@ -140,7 +140,7 @@ class UserPreferences: ObservableObject {
 
                 // Sync currency from user entity
                 if let currencyCode = existingUser.defaultCurrency,
-                   let currency = Currency(rawValue: currencyCode) {
+                   let currency = Currency.from(isoCode: currencyCode) {
                     defaultCurrency = currency
                 }
             } else {
@@ -158,7 +158,7 @@ class UserPreferences: ObservableObject {
         let user = User(context: context)
         user.id = UUID()
         user.name = "User"
-        user.defaultCurrency = defaultCurrency.rawValue
+        user.defaultCurrency = defaultCurrency.code
         user.createdAt = Date()
         user.updatedAt = Date()
 
@@ -171,7 +171,7 @@ class UserPreferences: ObservableObject {
     /// Save default currency to UserDefaults
     /// - Parameter currency: Currency to save
     private func saveDefaultCurrency(_ currency: Currency) {
-        UserDefaults.standard.set(currency.rawValue, forKey: Keys.defaultCurrency)
+        UserDefaults.standard.set(currency.code, forKey: Keys.defaultCurrency)
     }
 
     /// Save Core Data context
@@ -193,13 +193,13 @@ extension User {
     var currency: Currency {
         get {
             guard let currencyCode = defaultCurrency,
-                  let currency = Currency(rawValue: currencyCode) else {
+                  let currency = Currency.from(isoCode: currencyCode) else {
                 return Currency.default
             }
             return currency
         }
         set {
-            defaultCurrency = newValue.rawValue
+            defaultCurrency = newValue.code
         }
     }
 }

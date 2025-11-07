@@ -84,13 +84,47 @@ object CurrencyFormatter {
             cleanedString = cleanedString.replace(" ", "")
 
             // Remove all known currency symbols (hardcoded for safety)
-            val symbols = listOf("د.إ", "$", "€", "£", "₹", "ر.س")
+            val symbols = listOf(
+                "د.إ",      // AED
+                ".د.ب",     // BHD
+                "د.ك",      // KWD
+                "ر.ع.",     // OMR
+                "ر.ق",      // QAR
+                "ر.س",      // SAR
+                "$",        // USD, AUD, CAD, NZD, SGD, MXN, HKD (with prefix)
+                "HK$",      // HKD
+                "R$",       // BRL
+                "€",        // EUR
+                "£",        // GBP
+                "₹",        // INR
+                "¥",        // CNY, JPY
+                "₩",        // KRW
+                "₱",        // PHP
+                "₽",        // RUB
+                "฿",        // THB
+                "₺",        // TRY
+                "₫",        // VND
+                "Kč",       // CZK
+                "kr",       // DKK, NOK, SEK
+                "Ft",       // HUF
+                "Rp",       // IDR
+                "RM",       // MYR
+                "zł",       // PLN
+                "lei",      // RON
+                "R",        // ZAR
+                "CHF"       // CHF (symbol IS the code)
+            )
             symbols.forEach { symbol ->
                 cleanedString = cleanedString.replace(symbol, "")
             }
 
             // Remove all known currency codes
-            val codes = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
+            val codes = listOf(
+                "AED", "AUD", "BHD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK",
+                "EUR", "GBP", "HKD", "HUF", "IDR", "INR", "JPY", "KRW", "KWD", "MXN", "MYR", "NOK",
+                "NZD", "OMR", "PHP", "PLN", "QAR", "RON", "RUB", "SAR", "SEK",
+                "SGD", "THB", "TRY", "USD", "VND", "ZAR"
+            )
             codes.forEach { code ->
                 cleanedString = cleanedString.replace(code, "", ignoreCase = true)
             }
@@ -147,10 +181,19 @@ object CurrencyFormatter {
         return if (currency.isRTL) {
             "${currency.symbol} $formattedAmount"
         } else {
-            when (currency) {
-                Currency.USD, Currency.GBP, Currency.INR -> "${currency.symbol}$formattedAmount"
-                Currency.EUR -> "$formattedAmount${currency.symbol}"
-                else -> "${currency.symbol} $formattedAmount"
+            // EUR has symbol after amount
+            if (currency.symbol == "€") {
+                return "$formattedAmount${currency.symbol}"
+            }
+
+            // Single-character currency symbols typically have no space
+            // Multi-character symbols (CHF, Rp, RM, etc.) typically have space
+            val noSpaceSymbols = setOf("$", "R$", "HK$", "£", "₹", "€", "¥", "₩", "₱", "₽", "฿", "₺", "₫")
+
+            if (noSpaceSymbols.contains(currency.symbol)) {
+                "${currency.symbol}$formattedAmount"
+            } else {
+                "${currency.symbol} $formattedAmount"
             }
         }
     }

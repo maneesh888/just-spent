@@ -1,20 +1,30 @@
 package com.justspent.app.voice
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.justspent.app.data.model.Currency
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.Locale
 
 /**
  * Unit tests for VoiceCommandProcessor
  * Tests voice command parsing with default currency support
  */
+@RunWith(RobolectricTestRunner::class)
 class VoiceCommandProcessorTest {
 
     private lateinit var processor: VoiceCommandProcessor
 
     @Before
     fun setup() {
+        // Initialize currency system with test context
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        Currency.initialize(context)
+
         processor = VoiceCommandProcessor()
     }
 

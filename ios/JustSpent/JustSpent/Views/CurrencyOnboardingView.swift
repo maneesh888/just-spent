@@ -49,25 +49,25 @@ struct CurrencyOnboardingView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
 
-                    // Currency Selection List
+                    // Currency Selection List (All 160+ currencies available)
                     List {
-                        ForEach(Currency.allCases) { currency in
+                        ForEach(Currency.all.sorted(by: { $0.displayName < $1.displayName })) { currency in
                             CurrencyOnboardingRow(
                                 currency: currency,
                                 isSelected: currency == selectedCurrency
                             ) {
                                 selectedCurrency = currency
                             }
-                            .accessibilityIdentifier("currency_option_\(currency.rawValue)")
+                            .accessibilityIdentifier("currency_option_\(currency.code)")
                         }
                     }
                     .listStyle(.insetGrouped)
-                    .frame(height: 320)
+                    .frame(maxHeight: 400)
                     .scrollContentBackground(.hidden)
                     .accessibilityIdentifier("currency_list")
 
                     // Helper Text
-                    Text("You can choose a different currency below.\nThis will be used when no currency is specified.")
+                    Text("Choose from 160+ world currencies.\nScroll to find your preferred currency.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -75,6 +75,8 @@ struct CurrencyOnboardingView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 8)
                         .accessibilityIdentifier("onboarding_helper_text")
+
+                    Spacer()
 
                     // Continue Button
                     Button(action: completeOnboarding) {
@@ -124,7 +126,7 @@ struct CurrencyOnboardingRow: View {
                 Text(currency.symbol)
                     .font(.system(size: 32))
                     .frame(width: 50)
-                    .accessibilityIdentifier("currency_symbol_\(currency.rawValue)")
+                    .accessibilityIdentifier("currency_symbol_\(currency.code)")
 
                 // Currency Info
                 VStack(alignment: .leading, spacing: 4) {
@@ -132,12 +134,12 @@ struct CurrencyOnboardingRow: View {
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
-                        .accessibilityIdentifier("currency_name_\(currency.rawValue)")
+                        .accessibilityIdentifier("currency_name_\(currency.code)")
 
-                    Text(currency.rawValue)
+                    Text(currency.code)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .accessibilityIdentifier("currency_code_\(currency.rawValue)")
+                        .accessibilityIdentifier("currency_code_\(currency.code)")
                 }
 
                 Spacer()
@@ -147,12 +149,12 @@ struct CurrencyOnboardingRow: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.blue)
                         .font(.title2)
-                        .accessibilityIdentifier("currency_selected_\(currency.rawValue)")
+                        .accessibilityIdentifier("currency_selected_\(currency.code)")
                 } else {
                     Image(systemName: "circle")
                         .foregroundColor(.gray.opacity(0.3))
                         .font(.title2)
-                        .accessibilityIdentifier("currency_unselected_\(currency.rawValue)")
+                        .accessibilityIdentifier("currency_unselected_\(currency.code)")
                 }
             }
             .padding(.vertical, 8)
@@ -160,8 +162,8 @@ struct CurrencyOnboardingRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(currency.displayName) (\(currency.rawValue))")
-        .accessibilityIdentifier(currency.rawValue)
+        .accessibilityLabel("\(currency.displayName) (\(currency.code))")
+        .accessibilityIdentifier(currency.code)
         .accessibilityAddTraits(.isButton)
     }
 }

@@ -274,8 +274,8 @@ class VoiceCommandProcessor @Inject constructor() {
             throw IllegalArgumentException("Amount exceeds maximum limit")
         }
         
-        val supportedCurrencies = listOf("USD", "AED", "EUR", "GBP", "INR", "SAR")
-        if (!supportedCurrencies.contains(currency)) {
+        // Validate currency against dynamically loaded Currency system (160+ currencies)
+        if (Currency.fromCode(currency) == null) {
             throw IllegalArgumentException("Unsupported currency: $currency")
         }
         

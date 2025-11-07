@@ -35,7 +35,7 @@ class CurrencyFormatter {
         let formatter = createFormatter(for: currency)
 
         formatter.currencySymbol = showSymbol ? currency.symbol : ""
-        formatter.currencyCode = currency.rawValue
+        formatter.currencyCode = currency.code
 
         guard let formattedString = formatter.string(from: amount as NSDecimalNumber) else {
             // Fallback to basic formatting
@@ -44,9 +44,9 @@ class CurrencyFormatter {
 
         // Add currency code if requested
         if showCode && !showSymbol {
-            return "\(formattedString) \(currency.rawValue)"
+            return "\(formattedString) \(currency.code)"
         } else if showCode && showSymbol {
-            return "\(formattedString) (\(currency.rawValue))"
+            return "\(formattedString) (\(currency.code))"
         }
 
         return formattedString
@@ -78,11 +78,11 @@ class CurrencyFormatter {
     func parse(string: String, currency: Currency) -> Decimal? {
         let formatter = createFormatter(for: currency)
 
-        // Remove common currency symbols and whitespace
+        // Remove all currency symbols and codes (supports 160+ currencies)
         var cleanedString = string
-        for curr in Currency.allCases {
+        for curr in Currency.all {
             cleanedString = cleanedString.replacingOccurrences(of: curr.symbol, with: "")
-            cleanedString = cleanedString.replacingOccurrences(of: curr.rawValue, with: "")
+            cleanedString = cleanedString.replacingOccurrences(of: curr.code, with: "")
         }
         cleanedString = cleanedString.trimmingCharacters(in: .whitespaces)
 
@@ -104,7 +104,7 @@ class CurrencyFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = currency.locale
-        formatter.currencyCode = currency.rawValue
+        formatter.currencyCode = currency.code
         formatter.currencySymbol = currency.symbol
         formatter.minimumFractionDigits = currency.decimalPlaces
         formatter.maximumFractionDigits = currency.decimalPlaces

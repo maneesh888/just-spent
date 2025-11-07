@@ -33,7 +33,7 @@ class VoiceCommandParser {
 
         // Extract amount and currency
         var amount: Double?
-        var currency: String = AppConstants.Currency.defaultCurrency
+        var currency: String = AppConstants.CurrencyDefaults.defaultCurrency
 
         // Try numeric patterns first (prioritize for performance)
         let patterns = [
@@ -92,7 +92,7 @@ class VoiceCommandParser {
             // Use VoiceCurrencyDetector for comprehensive currency detection
             // Supports: ₹, Rs, ₨, $, €, etc., keywords (rupee, dollar), and ISO codes
             let detectedCurrency = VoiceCurrencyDetector.shared.detectCurrency(from: command)
-            currency = detectedCurrency.rawValue
+            currency = detectedCurrency.code
         }
 
         // Extract category
@@ -117,7 +117,7 @@ class VoiceCommandParser {
     private func detectCurrency(from command: String) -> String {
         // Use VoiceCurrencyDetector for comprehensive detection
         let detectedCurrency = VoiceCurrencyDetector.shared.detectCurrency(from: command)
-        return detectedCurrency.rawValue
+        return detectedCurrency.code
     }
 
     /// Extract expense category from command using keyword matching

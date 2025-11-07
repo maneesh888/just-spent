@@ -111,7 +111,7 @@ class VoiceCurrencyDetector {
 
                         // Use explicit currency if provided (for specific symbol patterns)
                         if let currencyCode = explicitCurrency,
-                           let currency = Currency(rawValue: currencyCode) {
+                           let currency = Currency.from(isoCode: currencyCode) {
                             return (amount: amount, currency: currency)
                         }
 
@@ -154,8 +154,8 @@ class VoiceCurrencyDetector {
     func normalizeCurrencySymbols(in text: String) -> String {
         var normalized = text
 
-        for currency in Currency.allCases {
-            normalized = normalized.replacingOccurrences(of: currency.symbol, with: currency.rawValue)
+        for currency in Currency.all {
+            normalized = normalized.replacingOccurrences(of: currency.symbol, with: currency.code)
         }
 
         return normalized

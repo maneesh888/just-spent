@@ -120,13 +120,13 @@ private fun CurrencySelectionList(
                 .testTag("currency_list"),
             contentPadding = PaddingValues(vertical = 4.dp)
         ) {
-            items(Currency.all) { currency ->
+            items(Currency.common) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
                     isSelected = currency == selectedCurrency,
                     onClick = { onCurrencySelected(currency) }
                 )
-                if (currency != Currency.all.last()) {
+                if (currency != Currency.common.last()) {
                     Divider()
                 }
             }
