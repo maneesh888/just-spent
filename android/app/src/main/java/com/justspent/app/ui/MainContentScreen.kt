@@ -39,6 +39,8 @@ fun MainContentScreen(
     viewModel: ExpenseListViewModel = hiltViewModel(),
     voiceViewModel: VoiceExpenseViewModel = hiltViewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     // Collect expenses
     val uiState by viewModel.uiState.collectAsState()
     val expenses = uiState.expenses
@@ -60,7 +62,7 @@ fun MainContentScreen(
         expenses
             .map { expense -> expense.currency }
             .distinct()
-            .mapNotNull { currencyCode -> Currency.fromCode(currencyCode) }
+            .mapNotNull { currencyCode -> Currency.fromCode(currencyCode, context) }
             .sortedBy { currency -> currency.displayName }
     }
 
@@ -68,7 +70,7 @@ fun MainContentScreen(
     val shouldShowTabs = activeCurrencies.size > 1
 
     // Get default currency (from user preferences or device locale)
-    val defaultCurrency = Currency.default
+    val defaultCurrency = Currency.getDefault(context)
 
     // Handle voice result
     LaunchedEffect(voiceUiState.isProcessed, voiceUiState.processedExpense) {
@@ -133,7 +135,7 @@ fun MainContentScreen(
 
         else -> {
             // Single Currency → Simple List View
-            val currency = activeCurrencies.firstOrNull() ?: Currency.AED
+            val currency = activeCurrencies.firstOrNull() ?: Currency.AED(context)
             SingleCurrencyScreen(
                 currency = currency,
                 isRecording = isRecording,

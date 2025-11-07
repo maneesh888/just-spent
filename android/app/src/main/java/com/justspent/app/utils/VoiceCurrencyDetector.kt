@@ -1,5 +1,6 @@
 package com.justspent.app.utils
 
+import android.content.Context
 import com.justspent.app.data.model.Currency
 
 /**
@@ -17,12 +18,15 @@ object VoiceCurrencyDetector {
      * - Colloquial terms (buck, quid, etc.)
      *
      * @param text Input text from voice or manual entry
+     * @param context Android context for loading currencies
      * @param defaultCurrency Fallback currency if no match found
      * @return Detected currency or default
      */
-    fun detectCurrency(text: String, defaultCurrency: Currency = Currency.USD): Currency {
+    fun detectCurrency(text: String, context: Context, defaultCurrency: Currency? = null): Currency {
+        val fallback = defaultCurrency ?: Currency.USD(context)
+
         // First try the built-in detection from Currency model
-        Currency.detectFromText(text)?.let { return it }
+        Currency.detectFromText(text, context)?.let { return it }
 
         // Additional detection patterns for voice input
         val lowercasedText = text.lowercase()
@@ -31,18 +35,18 @@ object VoiceCurrencyDetector {
         val amountCurrencyPattern = Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)""")
         amountCurrencyPattern.find(lowercasedText)?.let { matchResult ->
             val currencyPart = matchResult.groupValues[2]
-            Currency.detectFromText(currencyPart)?.let { return it }
+            Currency.detectFromText(currencyPart, context)?.let { return it }
         }
 
         // Check for currency at the end (e.g., "spent 50 in dollars")
         val endCurrencyPattern = Regex("""in\s+([a-zA-Z]+)$""")
         endCurrencyPattern.find(lowercasedText)?.let { matchResult ->
             val currencyPart = matchResult.groupValues[1]
-            Currency.detectFromText(currencyPart)?.let { return it }
+            Currency.detectFromText(currencyPart, context)?.let { return it }
         }
 
         // Return default if no currency detected
-        return defaultCurrency
+        return fallback
     }
 
     /**
@@ -54,13 +58,16 @@ object VoiceCurrencyDetector {
      * - "paid 25.50 euros" → (25.50, EUR)
      *
      * @param text Input text from voice command
+     * @param context Android context for loading currencies
      * @param defaultCurrency Fallback currency
      * @return Pair of amount and currency, or null if amount not found
      */
     fun extractAmountAndCurrency(
         text: String,
-        defaultCurrency: Currency = Currency.USD
+        context: Context,
+        defaultCurrency: Currency? = null
     ): Pair<Double, Currency>? {
+        val fallback = defaultCurrency ?: Currency.USD(context)
         val lowercasedText = text.lowercase()
 
         // Pattern: number followed by currency
@@ -80,7 +87,7 @@ object VoiceCurrencyDetector {
                 val currencyText = if (amount == group1.toDoubleOrNull()) group2 else group1
 
                 if (amount != null) {
-                    val currency = Currency.detectFromText(currencyText) ?: defaultCurrency
+                    val currency = Currency.detectFromText(currencyText, context) ?: fallback
                     return Pair(amount, currency)
                 }
             }
@@ -92,7 +99,7 @@ object VoiceCurrencyDetector {
             val amount = matchResult.groupValues[1].toDoubleOrNull()
             if (amount != null) {
                 // Detect currency from the rest of the text
-                val currency = detectCurrency(text, defaultCurrency)
+                val currency = detectCurrency(text, context, fallback)
                 return Pair(amount, currency)
             }
         }
@@ -104,10 +111,11 @@ object VoiceCurrencyDetector {
      * Check if text contains a currency mention
      *
      * @param text Input text
+     * @param context Android context for loading currencies
      * @return true if currency is mentioned, false otherwise
      */
-    fun containsCurrency(text: String): Boolean {
-        return Currency.detectFromText(text) != null
+    fun containsCurrency(text: String, context: Context): Boolean {
+        return Currency.detectFromText(text, context) != null
     }
 
     /**
@@ -116,12 +124,13 @@ object VoiceCurrencyDetector {
      * Useful for normalization before processing
      *
      * @param text Input text
+     * @param context Android context for loading currencies
      * @return Text with symbols replaced by codes
      */
-    fun normalizeCurrencySymbols(text: String): String {
+    fun normalizeCurrencySymbols(text: String, context: Context): String {
         var normalized = text
 
-        Currency.all.forEach { currency ->
+        Currency.getAll(context).forEach { currency ->
             normalized = normalized.replace(currency.symbol, currency.code)
         }
 

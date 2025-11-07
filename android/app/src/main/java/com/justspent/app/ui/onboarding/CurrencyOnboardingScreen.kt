@@ -25,7 +25,8 @@ fun CurrencyOnboardingScreen(
     onCurrencySelected: (Currency) -> Unit,
     onComplete: () -> Unit
 ) {
-    var selectedCurrency by remember { mutableStateOf(Currency.default) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var selectedCurrency by remember { mutableStateOf(Currency.getDefault(context)) }
 
     Scaffold { paddingValues ->
         Column(
@@ -107,6 +108,9 @@ private fun CurrencySelectionList(
     selectedCurrency: Currency,
     onCurrencySelected: (Currency) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val currencies = remember { Currency.getAll(context) }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,13 +123,13 @@ private fun CurrencySelectionList(
                 .height(400.dp) // Fixed height for consistent rendering in tests
                 .testTag("currency_list")
         ) {
-            items(Currency.all) { currency ->
+            items(currencies) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
                     isSelected = currency == selectedCurrency,
                     onClick = { onCurrencySelected(currency) }
                 )
-                if (currency != Currency.all.last()) {
+                if (currency != currencies.last()) {
                     Divider()
                 }
             }
@@ -232,16 +236,17 @@ fun CurrencyOnboardingScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun CurrencyOnboardingRowPreview() {
+    val context = androidx.compose.ui.platform.LocalContext.current
     MaterialTheme {
         Column {
             CurrencyOnboardingRow(
-                currency = Currency.USD,
+                currency = Currency.USD(context),
                 isSelected = true,
                 onClick = {}
             )
             Divider()
             CurrencyOnboardingRow(
-                currency = Currency.AED,
+                currency = Currency.AED(context),
                 isSelected = false,
                 onClick = {}
             )
