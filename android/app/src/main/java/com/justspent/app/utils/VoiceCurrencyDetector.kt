@@ -107,10 +107,10 @@ object VoiceCurrencyDetector {
 
                     // Determine which is amount and which is currency
                     val amount = group1.toDoubleOrNull() ?: group2.toDoubleOrNull()
-                    val currencyText = if (amount == group1.toDoubleOrNull()) group2 else group1
 
                     if (amount != null) {
-                        val currency = Currency.detectFromText(currencyText) ?: defaultCurrency
+                        // Use full text for currency detection to catch multi-word phrases like "australian dollars"
+                        val currency = Currency.detectFromText(text) ?: defaultCurrency
                         return Pair(amount, currency)
                     }
                 }

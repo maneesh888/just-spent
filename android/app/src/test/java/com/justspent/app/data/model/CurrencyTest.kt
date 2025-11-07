@@ -309,14 +309,14 @@ class CurrencyTest {
     }
 
     @Test
-    fun `common returns only 6 predefined currencies`() {
+    fun `common returns predefined currencies including JPY`() {
         // Given/When
         val common = Currency.common
 
         // Then
-        assertThat(common.size).isEqualTo(6)
+        assertThat(common.size).isEqualTo(7)
         val commonCodes = common.map { it.code }
-        assertThat(commonCodes).containsExactly("AED", "USD", "EUR", "GBP", "INR", "SAR")
+        assertThat(commonCodes).containsExactly("AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY")
     }
 
     // MARK: - fromCode Tests

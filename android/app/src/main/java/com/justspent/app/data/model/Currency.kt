@@ -103,7 +103,7 @@ data class Currency(
         val common: List<Currency>
             get() = all.filter { it.code in commonCodes }
 
-        private val commonCodes = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
+        private val commonCodes = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY")
 
         /**
          * Default currency for new users (based on device locale)
@@ -154,29 +154,50 @@ data class Currency(
                 return text.contains(Regex("\\b${Regex.escape(lowercaseKeyword)}\\b"))
             }
 
-            // Helper function to find best match (prioritize longer keywords for better specificity)
-            fun findMatch(currencies: List<Currency>): Currency? {
+            // Helper function to find best match with tie-breaking logic
+            fun findBestMatch(currencies: List<Currency>): Currency? {
                 val matches = mutableListOf<Pair<Currency, String>>()
 
                 for (currency in currencies) {
-                    for (keyword in currency.voiceKeywords) {
+                    // Sort keywords by length (longest first) to prioritize specific phrases
+                    // This ensures "australian dollars" is checked before "dollars"
+                    val sortedKeywords = currency.voiceKeywords.sortedByDescending { it.length }
+
+                    for (keyword in sortedKeywords) {
                         if (matchesKeyword(lowercasedText, keyword)) {
+                            // Only add the first (longest) matching keyword for this currency
                             matches.add(currency to keyword)
+                            break  // Stop checking other keywords for this currency
                         }
                     }
                 }
 
-                // Return currency with longest matching keyword (more specific)
-                return matches.maxByOrNull { it.second.length }?.first
+                if (matches.isEmpty()) return null
+
+                // Find max keyword length
+                val maxLength = matches.maxOf { it.second.length }
+
+                // Get all matches with max length
+                val longestMatches = matches.filter { it.second.length == maxLength }
+
+                // If only one longest match, return it
+                if (longestMatches.size == 1) {
+                    return longestMatches.first().first
+                }
+
+                // Tie-breaker: prefer common currencies (USD > AUD for "dollar")
+                val commonMatch = longestMatches.firstOrNull { it.first.code in commonCodes }
+                if (commonMatch != null) {
+                    return commonMatch.first
+                }
+
+                // Otherwise return first match
+                return longestMatches.first().first
             }
 
-            // First check common currencies for better accuracy
-            findMatch(common)?.let { return it }
-
-            // Then check all other currencies
-            findMatch(all.filterNot { it.code in commonCodes })?.let { return it }
-
-            return null
+            // Search all currencies with intelligent tie-breaking
+            // Prioritizes longest keywords, then common currencies
+            return findBestMatch(all)
         }
 
         // Legacy object references for backward compatibility

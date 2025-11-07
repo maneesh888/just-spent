@@ -3,6 +3,7 @@ package com.justspent.app.utils
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.justspent.app.data.model.Currency
 import org.junit.Before
 import org.junit.Test
@@ -639,9 +640,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
 
             // Then
-            assertThat(result)
-                .withMessage("Currency $code formatting failed")
-                .isEqualTo(expectedOutput)
+            assertWithMessage("Currency $code formatting failed").that(result).isEqualTo(expectedOutput)
         }
     }
 
@@ -655,9 +654,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency, showSymbol = false)
 
             // Then - All should use consistent formatting
-            assertThat(result)
-                .withMessage("Currency ${currency.code} failed")
-                .isEqualTo("1,234.56")
+            assertWithMessage("Currency ${currency.code} failed").that(result).isEqualTo("1,234.56")
         }
     }
 
@@ -671,12 +668,12 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.formatCompact(amount, currency)
 
             // Then - Should include symbol but not code
-            assertThat(result)
-                .withMessage("Currency ${currency.code} failed")
-                .contains("150.00")
-            assertThat(result)
-                .withMessage("Currency ${currency.code} should not include code in compact format")
-                .doesNotContain(currency.code)
+            assertWithMessage("Currency ${currency.code} failed").that(result).contains("150.00")
+
+            // Special case: CHF's symbol IS "CHF" (the currency code itself), so we skip the assertion
+            if (currency.symbol != currency.code) {
+                assertWithMessage("Currency ${currency.code} should not include code in compact format").that(result).doesNotContain(currency.code)
+            }
         }
     }
 
@@ -690,12 +687,8 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.formatDetailed(amount, currency)
 
             // Then - Should include both symbol and code
-            assertThat(result)
-                .withMessage("Currency ${currency.code} failed")
-                .contains("150.00")
-            assertThat(result)
-                .withMessage("Currency ${currency.code} should include code in detailed format")
-                .contains(currency.code)
+            assertWithMessage("Currency ${currency.code} failed").that(result).contains("150.00")
+            assertWithMessage("Currency ${currency.code} should include code in detailed format").that(result).contains(currency.code)
         }
     }
 
@@ -710,9 +703,7 @@ class CurrencyFormatterTest {
             val parsed = CurrencyFormatter.parse(formatted, currency)
 
             // Then - Should parse back to original amount
-            assertThat(parsed)
-                .withMessage("Currency ${currency.code} parsing failed from '$formatted'")
-                .isEqualTo(amount)
+            assertWithMessage("Currency ${currency.code} parsing failed from '$formatted'").that(parsed).isEqualTo(amount)
         }
     }
 
@@ -726,12 +717,8 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency, showSymbol = true)
 
             // Then - Should show 0.00 with proper symbol
-            assertThat(result)
-                .withMessage("Currency ${currency.code} failed")
-                .contains("0.00")
-            assertThat(result)
-                .withMessage("Currency ${currency.code} should include symbol")
-                .isNotEqualTo("0.00") // Should have symbol
+            assertWithMessage("Currency ${currency.code} failed").that(result).contains("0.00")
+            assertWithMessage("Currency ${currency.code} should include symbol").that(result).isNotEqualTo("0.00") // Should have symbol
         }
     }
 
@@ -745,9 +732,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency, showSymbol = false)
 
             // Then - Should have proper grouping
-            assertThat(result)
-                .withMessage("Currency ${currency.code} failed")
-                .isEqualTo("1,000,000.00")
+            assertWithMessage("Currency ${currency.code} failed").that(result).isEqualTo("1,000,000.00")
         }
     }
 
@@ -766,12 +751,8 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency, showSymbol = true)
 
             // Then - Should format correctly (symbol typically before amount for RTL)
-            assertThat(result)
-                .withMessage("RTL Currency $code failed")
-                .contains("100.00")
-            assertThat(result)
-                .withMessage("RTL Currency $code should include symbol")
-                .contains(currency.symbol)
+            assertWithMessage("RTL Currency $code failed").that(result).contains("100.00")
+            assertWithMessage("RTL Currency $code should include symbol").that(result).contains(currency.symbol)
         }
     }
 
@@ -785,9 +766,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency, showSymbol = false)
 
             // Then - All should round to 101.00
-            assertThat(result)
-                .withMessage("Currency ${currency.code} rounding failed")
-                .isEqualTo("101.00")
+            assertWithMessage("Currency ${currency.code} rounding failed").that(result).isEqualTo("101.00")
         }
     }
 
@@ -818,9 +797,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
 
             // Then - Should start with $
-            assertThat(result)
-                .withMessage("Dollar currency $code failed")
-                .startsWith("$")
+            assertWithMessage("Dollar currency $code failed").that(result).startsWith("$")
         }
     }
 
@@ -836,9 +813,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
 
             // Then - Should contain ¥ symbol
-            assertThat(result)
-                .withMessage("Yen currency $code failed")
-                .contains("¥")
+            assertWithMessage("Yen currency $code failed").that(result).contains("¥")
         }
     }
 
@@ -854,9 +829,7 @@ class CurrencyFormatterTest {
             val result = CurrencyFormatter.format(amount, currency!!, showSymbol = true)
 
             // Then - Should contain kr symbol
-            assertThat(result)
-                .withMessage("Scandinavian currency $code failed")
-                .contains("kr")
+            assertWithMessage("Scandinavian currency $code failed").that(result).contains("kr")
         }
     }
 }
