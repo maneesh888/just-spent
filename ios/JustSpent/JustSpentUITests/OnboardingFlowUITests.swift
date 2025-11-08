@@ -467,4 +467,30 @@ class OnboardingFlowUITests: BaseUITestCase {
             XCTAssertLessThan(gap, 100, "Gap between welcome and currency list should be reasonable, was \(gap)pt")
         }
     }
+
+    func testOnboardingContinueButtonHasStandardHeight() throws {
+        // Verify continue button has standard height of 56pt
+        Thread.sleep(forTimeInterval: 1.5)
+
+        var continueButton = app.buttons["Continue"]
+        if !continueButton.exists {
+            continueButton = app.buttons["Get Started"]
+        }
+        if !continueButton.exists {
+            continueButton = app.buttons["Done"]
+        }
+
+        XCTAssertTrue(continueButton.exists, "Continue button should exist")
+
+        if continueButton.exists {
+            let buttonFrame = continueButton.frame
+            let expectedHeight: CGFloat = 56.0
+
+            // Button should have standard height (allow 2pt tolerance)
+            XCTAssertGreaterThan(buttonFrame.height, expectedHeight - 2,
+                                "Button height should be at least \(expectedHeight - 2)pt, was \(buttonFrame.height)pt")
+            XCTAssertLessThan(buttonFrame.height, expectedHeight + 2,
+                             "Button height should be at most \(expectedHeight + 2)pt, was \(buttonFrame.height)pt")
+        }
+    }
 }

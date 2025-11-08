@@ -424,10 +424,15 @@ class OnboardingFlowUITest {
         // Get button bounds
         val buttonBounds = continueButton.fetchSemanticsNode().boundsInRoot
 
-        // Button should have reasonable height (standard button height)
+        // Button should have standard height of 56dp (with 2dp tolerance)
+        val expectedHeight = 56f
         val buttonHeight = buttonBounds.height
-        assert(buttonHeight >= 48f) { "Button height should be at least 48dp, was ${buttonHeight}dp" }
-        assert(buttonHeight <= 72f) { "Button height should not exceed 72dp, was ${buttonHeight}dp" }
+        assert(buttonHeight >= expectedHeight - 2f) {
+            "Button height should be at least ${expectedHeight - 2f}dp, was ${buttonHeight}dp"
+        }
+        assert(buttonHeight <= expectedHeight + 2f) {
+            "Button height should be at most ${expectedHeight + 2f}dp, was ${buttonHeight}dp"
+        }
     }
 
     @Test

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.justspent.app.data.model.Currency
+import com.justspent.app.ui.components.PrimaryButton
 
 /**
  * Onboarding screen for first-launch default currency selection
@@ -59,10 +60,10 @@ fun CurrencyOnboardingScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Continue Button
-            ContinueButton(
-                onClick = {
-                    onComplete()
-                }
+            PrimaryButton(
+                text = "Continue",
+                onClick = { onComplete() },
+                testTag = "continue_button"
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -197,24 +198,6 @@ private fun HelperText() {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
     )
-}
-
-@Composable
-private fun ContinueButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .testTag("continue_button"),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Text(
-            text = "Continue",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
 }
 
 // MARK: - Previews

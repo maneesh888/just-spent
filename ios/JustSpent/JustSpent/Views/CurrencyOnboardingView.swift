@@ -77,18 +77,13 @@ struct CurrencyOnboardingView: View {
                     .accessibilityIdentifier("onboarding_helper_text")
 
                 // Continue Button
-                Button(action: completeOnboarding) {
-                    Text("Continue")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
-                }
+                PrimaryButton(
+                    text: "Continue",
+                    action: completeOnboarding,
+                    accessibilityIdentifier: "onboarding_continue_button"
+                )
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
-                .accessibilityIdentifier("onboarding_continue_button")
             }
             .navigationBarHidden(true)
         }
