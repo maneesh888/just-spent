@@ -1,0 +1,255 @@
+{
+  "version": "1.0.0",
+  "description": "Error scenarios for voice recognition and expense validation",
+  "last_updated": "2025-01-29",
+  "voice_recognition_errors": {
+    "description": "Error scenarios for voice command processing",
+    "scenarios": [
+      {
+        "id": "no_amount_detected",
+        "input": "I spent some money on groceries",
+        "expected_error_code": "NO_AMOUNT",
+        "expected_error_message": "Could not detect amount in voice command",
+        "suggested_action": "Please say the amount clearly, for example: 'I spent 50 dollars'"
+      },
+      {
+        "id": "incomplete_command",
+        "input": "groceries",
+        "expected_error_code": "INCOMPLETE_COMMAND",
+        "expected_error_message": "Incomplete voice command",
+        "suggested_action": "Please include an amount and category, for example: 'I spent 50 dollars on groceries'"
+      },
+      {
+        "id": "negative_amount_detected",
+        "input": "I spent -50 dollars on groceries",
+        "expected_error_code": "NEGATIVE_AMOUNT",
+        "expected_error_message": "Amount cannot be negative",
+        "suggested_action": "Please say a positive amount"
+      },
+      {
+        "id": "zero_amount_detected",
+        "input": "I spent zero dollars",
+        "expected_error_code": "ZERO_AMOUNT",
+        "expected_error_message": "Amount must be greater than zero",
+        "suggested_action": "Please say an amount greater than zero"
+      },
+      {
+        "id": "amount_too_large",
+        "input": "I spent 10 million dollars",
+        "expected_error_code": "AMOUNT_TOO_LARGE",
+        "expected_error_message": "Amount exceeds maximum allowed value",
+        "suggested_action": "Maximum amount is 999,999.99"
+      },
+      {
+        "id": "unclear_currency",
+        "input": "I spent fifty something on groceries",
+        "expected_error_code": "NO_AMOUNT",
+        "expected_error_message": "Could not detect a valid amount",
+        "suggested_action": "Please say the amount as a number, for example: '50 dollars'"
+      },
+      {
+        "id": "ambiguous_merchant",
+        "input": "I spent 50 at the place",
+        "expected_error_code": null,
+        "expected_warning": "Merchant name is ambiguous",
+        "suggested_action": "Expense created without merchant name",
+        "should_create_expense": true
+      },
+      {
+        "id": "unintelligible_input",
+        "input": "umm ahh errr",
+        "expected_error_code": "UNINTELLIGIBLE",
+        "expected_error_message": "Could not understand voice command",
+        "suggested_action": "Please try again and speak clearly"
+      },
+      {
+        "id": "background_noise",
+        "input": "[noise] I spent [noise] dollars [noise]",
+        "expected_error_code": "POOR_AUDIO_QUALITY",
+        "expected_error_message": "Audio quality too poor to process",
+        "suggested_action": "Please reduce background noise and try again"
+      },
+      {
+        "id": "multiple_amounts",
+        "input": "I spent 50 dollars and 30 euros",
+        "expected_behavior": "should_detect_first_amount",
+        "expected_amount": 50.0,
+        "expected_currency": "USD",
+        "note": "First amount takes precedence"
+      }
+    ]
+  },
+  "validation_errors": {
+    "description": "Error scenarios for expense validation",
+    "scenarios": [
+      {
+        "id": "missing_required_amount",
+        "expense": {
+          "amount": null,
+          "currency": "USD",
+          "category": "Other"
+        },
+        "expected_error_code": "AMOUNT_REQUIRED",
+        "expected_error_message": "Amount is required",
+        "field": "amount"
+      },
+      {
+        "id": "missing_required_currency",
+        "expense": {
+          "amount": 100.00,
+          "currency": null,
+          "category": "Other"
+        },
+        "expected_error_code": "CURRENCY_REQUIRED",
+        "expected_error_message": "Currency is required",
+        "field": "currency"
+      },
+      {
+        "id": "missing_required_category",
+        "expense": {
+          "amount": 100.00,
+          "currency": "USD",
+          "category": null
+        },
+        "expected_error_code": "CATEGORY_REQUIRED",
+        "expected_error_message": "Category is required",
+        "field": "category"
+      },
+      {
+        "id": "invalid_currency_code",
+        "expense": {
+          "amount": 100.00,
+          "currency": "INVALID",
+          "category": "Other"
+        },
+        "expected_error_code": "INVALID_CURRENCY",
+        "expected_error_message": "Invalid currency code",
+        "field": "currency"
+      },
+      {
+        "id": "invalid_category",
+        "expense": {
+          "amount": 100.00,
+          "currency": "USD",
+          "category": "InvalidCategory"
+        },
+        "expected_error_code": "INVALID_CATEGORY",
+        "expected_error_message": "Invalid category",
+        "field": "category"
+      },
+      {
+        "id": "merchant_name_too_long",
+        "expense": {
+          "amount": 100.00,
+          "currency": "USD",
+          "category": "Other",
+          "merchant": "A".repeat(101)
+        },
+        "expected_error_code": "MERCHANT_TOO_LONG",
+        "expected_error_message": "Merchant name is too long (max 100 characters)",
+        "field": "merchant"
+      },
+      {
+        "id": "notes_too_long",
+        "expense": {
+          "amount": 100.00,
+          "currency": "USD",
+          "category": "Other",
+          "notes": "A".repeat(501)
+        },
+        "expected_error_code": "NOTES_TOO_LONG",
+        "expected_error_message": "Notes are too long (max 500 characters)",
+        "field": "notes"
+      }
+    ]
+  },
+  "edge_cases": {
+    "description": "Edge cases that should be handled gracefully",
+    "scenarios": [
+      {
+        "id": "empty_string_input",
+        "input": "",
+        "expected_behavior": "return_null_or_error",
+        "should_not_crash": true
+      },
+      {
+        "id": "whitespace_only_input",
+        "input": "   ",
+        "expected_behavior": "return_null_or_error",
+        "should_not_crash": true
+      },
+      {
+        "id": "very_long_input",
+        "input": "I spent ".repeat(500) + "50 dollars",
+        "expected_behavior": "should_handle_gracefully",
+        "should_not_crash": true
+      },
+      {
+        "id": "special_characters_in_merchant",
+        "input": "I spent 50 dollars at <script>alert('xss')</script>",
+        "expected_behavior": "sanitize_merchant_name",
+        "should_sanitize_html": true
+      },
+      {
+        "id": "sql_injection_attempt",
+        "input": "I spent 50 dollars at '; DROP TABLE expenses; --",
+        "expected_behavior": "sanitize_input",
+        "should_not_execute_sql": true
+      },
+      {
+        "id": "emoji_in_input",
+        "input": "I spent 50 dollars 💰 on groceries 🛒",
+        "expected_behavior": "handle_gracefully",
+        "should_extract_amount": true,
+        "expected_amount": 50.0
+      },
+      {
+        "id": "unicode_currency_symbols",
+        "input": "I spent €50 on groceries",
+        "expected_behavior": "detect_currency_from_symbol",
+        "expected_currency": "EUR",
+        "expected_amount": 50.0
+      },
+      {
+        "id": "mixed_languages",
+        "input": "I spent خمسون dirhams",
+        "expected_behavior": "handle_gracefully",
+        "note": "Should handle multilingual input"
+      }
+    ]
+  },
+  "permission_errors": {
+    "description": "Errors related to permissions",
+    "scenarios": [
+      {
+        "id": "microphone_permission_denied",
+        "error_code": "PERMISSION_DENIED_MICROPHONE",
+        "error_message": "Microphone permission is required for voice commands",
+        "suggested_action": "Please enable microphone access in settings"
+      },
+      {
+        "id": "speech_recognition_unavailable",
+        "error_code": "SPEECH_RECOGNITION_UNAVAILABLE",
+        "error_message": "Speech recognition is not available on this device",
+        "suggested_action": "Please use manual entry"
+      }
+    ]
+  },
+  "network_errors": {
+    "description": "Errors related to network operations",
+    "scenarios": [
+      {
+        "id": "no_internet_connection",
+        "error_code": "NO_INTERNET",
+        "error_message": "No internet connection available",
+        "suggested_action": "Expense saved locally and will sync when online"
+      },
+      {
+        "id": "sync_failed",
+        "error_code": "SYNC_FAILED",
+        "error_message": "Failed to sync expense to cloud",
+        "suggested_action": "Expense saved locally and will retry sync later"
+      }
+    ]
+  }
+}
