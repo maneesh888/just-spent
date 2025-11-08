@@ -455,13 +455,18 @@ grant_ios_simulator_permissions() {
   if [ "$sim_state" != "Booted" ]; then
     info "Booting simulator..."
     xcrun simctl boot "$simulator_id" 2>/dev/null || true
-    sleep 5  # Wait for simulator to boot
+
+    # Wait for simulator to fully boot (matching GitHub Actions 10s wait)
+    info "Waiting for simulator to fully boot..."
+    sleep 10
   fi
 
   # Grant microphone permission
+  info "Granting microphone permission..."
   xcrun simctl privacy "$simulator_id" grant microphone "$bundle_id" 2>/dev/null || true
 
   # Grant speech recognition permission
+  info "Granting speech recognition permission..."
   xcrun simctl privacy "$simulator_id" grant speech-recognition "$bundle_id" 2>/dev/null || true
 
   success "iOS simulator permissions granted (microphone + speech recognition)"
@@ -481,7 +486,7 @@ run_ios_pipeline() {
   if xcodebuild clean build \
     -project JustSpent.xcodeproj \
     -scheme JustSpent \
-    -destination 'platform=iOS Simulator,name=iPhone 16' \
+    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
     -configuration Debug \
     CODE_SIGN_IDENTITY="" \
     CODE_SIGNING_REQUIRED=NO \
@@ -510,7 +515,7 @@ run_ios_pipeline() {
   if xcodebuild test \
     -project JustSpent.xcodeproj \
     -scheme JustSpent \
-    -destination 'platform=iOS Simulator,name=iPhone 16' \
+    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
     -only-testing:JustSpentTests \
     -enableCodeCoverage YES \
     -resultBundlePath "$RESULTS_DIR/ios_unit_$TIMESTAMP.xcresult" \
@@ -595,7 +600,7 @@ run_ios_pipeline() {
     if xcodebuild test \
       -project JustSpent.xcodeproj \
       -scheme JustSpent \
-      -destination 'platform=iOS Simulator,name=iPhone 16' \
+      -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
       -only-testing:JustSpentUITests \
       -parallel-testing-enabled NO \
       -enableCodeCoverage YES \
