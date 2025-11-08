@@ -43,8 +43,9 @@ fun CurrencyOnboardingScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Currency Selection List
+            // Currency Selection List (flexible height)
             CurrencySelectionList(
+                modifier = Modifier.weight(1f),
                 selectedCurrency = selectedCurrency,
                 onCurrencySelected = {
                     selectedCurrency = it
@@ -105,13 +106,13 @@ private fun WelcomeHeader() {
 
 @Composable
 private fun CurrencySelectionList(
+    modifier: Modifier = Modifier,
     selectedCurrency: Currency,
     onCurrencySelected: (Currency) -> Unit
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 200.dp, max = 500.dp), // Flexible height that works for both production and tests
+        modifier = modifier
+            .fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 2.dp
     ) {
