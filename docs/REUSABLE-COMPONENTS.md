@@ -33,8 +33,12 @@ This document catalogs all reusable UI components in the Just Spent app, ensurin
 - Android: `android/app/src/main/java/com/justspent/app/ui/components/PrimaryButton.kt`
 
 **Tests:**
-- iOS: `ios/JustSpent/JustSpentTests/PrimaryButtonTests.swift`
-- Android: `android/app/src/test/java/com/justspent/app/ui/components/PrimaryButtonTest.kt`
+- iOS UI Tests: `ios/JustSpent/JustSpentUITests/OnboardingFlowUITests.swift`
+  - `testOnboardingContinueButtonHasStandardHeight()` - Verifies 56pt height
+- Android UI Tests: `android/app/src/androidTest/kotlin/com/justspent/app/OnboardingFlowUITest.kt`
+  - `onboarding_continueButtonIsProperlyPositioned()` - Verifies 56dp height
+
+**Note:** Component behavior is tested through UI tests in screens that use it, ensuring real-world usage validation.
 
 **Usage:**
 
