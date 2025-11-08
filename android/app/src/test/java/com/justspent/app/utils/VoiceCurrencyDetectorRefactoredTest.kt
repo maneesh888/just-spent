@@ -96,9 +96,13 @@ class VoiceCurrencyDetectorRefactoredTest {
 
         testCases.forEach { testCase ->
             // When
+            val defaultCurrency = testCase.default_currency?.let { currencyCode ->
+                Currency.fromCode(currencyCode) ?: Currency.AED // Fallback to AED if invalid
+            }
+
             val result = VoiceCurrencyDetector.extractAmountAndCurrency(
                 testCase.input,
-                testCase.default_currency?.let { Currency.fromCode(it) }
+                defaultCurrency
             )
 
             // Then

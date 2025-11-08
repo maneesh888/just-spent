@@ -1,7 +1,8 @@
 package com.justspent.app.utils
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 import java.io.File
 
 /**
@@ -10,17 +11,19 @@ import java.io.File
  */
 object SharedTestDataLoader {
 
-    private val gson = Gson()
+    private val json = Json { ignoreUnknownKeys = true }
 
     /**
      * Voice test data structure
      */
+    @Serializable
     data class VoiceTestData(
         val version: String,
         val description: String,
         val test_suites: TestSuites
     )
 
+    @Serializable
     data class TestSuites(
         val currency_detection: TestSuite,
         val amount_extraction: TestSuite,
@@ -31,16 +34,18 @@ object SharedTestDataLoader {
         val disambiguation: TestSuite
     )
 
+    @Serializable
     data class TestSuite(
         val description: String,
         val tests: List<VoiceTestCase>
     )
 
+    @Serializable
     data class VoiceTestCase(
         val id: String,
         val input: String,
-        val expected_currency: String?,
-        val expected_amount: Double?,
+        val expected_currency: String? = null,
+        val expected_amount: Double? = null,
         val expected_category: String? = null,
         val expected_merchant: String? = null,
         val description: String,
@@ -58,7 +63,7 @@ object SharedTestDataLoader {
         require(jsonFile.exists()) { "Voice test data file not found: ${jsonFile.absolutePath}" }
 
         val jsonContent = jsonFile.readText()
-        return gson.fromJson(jsonContent, VoiceTestData::class.java)
+        return json.decodeFromString<VoiceTestData>(jsonContent)
     }
 
     /**
@@ -70,6 +75,10 @@ object SharedTestDataLoader {
 
     fun getAmountExtractionTests(): List<VoiceTestCase> {
         return loadVoiceTestData().test_suites.amount_extraction.tests
+    }
+
+    fun getWrittenNumberTests(): List<VoiceTestCase> {
+        return loadVoiceTestData().test_suites.written_numbers.tests
     }
 
     fun getEdgeCaseTests(): List<VoiceTestCase> {
