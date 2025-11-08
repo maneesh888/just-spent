@@ -56,7 +56,7 @@ fun CurrencyOnboardingScreen(
             // Helper Text
             HelperText()
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Continue Button
             ContinueButton(

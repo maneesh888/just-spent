@@ -400,4 +400,71 @@ class OnboardingFlowUITests: BaseUITestCase {
             XCTAssertTrue(appTitle.waitForExistence(timeout: 5.0), "Should navigate to main screen after onboarding")
         }
     }
+
+    // MARK: - Layout Consistency Tests (3 tests)
+
+    func testOnboardingCurrencySymbolSizeIsReadable() throws {
+        // Verify currency symbols are not too large (should be proportional to text)
+        // Wait for onboarding to fully render
+        Thread.sleep(forTimeInterval: 1.5)
+
+        // Find a currency symbol (AED is typically visible without scrolling)
+        let aedSymbol = app.staticTexts.matching(identifier: "currency_symbol_AED").firstMatch
+
+        if aedSymbol.waitForExistence(timeout: 2.0) {
+            // Get the frame of the symbol
+            let symbolFrame = aedSymbol.frame
+
+            // Symbol should be visible but not excessively large
+            // A reasonable symbol should be less than 60 points tall (32pt font ≈ 38-40pt frame height)
+            XCTAssertLessThan(symbolFrame.height, 60, "Currency symbol height should be reasonable (< 60pt), was \(symbolFrame.height)pt")
+
+            // Symbol should be at least 20 points tall to be visible
+            XCTAssertGreaterThan(symbolFrame.height, 20, "Currency symbol should be visible (> 20pt)")
+        }
+    }
+
+    func testOnboardingContentFillsScreen() throws {
+        // Verify that content properly fills the screen without excessive whitespace
+        Thread.sleep(forTimeInterval: 1.5)
+
+        // Check that continue button exists and is near bottom of screen
+        var continueButton = app.buttons["Continue"]
+        if !continueButton.exists {
+            continueButton = app.buttons["Get Started"]
+        }
+        if !continueButton.exists {
+            continueButton = app.buttons["Done"]
+        }
+
+        XCTAssertTrue(continueButton.exists, "Continue button should exist")
+
+        if continueButton.exists {
+            let buttonFrame = continueButton.frame
+            let screenHeight = UIScreen.main.bounds.height
+
+            // Button should be in the bottom portion of the screen (bottom 30%)
+            let bottomThreshold = screenHeight * 0.7
+            XCTAssertGreaterThan(buttonFrame.minY, bottomThreshold,
+                                "Continue button should be near bottom of screen, was at \(buttonFrame.minY)pt, screen height \(screenHeight)pt")
+        }
+    }
+
+    func testOnboardingHasNoExcessiveWhitespace() throws {
+        // Verify content is properly arranged without large gaps
+        Thread.sleep(forTimeInterval: 1.5)
+
+        // Find the welcome text and currency list
+        let welcomeText = testHelper.findText(containing: "Welcome") ?? testHelper.findText(containing: "currency")
+        let currencyList = app.otherElements.matching(identifier: "currency_list").firstMatch
+
+        if let welcome = welcomeText, currencyList.waitForExistence(timeout: 2.0) {
+            let welcomeFrame = welcome.frame
+            let listFrame = currencyList.frame
+
+            // Distance between welcome and list should be reasonable (< 100pt)
+            let gap = listFrame.minY - welcomeFrame.maxY
+            XCTAssertLessThan(gap, 100, "Gap between welcome and currency list should be reasonable, was \(gap)pt")
+        }
+    }
 }
