@@ -52,15 +52,31 @@ class SharedTestDataLoader {
 
     /// Load voice test data from JSON
     static func loadVoiceTestData() throws -> VoiceTestData {
-        let projectPath = FileManager.default.currentDirectoryPath
-        let jsonPath = "\(projectPath)/../../shared/test-data/voice-test-data.json"
+        // Try multiple possible paths for the JSON file
+        let possiblePaths = [
+            // Path 1: Relative from current directory
+            "../../shared/test-data/voice-test-data.json",
+            // Path 2: Relative from project root
+            "../../../shared/test-data/voice-test-data.json",
+            // Path 3: Absolute from FileManager current directory
+            "\(FileManager.default.currentDirectoryPath)/../../shared/test-data/voice-test-data.json",
+            // Path 4: From source root (for CI environments)
+            "/home/user/just-spent/shared/test-data/voice-test-data.json",
+            // Path 5: From runner work directory (GitHub Actions)
+            "/home/runner/work/just-spent/just-spent/shared/test-data/voice-test-data.json"
+        ]
 
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: jsonPath)) else {
-            throw TestDataError.fileNotFound(jsonPath)
+        var lastError: Error?
+        for path in possiblePaths {
+            if let data = try? Data(contentsOf: URL(fileURLWithPath: path)) {
+                let decoder = JSONDecoder()
+                return try decoder.decode(VoiceTestData.self, from: data)
+            }
         }
 
-        let decoder = JSONDecoder()
-        return try decoder.decode(VoiceTestData.self, from: data)
+        // If none of the paths worked, throw error with all attempted paths
+        let attemptedPaths = possiblePaths.joined(separator: "\n  - ")
+        throw TestDataError.fileNotFound("Attempted paths:\n  - \(attemptedPaths)")
     }
 
     /// Get currency detection tests
