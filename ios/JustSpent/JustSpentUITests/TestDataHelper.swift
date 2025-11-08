@@ -169,7 +169,19 @@ class TestDataHelper {
     ]
 
     /// All supported currency codes
-    static let allCurrencyCodes = ["AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY"]
+    // All 36 supported currencies from currencies.json
+    static let allCurrencyCodes = [
+        "AED", "AUD", "BHD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR",
+        "GBP", "HKD", "HUF", "IDR", "INR", "JPY", "KRW", "KWD", "MXN", "MYR",
+        "NOK", "NZD", "OMR", "PHP", "PLN", "QAR", "RON", "RUB", "SAR", "SEK",
+        "SGD", "THB", "TRY", "USD", "VND", "ZAR"
+    ]
+
+    /// Currencies that have test data in multi-currency mode
+    /// Matches TestDataManager.populateMultiCurrencyData()
+    static let multiCurrencyTestDataCodes = [
+        "AED", "USD", "EUR", "GBP", "INR", "SAR"
+    ]
 
     // MARK: - Common Test Actions
 
@@ -243,6 +255,9 @@ class TestDataHelper {
 
         for list in lists where list.exists {
             var attempts = 0
+            var previousCellCount = 0
+            var stuckAttempts = 0
+
             while attempts < 10 { // Max 10 scroll attempts
                 // Check within cells first after each scroll
                 let cellsAfterScroll = searchContainer.cells.allElementsBoundByIndex
@@ -268,6 +283,22 @@ class TestDataHelper {
                 if searchContainer.staticTexts[identifier].exists {
                     return searchContainer.staticTexts[identifier]
                 }
+
+                // Track cell count to detect when we've reached the end
+                let currentCellCount = cellsAfterScroll.count
+
+                // If cell count hasn't changed after scrolling, we're stuck at the end
+                if currentCellCount == previousCellCount {
+                    stuckAttempts += 1
+                    // If stuck for 2 consecutive attempts, stop
+                    if stuckAttempts >= 2 {
+                        break
+                    }
+                } else {
+                    stuckAttempts = 0
+                }
+
+                previousCellCount = currentCellCount
 
                 // Scroll down
                 list.swipeUp()
@@ -303,7 +334,7 @@ class TestDataHelper {
 
     /// Check if currency button/option exists (with scrolling support)
     func findCurrencyOption(_ currencyCode: String) -> XCUIElement? {
-        return scrollToElement(withIdentifier: currencyCode)
+        return scrollToElement(withIdentifier: "currency_option_\(currencyCode)")
     }
 }
 

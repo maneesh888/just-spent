@@ -14,22 +14,24 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
 
     func testCurrencyTabsDisplayWithMultipleCurrencies() throws {
         // Wait for app to fully initialize with multi-currency data
-        Thread.sleep(forTimeInterval: 1.0)
+        // Give extra time for data population and tab generation
+        Thread.sleep(forTimeInterval: 3.0)
 
         // When - Check if currency tabs are visible using accessibility identifiers
-        let commonCurrencies = TestDataHelper.allCurrencyCodes
+        // Use currencies that have test data (not all 36)
+        let testCurrencies = TestDataHelper.multiCurrencyTestDataCodes
 
         var foundTabs = 0
-        for code in commonCurrencies {
+        for code in testCurrencies {
             let tabIdentifier = "currency_tab_\(code)"
             let tabElement = app.otherElements.matching(identifier: tabIdentifier).firstMatch
-            if tabElement.waitForExistence(timeout: 10.0) {
+            if tabElement.waitForExistence(timeout: 2.0) {
                 foundTabs += 1
             }
         }
 
-        // Tabs should exist if multiple currencies are present
-        XCTAssertGreaterThan(foundTabs, 0, "Should show at least one currency tab, found \(foundTabs)")
+        // Should find at least 6 tabs (AED, USD, EUR, GBP, INR, SAR)
+        XCTAssertGreaterThanOrEqual(foundTabs, 6, "Should show all 6 currency tabs with test data, found \(foundTabs)")
     }
 
     func testCurrencyTabShowsCurrencySymbolAndCode() throws {
@@ -52,7 +54,7 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
 
     func testCurrencyTabSelectionChangesIndicator() throws {
         // Find currency tabs
-        let currencies = TestDataHelper.allCurrencyCodes
+        let currencies = TestDataHelper.multiCurrencyTestDataCodes
         var availableTabs: [XCUIElement] = []
 
         for code in currencies {
@@ -106,13 +108,13 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
         XCTAssertTrue(totalLabel.waitForExistence(timeout: 10.0), "Total label should exist")
 
         // Find available tabs using accessibility identifiers
-        let currencies = TestDataHelper.allCurrencyCodes
+        let currencies = TestDataHelper.multiCurrencyTestDataCodes
         var tabs: [XCUIElement] = []
 
         for code in currencies {
             let tabIdentifier = "currency_tab_\(code)"
             let tabElement = app.otherElements.matching(identifier: tabIdentifier).firstMatch
-            if tabElement.waitForExistence(timeout: 10.0) {
+            if tabElement.waitForExistence(timeout: 2.0) {
                 tabs.append(tabElement)
             }
         }
@@ -250,13 +252,13 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
         XCTAssertTrue(fab.waitForExistence(timeout: 10.0), "FAB should be visible")
 
         // Find available tabs using accessibility identifiers
-        let currencies = TestDataHelper.allCurrencyCodes
+        let currencies = TestDataHelper.multiCurrencyTestDataCodes
         var tabs: [XCUIElement] = []
 
         for code in currencies {
             let tabIdentifier = "currency_tab_\(code)"
             let tabElement = app.otherElements.matching(identifier: tabIdentifier).firstMatch
-            if tabElement.waitForExistence(timeout: 10.0) {
+            if tabElement.waitForExistence(timeout: 2.0) {
                 tabs.append(tabElement)
             }
         }
@@ -296,7 +298,7 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
 
     func testTabBarScrollableWithManyCurrencies() throws {
         // If 3+ tabs, tab bar should be scrollable
-        let currencies = TestDataHelper.allCurrencyCodes
+        let currencies = TestDataHelper.multiCurrencyTestDataCodes
         var tabCount = 0
 
         for code in currencies {
@@ -305,10 +307,8 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
             }
         }
 
-        // If 3+ tabs, verify they're laid out (scrollability is implicit)
-        if tabCount >= 3 {
-            XCTAssertGreaterThanOrEqual(tabCount, 3, "Tab bar should support scrolling with \(tabCount) tabs")
-        }
+        // Should have 6 tabs (scrollability is implicit with 6 tabs)
+        XCTAssertGreaterThanOrEqual(tabCount, 3, "Tab bar should support scrolling with \(tabCount) tabs")
     }
 
     func testTabBarShowsSelectedCurrencyFirst() throws {
@@ -316,7 +316,7 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
         // This is tested implicitly through tab selection tests
 
         // Verify at least one tab exists
-        let currencies = TestDataHelper.allCurrencyCodes
+        let currencies = TestDataHelper.multiCurrencyTestDataCodes
         var foundTab = false
 
         for code in currencies {
@@ -378,13 +378,13 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
         Thread.sleep(forTimeInterval: 1.0)
 
         // Find available tabs using accessibility identifiers
-        let currencies = TestDataHelper.allCurrencyCodes
+        let currencies = TestDataHelper.multiCurrencyTestDataCodes
         var tabs: [XCUIElement] = []
 
         for code in currencies {
             let tabIdentifier = "currency_tab_\(code)"
             let tabElement = app.otherElements.matching(identifier: tabIdentifier).firstMatch
-            if tabElement.waitForExistence(timeout: 10.0) {
+            if tabElement.waitForExistence(timeout: 2.0) {
                 tabs.append(tabElement)
             }
         }
