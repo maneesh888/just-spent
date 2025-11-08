@@ -12,88 +12,90 @@ struct CurrencyOnboardingView: View {
 
     @StateObject private var userPreferences = UserPreferences.shared
     @State private var selectedCurrency: Currency = Currency.default
+    // Load currencies immediately (not in .onAppear) for UI test reliability
+    @State private var currencies: [Currency] = Currency.all.sorted(by: { $0.displayName < $1.displayName })
     @Binding var isOnboardingComplete: Bool
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // App Title (for test discoverability)
-                    Text(LocalizedStrings.appTitle)
-                        .font(.caption2)
-                        .foregroundColor(.clear)
-                        .frame(height: 0)
-                        .accessibilityHidden(true)
+            VStack(spacing: 20) {
+                // App Title (for test discoverability)
+                Text(LocalizedStrings.appTitle)
+                    .font(.caption2)
+                    .foregroundColor(.clear)
+                    .frame(height: 0)
+                    .accessibilityIdentifier("Just Spent")
 
-                    // Welcome Header
-                    VStack(spacing: 12) {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .font(.system(size: 64))
-                            .foregroundColor(.blue)
-                            .accessibilityIdentifier("onboarding_icon")
+                // Welcome Header
+                VStack(spacing: 12) {
+                    Image(systemName: "dollarsign.circle.fill")
+                        .font(.system(size: 64))
+                        .foregroundColor(.blue)
+                        .accessibilityIdentifier("onboarding_icon")
 
-                        Text("Welcome to Just Spent!")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("onboarding_title")
+                    Text("Welcome to Just Spent!")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("onboarding_title")
 
-                        Text("We've pre-selected your currency based on your location")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("onboarding_subtitle")
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 20)
-
-                    // Currency Selection List (All 160+ currencies available)
-                    List {
-                        ForEach(Currency.all.sorted(by: { $0.displayName < $1.displayName })) { currency in
-                            CurrencyOnboardingRow(
-                                currency: currency,
-                                isSelected: currency == selectedCurrency
-                            ) {
-                                selectedCurrency = currency
-                            }
-                            .accessibilityIdentifier("currency_option_\(currency.code)")
-                        }
-                    }
-                    .listStyle(.insetGrouped)
-                    .frame(maxHeight: 400)
-                    .scrollContentBackground(.hidden)
-                    .accessibilityIdentifier("currency_list")
-
-                    // Helper Text
-                    Text("Choose from 160+ world currencies.\nScroll to find your preferred currency.")
-                        .font(.caption)
+                    Text("We've pre-selected your currency based on your location")
+                        .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 8)
-                        .accessibilityIdentifier("onboarding_helper_text")
-
-                    Spacer()
-
-                    // Continue Button
-                    Button(action: completeOnboarding) {
-                        Text("Continue")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
-                    .accessibilityIdentifier("onboarding_continue_button")
+                        .accessibilityIdentifier("onboarding_subtitle")
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+
+                // Currency Selection List
+                List {
+                    ForEach(currencies) { currency in
+                        CurrencyOnboardingRow(
+                            currency: currency,
+                            isSelected: currency == selectedCurrency
+                        ) {
+                            selectedCurrency = currency
+                        }
+                        .accessibilityIdentifier("currency_option_\(currency.code)")
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .frame(height: 300)
+                .accessibilityIdentifier("currency_list")
+
+                // Helper Text
+                Text("Choose from \(currencies.count) world currencies.\nScroll to find your preferred currency.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 8)
+                    .accessibilityIdentifier("onboarding_helper_text")
+
+                Spacer()
+
+                // Continue Button
+                Button(action: completeOnboarding) {
+                    Text("Continue")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
+                .accessibilityIdentifier("onboarding_continue_button")
             }
             .navigationBarHidden(true)
+        }
+        .onAppear {
+            print("📱 CurrencyOnboardingView appeared")
         }
     }
 
