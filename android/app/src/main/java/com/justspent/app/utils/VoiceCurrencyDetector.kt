@@ -28,7 +28,7 @@ object VoiceCurrencyDetector {
         val lowercasedText = text.lowercase()
 
         // Check for amount patterns with currency (e.g., "50 dollars", "$100")
-        val amountCurrencyPattern = Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)""")
+        val amountCurrencyPattern = Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)""")
         amountCurrencyPattern.find(lowercasedText)?.let { matchResult ->
             val currencyPart = matchResult.groupValues[2]
             Currency.detectFromText(currencyPart)?.let { return it }
@@ -64,24 +64,55 @@ object VoiceCurrencyDetector {
         val lowercasedText = text.lowercase()
 
         // Pattern: number followed by currency
-        // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100"
+        // Matches: "50 dollars", "100 dirhams", "$50", "د.إ 100", "₹20", "Rs 500"
         val patterns = listOf(
-            Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹﷼د.إ]+)"""),
-            Regex("""([a-zA-Z\$€£₹﷼د.إ]+)\s*(\d+\.?\d*)""")
+            // Specific currency symbol patterns (highest priority)
+            Regex("""₹\s*(\d+\.?\d*)"""),         // ₹20, ₹ 500
+            Regex("""₨\s*(\d+\.?\d*)"""),         // ₨20, ₨ 500
+            Regex("""[Rr]s\.?\s+(\d+\.?\d*)"""),  // Rs 500, rs. 500 (with space)
+            Regex("""\$(\d+\.?\d*)"""),           // $50
+            Regex("""€(\d+\.?\d*)"""),            // €50
+            Regex("""£(\d+\.?\d*)"""),            // £50
+            Regex("""د\.إ\s*(\d+\.?\d*)"""),      // د.إ 100
+            Regex("""﷼\s*(\d+\.?\d*)"""),         // ﷼100
+
+            // Currency symbol before number
+            Regex("""(\d+\.?\d*)\s*₹"""),
+            Regex("""(\d+\.?\d*)\s*₨"""),
+            Regex("""(\d+\.?\d*)\s+[Rr]s\.?"""),  // 500 Rs, 500 rs.
+
+            // Number followed by currency keyword
+            Regex("""(\d+\.?\d*)\s*([a-zA-Z\$€£₹₨﷼د.إ]+)"""),
+            Regex("""([a-zA-Z\$€£₹₨﷼د.إ]+)\s*(\d+\.?\d*)""")
         )
 
         for (pattern in patterns) {
             pattern.find(text)?.let { matchResult ->
-                val group1 = matchResult.groupValues[1]
-                val group2 = matchResult.groupValues[2]
+                // Handle specific symbol patterns (single capture group)
+                if (matchResult.groupValues.size == 2) {
+                    val amountStr = matchResult.groupValues[1]
+                    val amount = amountStr.toDoubleOrNull()
 
-                // Determine which is amount and which is currency
-                val amount = group1.toDoubleOrNull() ?: group2.toDoubleOrNull()
-                val currencyText = if (amount == group1.toDoubleOrNull()) group2 else group1
+                    if (amount != null) {
+                        // Detect currency from the matched text
+                        val currency = detectCurrency(matchResult.value, defaultCurrency)
+                        return Pair(amount, currency)
+                    }
+                }
 
-                if (amount != null) {
-                    val currency = Currency.detectFromText(currencyText) ?: defaultCurrency
-                    return Pair(amount, currency)
+                // Handle two-group patterns
+                if (matchResult.groupValues.size == 3) {
+                    val group1 = matchResult.groupValues[1]
+                    val group2 = matchResult.groupValues[2]
+
+                    // Determine which is amount and which is currency
+                    val amount = group1.toDoubleOrNull() ?: group2.toDoubleOrNull()
+
+                    if (amount != null) {
+                        // Use full text for currency detection to catch multi-word phrases like "australian dollars"
+                        val currency = Currency.detectFromText(text) ?: defaultCurrency
+                        return Pair(amount, currency)
+                    }
                 }
             }
         }
@@ -115,14 +146,43 @@ object VoiceCurrencyDetector {
      *
      * Useful for normalization before processing
      *
+     * Priority: USD first for $ symbol (most common), then other common currencies
+     * Preserves spacing: "$50" → "USD50", "د.إ 100" → "AED 100"
+     *
+     * Uses placeholders to avoid double-replacement (e.g., EUR's R becoming ZAR)
+     *
      * @param text Input text
      * @return Text with symbols replaced by codes
      */
     fun normalizeCurrencySymbols(text: String): String {
         var normalized = text
+        val replacements = mutableMapOf<String, String>()
+        var placeholderIndex = 0
 
-        Currency.all.forEach { currency ->
-            normalized = normalized.replace(currency.symbol, currency.code)
+        // First pass: Replace symbols with unique placeholders to avoid conflicts
+        // Use emoji placeholders which won't conflict with any currency symbols
+        // Process common currencies first for $ ambiguity (USD not AUD)
+        Currency.common.forEach { currency ->
+            if (normalized.contains(currency.symbol)) {
+                val placeholder = "🪙${placeholderIndex++}🪙"
+                replacements[placeholder] = currency.code
+                normalized = normalized.replace(currency.symbol, placeholder)
+            }
+        }
+
+        // Then process remaining currencies
+        Currency.all.filterNot { it.code in listOf("AED", "USD", "EUR", "GBP", "INR", "SAR") }
+            .forEach { currency ->
+                if (normalized.contains(currency.symbol)) {
+                    val placeholder = "🪙${placeholderIndex++}🪙"
+                    replacements[placeholder] = currency.code
+                    normalized = normalized.replace(currency.symbol, placeholder)
+                }
+            }
+
+        // Second pass: Replace placeholders with actual currency codes
+        replacements.forEach { (placeholder, code) ->
+            normalized = normalized.replace(placeholder, code)
         }
 
         return normalized

@@ -1,0 +1,197 @@
+{
+  "version": "1.0.0",
+  "description": "Currency formatting test cases for consistent display",
+  "last_updated": "2025-01-29",
+  "formatting_rules": {
+    "decimal_separator": ".",
+    "grouping_separator": ",",
+    "default_decimal_places": 2,
+    "always_show_decimals": true,
+    "use_grouping": true
+  },
+  "test_cases": [
+    {
+      "id": "aed_standard",
+      "amount": 1234.56,
+      "currency": "AED",
+      "expected_with_symbol": "د.إ 1,234.56",
+      "expected_without_symbol": "1,234.56",
+      "expected_compact": "د.إ 1.2K",
+      "description": "Standard AED formatting"
+    },
+    {
+      "id": "aed_zero",
+      "amount": 0.00,
+      "currency": "AED",
+      "expected_with_symbol": "د.إ 0.00",
+      "expected_without_symbol": "0.00",
+      "expected_compact": "د.إ 0",
+      "description": "Zero amount AED"
+    },
+    {
+      "id": "aed_large",
+      "amount": 1000000.00,
+      "currency": "AED",
+      "expected_with_symbol": "د.إ 1,000,000.00",
+      "expected_without_symbol": "1,000,000.00",
+      "expected_compact": "د.إ 1M",
+      "description": "Large amount AED (1 million)"
+    },
+    {
+      "id": "usd_standard",
+      "amount": 1234.56,
+      "currency": "USD",
+      "expected_with_symbol": "$1,234.56",
+      "expected_without_symbol": "1,234.56",
+      "expected_compact": "$1.2K",
+      "description": "Standard USD formatting"
+    },
+    {
+      "id": "usd_zero",
+      "amount": 0.00,
+      "currency": "USD",
+      "expected_with_symbol": "$0.00",
+      "expected_without_symbol": "0.00",
+      "expected_compact": "$0",
+      "description": "Zero amount USD"
+    },
+    {
+      "id": "usd_small",
+      "amount": 5.50,
+      "currency": "USD",
+      "expected_with_symbol": "$5.50",
+      "expected_without_symbol": "5.50",
+      "expected_compact": "$5.50",
+      "description": "Small amount USD"
+    },
+    {
+      "id": "eur_standard",
+      "amount": 999.99,
+      "currency": "EUR",
+      "expected_with_symbol": "€999.99",
+      "expected_without_symbol": "999.99",
+      "expected_compact": "€1.0K",
+      "description": "Standard EUR formatting"
+    },
+    {
+      "id": "gbp_standard",
+      "amount": 50.00,
+      "currency": "GBP",
+      "expected_with_symbol": "£50.00",
+      "expected_without_symbol": "50.00",
+      "expected_compact": "£50",
+      "description": "Standard GBP formatting"
+    },
+    {
+      "id": "inr_standard",
+      "amount": 500.00,
+      "currency": "INR",
+      "expected_with_symbol": "₹500.00",
+      "expected_without_symbol": "500.00",
+      "expected_compact": "₹500",
+      "description": "Standard INR formatting"
+    },
+    {
+      "id": "sar_standard",
+      "amount": 100.00,
+      "currency": "SAR",
+      "expected_with_symbol": "﷼100.00",
+      "expected_without_symbol": "100.00",
+      "expected_compact": "﷼100",
+      "description": "Standard SAR formatting"
+    },
+    {
+      "id": "jpy_no_decimals",
+      "amount": 1000,
+      "currency": "JPY",
+      "expected_with_symbol": "¥1,000",
+      "expected_without_symbol": "1,000",
+      "expected_compact": "¥1K",
+      "description": "JPY formatting (no decimal places)"
+    },
+    {
+      "id": "krw_no_decimals",
+      "amount": 50000,
+      "currency": "KRW",
+      "expected_with_symbol": "₩50,000",
+      "expected_without_symbol": "50,000",
+      "expected_compact": "₩50K",
+      "description": "KRW formatting (no decimal places)"
+    },
+    {
+      "id": "bhd_three_decimals",
+      "amount": 100.567,
+      "currency": "BHD",
+      "expected_with_symbol": ".د.ب 100.567",
+      "expected_without_symbol": "100.567",
+      "expected_compact": ".د.ب 101",
+      "description": "BHD formatting (3 decimal places)"
+    },
+    {
+      "id": "kwd_three_decimals",
+      "amount": 50.123,
+      "currency": "KWD",
+      "expected_with_symbol": "د.ك 50.123",
+      "expected_without_symbol": "50.123",
+      "expected_compact": "د.ك 50",
+      "description": "KWD formatting (3 decimal places)"
+    },
+    {
+      "id": "omr_three_decimals",
+      "amount": 25.456,
+      "currency": "OMR",
+      "expected_with_symbol": "ر.ع. 25.456",
+      "expected_without_symbol": "25.456",
+      "expected_compact": "ر.ع. 25",
+      "description": "OMR formatting (3 decimal places)"
+    },
+    {
+      "id": "rounding_up",
+      "amount": 1234.566,
+      "currency": "USD",
+      "expected_with_symbol": "$1,234.57",
+      "expected_without_symbol": "1,234.57",
+      "description": "Rounding up test"
+    },
+    {
+      "id": "rounding_down",
+      "amount": 1234.564,
+      "currency": "USD",
+      "expected_with_symbol": "$1,234.56",
+      "expected_without_symbol": "1,234.56",
+      "description": "Rounding down test"
+    },
+    {
+      "id": "very_small_amount",
+      "amount": 0.01,
+      "currency": "USD",
+      "expected_with_symbol": "$0.01",
+      "expected_without_symbol": "0.01",
+      "expected_compact": "$0.01",
+      "description": "Very small amount (1 cent)"
+    },
+    {
+      "id": "very_large_amount",
+      "amount": 9999999.99,
+      "currency": "USD",
+      "expected_with_symbol": "$9,999,999.99",
+      "expected_without_symbol": "9,999,999.99",
+      "expected_compact": "$10M",
+      "description": "Very large amount (near max)"
+    }
+  ],
+  "compact_formatting_rules": {
+    "description": "Rules for compact (abbreviated) formatting",
+    "thresholds": {
+      "K": 1000,
+      "M": 1000000,
+      "B": 1000000000
+    },
+    "decimal_places_compact": 1,
+    "examples": {
+      "1234": "1.2K",
+      "1234567": "1.2M",
+      "1234567890": "1.2B"
+    }
+  }
+}

@@ -1,0 +1,781 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive voice recognition test data for all currencies",
+  "last_updated": "2025-01-29",
+  "test_suites": {
+    "currency_detection": {
+      "description": "Test cases for detecting currencies from voice input",
+      "tests": [
+        {
+          "id": "aed_dirham_keyword",
+          "input": "I spent 100 dirhams on groceries",
+          "expected_currency": "AED",
+          "expected_amount": 100.0,
+          "description": "Detect AED from 'dirhams' keyword"
+        },
+        {
+          "id": "aed_dirhams_plural",
+          "input": "paid 50 dirhams for taxi",
+          "expected_currency": "AED",
+          "expected_amount": 50.0,
+          "description": "Detect AED from 'dirhams' plural"
+        },
+        {
+          "id": "aed_arabic_symbol",
+          "input": "spent د.إ 100 at the mall",
+          "expected_currency": "AED",
+          "expected_amount": 100.0,
+          "description": "Detect AED from Arabic symbol د.إ"
+        },
+        {
+          "id": "aed_code",
+          "input": "AED 100 for shopping",
+          "expected_currency": "AED",
+          "expected_amount": 100.0,
+          "description": "Detect AED from ISO code"
+        },
+        {
+          "id": "aed_emirati_dirham",
+          "input": "I spent 100 emirati dirhams",
+          "expected_currency": "AED",
+          "expected_amount": 100.0,
+          "description": "Detect AED from 'emirati dirhams' variation"
+        },
+        {
+          "id": "usd_dollar_keyword",
+          "input": "spent 50 dollars at Starbucks",
+          "expected_currency": "USD",
+          "expected_amount": 50.0,
+          "description": "Detect USD from 'dollars' keyword"
+        },
+        {
+          "id": "usd_dollars_plural",
+          "input": "paid 100 dollars for dinner",
+          "expected_currency": "USD",
+          "expected_amount": 100.0,
+          "description": "Detect USD from 'dollars' plural"
+        },
+        {
+          "id": "usd_symbol",
+          "input": "spent $50 on lunch",
+          "expected_currency": "USD",
+          "expected_amount": 50.0,
+          "description": "Detect USD from $ symbol"
+        },
+        {
+          "id": "usd_buck_slang",
+          "input": "that cost me 20 bucks",
+          "expected_currency": "USD",
+          "expected_amount": 20.0,
+          "description": "Detect USD from 'bucks' slang"
+        },
+        {
+          "id": "usd_us_dollars",
+          "input": "I spent 100 US dollars",
+          "expected_currency": "USD",
+          "expected_amount": 100.0,
+          "description": "Detect USD from 'US dollars' compound"
+        },
+        {
+          "id": "eur_euro_keyword",
+          "input": "I paid 75 euros for the ticket",
+          "expected_currency": "EUR",
+          "expected_amount": 75.0,
+          "description": "Detect EUR from 'euros' keyword"
+        },
+        {
+          "id": "eur_symbol",
+          "input": "spent €50 at the restaurant",
+          "expected_currency": "EUR",
+          "expected_amount": 50.0,
+          "description": "Detect EUR from € symbol"
+        },
+        {
+          "id": "gbp_pound_keyword",
+          "input": "I spent 45 pounds on groceries",
+          "expected_currency": "GBP",
+          "expected_amount": 45.0,
+          "description": "Detect GBP from 'pounds' keyword"
+        },
+        {
+          "id": "gbp_quid_slang",
+          "input": "that'll be 20 quid",
+          "expected_currency": "GBP",
+          "expected_amount": 20.0,
+          "description": "Detect GBP from 'quid' slang"
+        },
+        {
+          "id": "gbp_symbol",
+          "input": "spent £100 at Marks and Spencer",
+          "expected_currency": "GBP",
+          "expected_amount": 100.0,
+          "description": "Detect GBP from £ symbol"
+        },
+        {
+          "id": "gbp_british_pounds",
+          "input": "I spent 45 british pounds",
+          "expected_currency": "GBP",
+          "expected_amount": 45.0,
+          "description": "Detect GBP from 'british pounds' variation"
+        },
+        {
+          "id": "inr_rupee_keyword",
+          "input": "I paid 500 rupees for the ride",
+          "expected_currency": "INR",
+          "expected_amount": 500.0,
+          "description": "Detect INR from 'rupees' keyword"
+        },
+        {
+          "id": "inr_symbol",
+          "input": "spent ₹500 on groceries",
+          "expected_currency": "INR",
+          "expected_amount": 500.0,
+          "description": "Detect INR from ₹ symbol"
+        },
+        {
+          "id": "inr_symbol_no_space",
+          "input": "I just spent ₹20",
+          "expected_currency": "INR",
+          "expected_amount": 20.0,
+          "description": "Detect INR from ₹ symbol without space"
+        },
+        {
+          "id": "inr_rs_abbreviation",
+          "input": "I spent Rs 500 on groceries",
+          "expected_currency": "INR",
+          "expected_amount": 500.0,
+          "description": "Detect INR from Rs abbreviation"
+        },
+        {
+          "id": "inr_alternative_symbol",
+          "input": "I spent ₨500 on groceries",
+          "expected_currency": "INR",
+          "expected_amount": 500.0,
+          "description": "Detect INR from alternative ₨ symbol"
+        },
+        {
+          "id": "sar_riyal_keyword",
+          "input": "I spent 100 riyals at the mall",
+          "expected_currency": "SAR",
+          "expected_amount": 100.0,
+          "description": "Detect SAR from 'riyals' keyword"
+        },
+        {
+          "id": "sar_symbol",
+          "input": "paid ﷼100 for the service",
+          "expected_currency": "SAR",
+          "expected_amount": 100.0,
+          "description": "Detect SAR from ﷼ symbol"
+        },
+        {
+          "id": "jpy_yen_keyword",
+          "input": "I spent 1000 yen on sushi",
+          "expected_currency": "JPY",
+          "expected_amount": 1000.0,
+          "description": "Detect JPY from 'yen' keyword"
+        },
+        {
+          "id": "jpy_symbol",
+          "input": "paid ¥5000 for hotel",
+          "expected_currency": "JPY",
+          "expected_amount": 5000.0,
+          "description": "Detect JPY from ¥ symbol"
+        },
+        {
+          "id": "cny_yuan_keyword",
+          "input": "I spent 500 yuan on shopping",
+          "expected_currency": "CNY",
+          "expected_amount": 500.0,
+          "description": "Detect CNY from 'yuan' keyword"
+        },
+        {
+          "id": "cny_renminbi_keyword",
+          "input": "paid 300 renminbi for dinner",
+          "expected_currency": "CNY",
+          "expected_amount": 300.0,
+          "description": "Detect CNY from 'renminbi' keyword"
+        },
+        {
+          "id": "cad_canadian_dollar",
+          "input": "I spent 75 canadian dollars",
+          "expected_currency": "CAD",
+          "expected_amount": 75.0,
+          "description": "Detect CAD from 'canadian dollars'"
+        },
+        {
+          "id": "cad_loonie_keyword",
+          "input": "that cost 20 loonies",
+          "expected_currency": "CAD",
+          "expected_amount": 20.0,
+          "description": "Detect CAD from 'loonies' slang"
+        },
+        {
+          "id": "aud_australian_dollar",
+          "input": "I paid 150 australian dollars",
+          "expected_currency": "AUD",
+          "expected_amount": 150.0,
+          "description": "Detect AUD from 'australian dollars'"
+        },
+        {
+          "id": "aud_aussie_dollar",
+          "input": "spent 50 aussie dollars",
+          "expected_currency": "AUD",
+          "expected_amount": 50.0,
+          "description": "Detect AUD from 'aussie dollars'"
+        },
+        {
+          "id": "chf_swiss_franc",
+          "input": "I spent 100 swiss francs on watch",
+          "expected_currency": "CHF",
+          "expected_amount": 100.0,
+          "description": "Detect CHF from 'swiss francs'"
+        },
+        {
+          "id": "chf_franc_keyword",
+          "input": "paid 200 francs at Geneva",
+          "expected_currency": "CHF",
+          "expected_amount": 200.0,
+          "description": "Detect CHF from 'francs' with context"
+        },
+        {
+          "id": "sek_krona_keyword",
+          "input": "I spent 500 swedish krona",
+          "expected_currency": "SEK",
+          "expected_amount": 500.0,
+          "description": "Detect SEK from 'swedish krona'"
+        },
+        {
+          "id": "nok_norwegian_krone",
+          "input": "paid 400 norwegian krone",
+          "expected_currency": "NOK",
+          "expected_amount": 400.0,
+          "description": "Detect NOK from 'norwegian krone'"
+        },
+        {
+          "id": "dkk_danish_krone",
+          "input": "I spent 300 danish krone",
+          "expected_currency": "DKK",
+          "expected_amount": 300.0,
+          "description": "Detect DKK from 'danish krone'"
+        },
+        {
+          "id": "nzd_new_zealand_dollar",
+          "input": "paid 80 new zealand dollars",
+          "expected_currency": "NZD",
+          "expected_amount": 80.0,
+          "description": "Detect NZD from 'new zealand dollars'"
+        },
+        {
+          "id": "nzd_kiwi_dollar",
+          "input": "spent 50 kiwi dollars",
+          "expected_currency": "NZD",
+          "expected_amount": 50.0,
+          "description": "Detect NZD from 'kiwi dollars' slang"
+        },
+        {
+          "id": "sgd_singapore_dollar",
+          "input": "I paid 120 singapore dollars",
+          "expected_currency": "SGD",
+          "expected_amount": 120.0,
+          "description": "Detect SGD from 'singapore dollars'"
+        },
+        {
+          "id": "hkd_hong_kong_dollar",
+          "input": "spent 500 hong kong dollars",
+          "expected_currency": "HKD",
+          "expected_amount": 500.0,
+          "description": "Detect HKD from 'hong kong dollars'"
+        },
+        {
+          "id": "krw_won_keyword",
+          "input": "I spent 50000 won in Seoul",
+          "expected_currency": "KRW",
+          "expected_amount": 50000.0,
+          "description": "Detect KRW from 'won' keyword"
+        },
+        {
+          "id": "krw_korean_won",
+          "input": "paid 25000 korean won",
+          "expected_currency": "KRW",
+          "expected_amount": 25000.0,
+          "description": "Detect KRW from 'korean won'"
+        },
+        {
+          "id": "brl_real_keyword",
+          "input": "I spent 200 reais on groceries",
+          "expected_currency": "BRL",
+          "expected_amount": 200.0,
+          "description": "Detect BRL from 'reais' keyword"
+        },
+        {
+          "id": "brl_brazilian_real",
+          "input": "paid 150 brazilian real",
+          "expected_currency": "BRL",
+          "expected_amount": 150.0,
+          "description": "Detect BRL from 'brazilian real'"
+        },
+        {
+          "id": "mxn_peso_keyword",
+          "input": "I spent 500 pesos in Mexico",
+          "expected_currency": "MXN",
+          "expected_amount": 500.0,
+          "description": "Detect MXN from 'pesos' keyword"
+        },
+        {
+          "id": "mxn_mexican_peso",
+          "input": "paid 300 mexican pesos",
+          "expected_currency": "MXN",
+          "expected_amount": 300.0,
+          "description": "Detect MXN from 'mexican pesos'"
+        },
+        {
+          "id": "rub_ruble_keyword",
+          "input": "I spent 5000 rubles in Moscow",
+          "expected_currency": "RUB",
+          "expected_amount": 5000.0,
+          "description": "Detect RUB from 'rubles' keyword"
+        },
+        {
+          "id": "rub_rouble_keyword",
+          "input": "paid 3000 roubles for hotel",
+          "expected_currency": "RUB",
+          "expected_amount": 3000.0,
+          "description": "Detect RUB from 'roubles' variant"
+        },
+        {
+          "id": "zar_rand_keyword",
+          "input": "I spent 800 rand in Cape Town",
+          "expected_currency": "ZAR",
+          "expected_amount": 800.0,
+          "description": "Detect ZAR from 'rand' keyword"
+        },
+        {
+          "id": "zar_south_african_rand",
+          "input": "paid 500 south african rand",
+          "expected_currency": "ZAR",
+          "expected_amount": 500.0,
+          "description": "Detect ZAR from 'south african rand'"
+        },
+        {
+          "id": "thb_baht_keyword",
+          "input": "I spent 2000 baht in Bangkok",
+          "expected_currency": "THB",
+          "expected_amount": 2000.0,
+          "description": "Detect THB from 'baht' keyword"
+        },
+        {
+          "id": "myr_ringgit_keyword",
+          "input": "paid 300 ringgit in Kuala Lumpur",
+          "expected_currency": "MYR",
+          "expected_amount": 300.0,
+          "description": "Detect MYR from 'ringgit' keyword"
+        },
+        {
+          "id": "idr_rupiah_keyword",
+          "input": "I spent 500000 rupiah in Bali",
+          "expected_currency": "IDR",
+          "expected_amount": 500000.0,
+          "description": "Detect IDR from 'rupiah' keyword"
+        },
+        {
+          "id": "php_philippine_peso",
+          "input": "paid 2000 philippine pesos",
+          "expected_currency": "PHP",
+          "expected_amount": 2000.0,
+          "description": "Detect PHP from 'philippine pesos'"
+        },
+        {
+          "id": "vnd_dong_keyword",
+          "input": "I spent 500000 dong in Hanoi",
+          "expected_currency": "VND",
+          "expected_amount": 500000.0,
+          "description": "Detect VND from 'dong' keyword"
+        },
+        {
+          "id": "try_lira_keyword",
+          "input": "I spent 500 liras in Istanbul",
+          "expected_currency": "TRY",
+          "expected_amount": 500.0,
+          "description": "Detect TRY from 'liras' keyword"
+        },
+        {
+          "id": "try_turkish_lira",
+          "input": "paid 300 turkish lira",
+          "expected_currency": "TRY",
+          "expected_amount": 300.0,
+          "description": "Detect TRY from 'turkish lira'"
+        },
+        {
+          "id": "pln_zloty_keyword",
+          "input": "I spent 400 zlotys in Warsaw",
+          "expected_currency": "PLN",
+          "expected_amount": 400.0,
+          "description": "Detect PLN from 'zlotys' keyword"
+        },
+        {
+          "id": "czk_koruna_keyword",
+          "input": "paid 1000 korunas in Prague",
+          "expected_currency": "CZK",
+          "expected_amount": 1000.0,
+          "description": "Detect CZK from 'korunas' keyword"
+        },
+        {
+          "id": "czk_crown_keyword",
+          "input": "I spent 500 crowns on dinner",
+          "expected_currency": "CZK",
+          "expected_amount": 500.0,
+          "description": "Detect CZK from 'crowns' keyword"
+        },
+        {
+          "id": "huf_forint_keyword",
+          "input": "paid 15000 forints in Budapest",
+          "expected_currency": "HUF",
+          "expected_amount": 15000.0,
+          "description": "Detect HUF from 'forints' keyword"
+        },
+        {
+          "id": "ron_leu_keyword",
+          "input": "I spent 200 lei in Bucharest",
+          "expected_currency": "RON",
+          "expected_amount": 200.0,
+          "description": "Detect RON from 'lei' keyword"
+        },
+        {
+          "id": "ron_romanian_leu",
+          "input": "paid 150 romanian leu",
+          "expected_currency": "RON",
+          "expected_amount": 150.0,
+          "description": "Detect RON from 'romanian leu'"
+        },
+        {
+          "id": "bhd_bahraini_dinar",
+          "input": "I spent 50 bahraini dinars",
+          "expected_currency": "BHD",
+          "expected_amount": 50.0,
+          "description": "Detect BHD from 'bahraini dinars'"
+        },
+        {
+          "id": "kwd_kuwaiti_dinar",
+          "input": "paid 30 kuwaiti dinars",
+          "expected_currency": "KWD",
+          "expected_amount": 30.0,
+          "description": "Detect KWD from 'kuwaiti dinars'"
+        },
+        {
+          "id": "omr_omani_rial",
+          "input": "I spent 40 omani rials",
+          "expected_currency": "OMR",
+          "expected_amount": 40.0,
+          "description": "Detect OMR from 'omani rials'"
+        },
+        {
+          "id": "qar_qatari_riyal",
+          "input": "paid 200 qatari riyals",
+          "expected_currency": "QAR",
+          "expected_amount": 200.0,
+          "description": "Detect QAR from 'qatari riyals'"
+        }
+      ]
+    },
+    "amount_extraction": {
+      "description": "Test cases for extracting amounts from voice input",
+      "tests": [
+        {
+          "id": "decimal_amount",
+          "input": "I paid 99.99 dollars at Amazon",
+          "expected_amount": 99.99,
+          "expected_currency": "USD",
+          "description": "Extract decimal amount"
+        },
+        {
+          "id": "small_decimal",
+          "input": "that's 5.50 dollars",
+          "expected_amount": 5.50,
+          "expected_currency": "USD",
+          "description": "Extract small decimal amount"
+        },
+        {
+          "id": "large_amount",
+          "input": "I paid 1234.56 euros for the laptop",
+          "expected_amount": 1234.56,
+          "expected_currency": "EUR",
+          "description": "Extract large decimal amount"
+        },
+        {
+          "id": "symbol_before_amount",
+          "input": "I spent $50 on coffee",
+          "expected_amount": 50.0,
+          "expected_currency": "USD",
+          "description": "Extract amount when currency symbol is before"
+        },
+        {
+          "id": "symbol_no_space",
+          "input": "I just spent ₹20",
+          "expected_amount": 20.0,
+          "expected_currency": "INR",
+          "description": "Extract amount with symbol and no space"
+        },
+        {
+          "id": "rs_abbreviation",
+          "input": "I spent Rs 500 on groceries",
+          "expected_amount": 500.0,
+          "expected_currency": "INR",
+          "description": "Extract amount with Rs abbreviation"
+        },
+        {
+          "id": "trailing_zeros",
+          "input": "spent 50.00 dollars",
+          "expected_amount": 50.0,
+          "expected_currency": "USD",
+          "description": "Handle trailing zeros in amount"
+        },
+        {
+          "id": "leading_zeros",
+          "input": "spent 050 dollars",
+          "expected_amount": 50.0,
+          "expected_currency": "USD",
+          "description": "Handle leading zeros in amount"
+        },
+        {
+          "id": "zero_amount",
+          "input": "I spent 0 dollars",
+          "expected_amount": 0.0,
+          "expected_currency": "USD",
+          "description": "Handle zero amount"
+        }
+      ]
+    },
+    "written_numbers": {
+      "description": "Test cases for written/spelled-out numbers",
+      "tests": [
+        {
+          "id": "written_twenty",
+          "input": "I spent twenty dollars on food",
+          "expected_amount": 20.0,
+          "expected_currency": "USD",
+          "description": "Extract written number 'twenty'"
+        },
+        {
+          "id": "written_fifty",
+          "input": "I spent fifty dirhams on groceries",
+          "expected_amount": 50.0,
+          "expected_currency": "AED",
+          "description": "Extract written number 'fifty'"
+        },
+        {
+          "id": "written_one_hundred",
+          "input": "I spent one hundred euros on shopping",
+          "expected_amount": 100.0,
+          "expected_currency": "EUR",
+          "description": "Extract written number 'one hundred'"
+        }
+      ]
+    },
+    "real_world_scenarios": {
+      "description": "Real-world voice command patterns",
+      "tests": [
+        {
+          "id": "typical_aed_groceries",
+          "input": "I just spent 150 dirhams on groceries at Carrefour",
+          "expected_amount": 150.0,
+          "expected_currency": "AED",
+          "expected_category": "Grocery",
+          "expected_merchant": "Carrefour",
+          "description": "Typical AED grocery expense with merchant"
+        },
+        {
+          "id": "typical_usd_merchant",
+          "input": "I spent 45 dollars at McDonald's",
+          "expected_amount": 45.0,
+          "expected_currency": "USD",
+          "expected_category": "Food & Dining",
+          "expected_merchant": "McDonald's",
+          "description": "Typical USD expense with merchant"
+        },
+        {
+          "id": "typical_eur_category",
+          "input": "paid 65 euros at pharmacy for medication",
+          "expected_amount": 65.0,
+          "expected_currency": "EUR",
+          "expected_category": "Healthcare",
+          "expected_merchant": "pharmacy",
+          "description": "EUR expense with category context"
+        },
+        {
+          "id": "typical_aed_transport",
+          "input": "spent 200 dirhams for gas at ENOC",
+          "expected_amount": 200.0,
+          "expected_currency": "AED",
+          "expected_category": "Transportation",
+          "expected_merchant": "ENOC",
+          "description": "AED transportation expense"
+        },
+        {
+          "id": "complex_decimal_aed",
+          "input": "I just spent 130 dirhams and 50 fils at VOX Cinemas",
+          "expected_amount": 130.0,
+          "expected_currency": "AED",
+          "expected_category": "Entertainment",
+          "expected_merchant": "VOX Cinemas",
+          "description": "Complex decimal expressed as 'dirhams and fils'"
+        }
+      ]
+    },
+    "edge_cases": {
+      "description": "Edge cases and error scenarios",
+      "tests": [
+        {
+          "id": "empty_string",
+          "input": "",
+          "expected_amount": null,
+          "expected_currency": null,
+          "description": "Empty input string"
+        },
+        {
+          "id": "whitespace_only",
+          "input": "   ",
+          "expected_amount": null,
+          "expected_currency": null,
+          "description": "Whitespace only"
+        },
+        {
+          "id": "no_amount",
+          "input": "I spent some money on groceries",
+          "expected_amount": null,
+          "expected_currency": null,
+          "description": "No amount detected"
+        },
+        {
+          "id": "no_currency_use_default",
+          "input": "I spent 75 on groceries",
+          "expected_amount": 75.0,
+          "expected_currency": "use_default",
+          "description": "No currency specified, should use default"
+        },
+        {
+          "id": "case_insensitive_upper",
+          "input": "I spent 50 DOLLARS on groceries",
+          "expected_amount": 50.0,
+          "expected_currency": "USD",
+          "description": "Case insensitive detection (uppercase)"
+        },
+        {
+          "id": "case_insensitive_mixed",
+          "input": "I spent 50 DoLLaRs on groceries",
+          "expected_amount": 50.0,
+          "expected_currency": "USD",
+          "description": "Case insensitive detection (mixed case)"
+        },
+        {
+          "id": "multiple_currencies_first_wins",
+          "input": "I spent 50 dollars and 30 euros",
+          "expected_amount": 50.0,
+          "expected_currency": "USD",
+          "description": "Multiple currencies mentioned, first one wins"
+        },
+        {
+          "id": "explicit_over_default",
+          "input": "I spent 50 euros on dinner",
+          "expected_amount": 50.0,
+          "expected_currency": "EUR",
+          "default_currency": "USD",
+          "description": "Explicit currency should override default"
+        }
+      ]
+    },
+    "symbol_normalization": {
+      "description": "Currency symbol normalization tests",
+      "tests": [
+        {
+          "id": "normalize_aed_symbol",
+          "input": "I spent د.إ 100 on groceries",
+          "normalized_output": "I spent AED 100 on groceries",
+          "description": "Normalize AED symbol to code"
+        },
+        {
+          "id": "normalize_usd_symbol",
+          "input": "I paid $50 for lunch",
+          "normalized_output": "I paid USD50 for lunch",
+          "description": "Normalize USD symbol to code"
+        },
+        {
+          "id": "normalize_eur_symbol",
+          "input": "spent €75 at the restaurant",
+          "normalized_output": "spent EUR75 at the restaurant",
+          "description": "Normalize EUR symbol to code"
+        },
+        {
+          "id": "normalize_gbp_symbol",
+          "input": "paid £45 for the ticket",
+          "normalized_output": "paid GBP45 for the ticket",
+          "description": "Normalize GBP symbol to code"
+        },
+        {
+          "id": "normalize_inr_symbol",
+          "input": "spent ₹500 on shopping",
+          "normalized_output": "spent INR500 on shopping",
+          "description": "Normalize INR symbol to code"
+        },
+        {
+          "id": "normalize_multiple_symbols",
+          "input": "I have $100 and €50",
+          "normalized_output": "I have USD100 and EUR50",
+          "description": "Normalize multiple symbols"
+        }
+      ]
+    },
+    "disambiguation": {
+      "description": "Tests for disambiguating similar currency keywords",
+      "tests": [
+        {
+          "id": "swiss_franc_not_other_franc",
+          "input": "I spent swiss francs",
+          "expected_currency": "CHF",
+          "description": "Swiss franc should win over generic franc"
+        },
+        {
+          "id": "canadian_dollar_not_usd",
+          "input": "paid in canadian dollars",
+          "expected_currency": "CAD",
+          "description": "Canadian dollar should not match USD"
+        },
+        {
+          "id": "indian_rupees_not_idr",
+          "input": "used indian rupees",
+          "expected_currency": "INR",
+          "description": "Indian rupees should not match IDR"
+        },
+        {
+          "id": "norwegian_krone_not_other_krone",
+          "input": "bought with norwegian krone",
+          "expected_currency": "NOK",
+          "description": "Norwegian krone should not match DKK/SEK"
+        },
+        {
+          "id": "bahraini_dinar_not_other_dinar",
+          "input": "paid bahraini dinars",
+          "expected_currency": "BHD",
+          "description": "Bahraini dinar should not match KWD"
+        },
+        {
+          "id": "omani_rial_not_qar",
+          "input": "spent omani rials",
+          "expected_currency": "OMR",
+          "description": "Omani rial should not match QAR"
+        },
+        {
+          "id": "mexican_peso_not_php",
+          "input": "used mexican pesos",
+          "expected_currency": "MXN",
+          "description": "Mexican peso should not match PHP"
+        },
+        {
+          "id": "common_currency_priority",
+          "input": "I spent dollars",
+          "expected_currency": "USD",
+          "description": "USD should be detected over AUD/CAD/HKD when ambiguous"
+        }
+      ]
+    }
+  }
+}

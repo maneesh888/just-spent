@@ -115,16 +115,20 @@ enum AppConstants {
     }
 
     // MARK: - Currency
-    enum Currency {
-        static let defaultCurrency = "USD"
+    // MARK: - Currency Defaults (Dynamic - loads from currencies.json)
+    // Note: Renamed from "Currency" to avoid conflict with the Currency model
+    enum CurrencyDefaults {
+        /// Default currency based on device locale
+        /// Dynamically determined from Currency.default (no hardcoded values)
+        static var defaultCurrency: String {
+            return Currency.default.code
+        }
 
-        static let supportedCurrencies = [
-            "USD",
-            "AED",
-            "EUR",
-            "GBP",
-            "INR"
-        ]
+        /// Common currencies for onboarding UI
+        /// Dynamically loaded from Currency.common (no hardcoded values)
+        static var supportedCurrencies: [String] {
+            return Currency.common.map { $0.code }
+        }
     }
 
     // MARK: - Expense Source

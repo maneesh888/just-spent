@@ -1,7 +1,9 @@
 package com.justspent.app.voice
 
+import com.justspent.app.data.model.Currency
 import com.justspent.app.data.model.ExpenseData
 import com.justspent.app.utils.NumberPhraseParser
+import com.justspent.app.utils.VoiceCurrencyDetector
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -23,13 +25,14 @@ class VoiceCommandProcessor @Inject constructor() {
      */
     fun processVoiceCommand(
         command: String,
-        locale: Locale = Locale.getDefault()
+        locale: Locale = Locale.getDefault(),
+        defaultCurrency: String = "USD"
     ): Result<ExpenseData> {
         return try {
             val cleanCommand = command.trim().lowercase()
-            
+
             val amount = extractAmount(cleanCommand)
-            val currency = extractCurrency(cleanCommand, locale)
+            val currency = extractCurrency(cleanCommand, locale, defaultCurrency)
             val category = extractCategory(cleanCommand)
             val merchant = extractMerchant(cleanCommand)
             val notes = extractNotes(cleanCommand)
@@ -64,8 +67,13 @@ class VoiceCommandProcessor @Inject constructor() {
         // Patterns for different amount formats (ordered by specificity)
         // FIXED: Changed \d{1,3} to \d+ to handle any number of digits (e.g., 1000, 25000, etc.)
         val patterns = listOf(
-            // Currency symbol formats: $25.50, $25, $1,234.56, $1000
+            // Currency symbol formats: $25.50, ₹20, Rs 500, ₨250
             Regex("""\$(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""₹\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""₨\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""[Rr]s\.?\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""€(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
+            Regex("""£(\d+(?:,\d{3})*(?:\.\d{1,2})?)"""),
 
             // With currency name and decimals: 25.50 dollars, 1,234.56 dollars, 1000.50 dirhams
             Regex("""(\d+(?:,\d{3})*\.\d{1,2})\s*dollars?""", RegexOption.IGNORE_CASE),
@@ -117,27 +125,17 @@ class VoiceCommandProcessor @Inject constructor() {
     }
     
     /**
-     * Extract currency from command or determine from locale
+     * Extract currency from command, using user's default currency as fallback
+     * Uses VoiceCurrencyDetector for comprehensive currency detection
      */
-    private fun extractCurrency(command: String, locale: Locale): String {
-        return when {
-            command.contains("dollars?".toRegex()) || command.contains("$") -> "USD"
-            command.contains("AED|aed|dirhams?".toRegex()) -> "AED"
-            command.contains("euros?".toRegex()) || command.contains("€") -> "EUR"
-            command.contains("pounds?".toRegex()) || command.contains("£") -> "GBP"
-            command.contains("rupees?".toRegex()) || command.contains("₹") -> "INR"
-            command.contains("riyals?".toRegex()) -> "SAR"
-            else -> {
-                // Determine from locale
-                when (locale.country) {
-                    "AE" -> "AED"
-                    "GB" -> "GBP"
-                    "IN" -> "INR"
-                    "SA" -> "SAR"
-                    else -> "USD" // Default
-                }
-            }
-        }
+    private fun extractCurrency(command: String, locale: Locale, defaultCurrency: String): String {
+        // Convert user's default currency code to Currency object
+        val defaultCurrencyObj = Currency.fromCode(defaultCurrency) ?: Currency.USD
+
+        // Use VoiceCurrencyDetector for comprehensive detection
+        // Supports: symbols (₹, Rs, ₨, $, €, etc.), keywords (rupee, dollar, etc.), and ISO codes
+        val detectedCurrency = VoiceCurrencyDetector.detectCurrency(command, defaultCurrencyObj)
+        return detectedCurrency.code
     }
     
     /**
@@ -276,8 +274,8 @@ class VoiceCommandProcessor @Inject constructor() {
             throw IllegalArgumentException("Amount exceeds maximum limit")
         }
         
-        val supportedCurrencies = listOf("USD", "AED", "EUR", "GBP", "INR", "SAR")
-        if (!supportedCurrencies.contains(currency)) {
+        // Validate currency against dynamically loaded Currency system (160+ currencies)
+        if (Currency.fromCode(currency) == null) {
             throw IllegalArgumentException("Unsupported currency: $currency")
         }
         

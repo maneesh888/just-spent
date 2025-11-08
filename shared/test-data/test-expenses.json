@@ -1,0 +1,297 @@
+{
+  "version": "1.0.0",
+  "description": "Test expense data for UI and integration tests",
+  "last_updated": "2025-01-29",
+  "expense_sets": {
+    "single_currency_aed": {
+      "description": "Basic test set with 5 AED expenses",
+      "expected_total": 650.50,
+      "currency": "AED",
+      "expenses": [
+        {
+          "amount": 150.00,
+          "currency": "AED",
+          "category": "Grocery",
+          "merchant": "Carrefour",
+          "notes": "Weekly groceries",
+          "days_ago": 0,
+          "source": "voice",
+          "voice_transcript": "I spent 150 dirhams on groceries at Carrefour"
+        },
+        {
+          "amount": 50.00,
+          "currency": "AED",
+          "category": "Food & Dining",
+          "merchant": "Starbucks",
+          "notes": "Morning coffee",
+          "days_ago": 1,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 200.00,
+          "currency": "AED",
+          "category": "Transportation",
+          "merchant": "ENOC",
+          "notes": "Gas refill",
+          "days_ago": 2,
+          "source": "voice",
+          "voice_transcript": "200 dirhams for gas"
+        },
+        {
+          "amount": 120.00,
+          "currency": "AED",
+          "category": "Shopping",
+          "merchant": "H&M",
+          "notes": "Clothes shopping",
+          "days_ago": 3,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 130.50,
+          "currency": "AED",
+          "category": "Entertainment",
+          "merchant": "VOX Cinemas",
+          "notes": "Movie tickets",
+          "days_ago": 5,
+          "source": "voice",
+          "voice_transcript": "I just spent 130 dirhams and 50 fils at VOX Cinemas"
+        }
+      ]
+    },
+    "multi_currency": {
+      "description": "Comprehensive multi-currency test set with 6 currencies",
+      "currencies": ["AED", "USD", "EUR", "GBP", "INR", "SAR"],
+      "currency_totals": {
+        "AED": 650.50,
+        "USD": 285.99,
+        "EUR": 198.50,
+        "GBP": 89.99,
+        "INR": 700.00,
+        "SAR": 105.00
+      },
+      "expenses": [
+        {
+          "amount": 150.00,
+          "currency": "AED",
+          "category": "Grocery",
+          "merchant": "Carrefour",
+          "notes": "Weekly groceries",
+          "days_ago": 0,
+          "source": "voice",
+          "voice_transcript": "I spent 150 dirhams on groceries at Carrefour"
+        },
+        {
+          "amount": 50.00,
+          "currency": "AED",
+          "category": "Food & Dining",
+          "merchant": "Starbucks",
+          "notes": "Morning coffee",
+          "days_ago": 1,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 200.00,
+          "currency": "AED",
+          "category": "Transportation",
+          "merchant": "ENOC",
+          "notes": "Gas refill",
+          "days_ago": 2,
+          "source": "voice",
+          "voice_transcript": "200 dirhams for gas"
+        },
+        {
+          "amount": 120.00,
+          "currency": "AED",
+          "category": "Shopping",
+          "merchant": "H&M",
+          "notes": "Clothes shopping",
+          "days_ago": 3,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 130.50,
+          "currency": "AED",
+          "category": "Entertainment",
+          "merchant": "VOX Cinemas",
+          "notes": "Movie tickets",
+          "days_ago": 5,
+          "source": "voice",
+          "voice_transcript": "I just spent 130 dirhams and 50 fils at VOX Cinemas"
+        },
+        {
+          "amount": 99.99,
+          "currency": "USD",
+          "category": "Shopping",
+          "merchant": "Amazon",
+          "notes": "Online shopping",
+          "days_ago": 0,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 45.00,
+          "currency": "USD",
+          "category": "Food & Dining",
+          "merchant": "McDonald's",
+          "notes": "Lunch",
+          "days_ago": 0,
+          "source": "voice",
+          "voice_transcript": "45 dollars at McDonald's"
+        },
+        {
+          "amount": 120.00,
+          "currency": "USD",
+          "category": "Bills & Utilities",
+          "merchant": "Electricity Company",
+          "notes": "Monthly electricity bill",
+          "days_ago": 1,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 21.00,
+          "currency": "USD",
+          "category": "Transportation",
+          "merchant": "Uber",
+          "notes": "Ride to office",
+          "days_ago": 1,
+          "source": "voice",
+          "voice_transcript": "I spent 21 dollars on Uber"
+        },
+        {
+          "amount": 78.50,
+          "currency": "EUR",
+          "category": "Food & Dining",
+          "merchant": "Local Restaurant",
+          "notes": "Dinner with friends",
+          "days_ago": 0,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 65.00,
+          "currency": "EUR",
+          "category": "Healthcare",
+          "merchant": "Pharmacy",
+          "notes": "Medication",
+          "days_ago": 1,
+          "source": "voice",
+          "voice_transcript": "65 euros at pharmacy"
+        },
+        {
+          "amount": 55.00,
+          "currency": "EUR",
+          "category": "Entertainment",
+          "merchant": "Concert Hall",
+          "notes": "Concert tickets",
+          "days_ago": 2,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 44.99,
+          "currency": "GBP",
+          "category": "Shopping",
+          "merchant": "Marks & Spencer",
+          "notes": "Groceries",
+          "days_ago": 1,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 45.00,
+          "currency": "GBP",
+          "category": "Transportation",
+          "merchant": "National Rail",
+          "notes": "Train ticket",
+          "days_ago": 3,
+          "source": "voice",
+          "voice_transcript": "45 pounds for train"
+        },
+        {
+          "amount": 500.00,
+          "currency": "INR",
+          "category": "Grocery",
+          "merchant": "Local Market",
+          "notes": "Weekly groceries",
+          "days_ago": 0,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 200.00,
+          "currency": "INR",
+          "category": "Food & Dining",
+          "merchant": "Restaurant",
+          "notes": "Dinner",
+          "days_ago": 1,
+          "source": "voice",
+          "voice_transcript": "200 rupees for dinner"
+        },
+        {
+          "amount": 75.00,
+          "currency": "SAR",
+          "category": "Shopping",
+          "merchant": "Mall",
+          "notes": "Shopping",
+          "days_ago": 2,
+          "source": "manual",
+          "voice_transcript": null
+        },
+        {
+          "amount": 30.00,
+          "currency": "SAR",
+          "category": "Food & Dining",
+          "merchant": "Fast Food",
+          "notes": "Quick lunch",
+          "days_ago": 3,
+          "source": "voice",
+          "voice_transcript": "30 riyals for lunch"
+        }
+      ]
+    },
+    "empty_state": {
+      "description": "Empty state with no expenses",
+      "expenses": []
+    },
+    "stress_test": {
+      "description": "Large dataset for performance testing (100 expenses)",
+      "total_expenses": 100,
+      "currencies": ["AED", "USD", "EUR", "GBP"],
+      "note": "Generate programmatically in tests - patterns provided below",
+      "expense_pattern": {
+        "amount_range": [10.00, 500.00],
+        "days_ago_range": [0, 90],
+        "categories": [
+          "Grocery",
+          "Food & Dining",
+          "Transportation",
+          "Shopping",
+          "Entertainment",
+          "Bills & Utilities",
+          "Healthcare",
+          "Education",
+          "Other"
+        ],
+        "source_distribution": {
+          "voice": 0.6,
+          "manual": 0.4
+        }
+      }
+    }
+  },
+  "merchants": {
+    "common": {
+      "AED": ["Carrefour", "Lulu", "Spinneys", "ENOC", "ADNOC", "VOX Cinemas", "Mall of Emirates", "Dubai Mall"],
+      "USD": ["Amazon", "Walmart", "Target", "Starbucks", "McDonald's", "Uber", "Netflix"],
+      "EUR": ["Carrefour", "Auchan", "Leclerc", "IKEA"],
+      "GBP": ["Tesco", "Sainsbury's", "Marks & Spencer", "National Rail", "Pret A Manger"],
+      "INR": ["Big Bazaar", "Reliance Fresh", "Swiggy", "Zomato", "Ola"],
+      "SAR": ["Panda", "Danube", "Saudi Post", "Jarir Bookstore"]
+    }
+  }
+}
