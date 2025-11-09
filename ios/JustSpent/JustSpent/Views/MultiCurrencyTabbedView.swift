@@ -16,6 +16,7 @@ struct MultiCurrencyTabbedView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var userPreferences = UserPreferences.shared
     @State private var selectedCurrency: Currency
+    @State private var calculatedTotal: Double = 0
 
     init(currencies: [Currency]) {
         self.currencies = currencies.sorted { $0.displayName < $1.displayName }
@@ -32,7 +33,7 @@ struct MultiCurrencyTabbedView: View {
     }
 
     /// Calculate total spending for the selected currency by fetching from Core Data
-    private var totalSpending: Double {
+    private func calculateTotal() -> Double {
         let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "currency == %@", selectedCurrency.code)
 
@@ -48,7 +49,7 @@ struct MultiCurrencyTabbedView: View {
     }
 
     private var formattedTotal: String {
-        let amount = Decimal(totalSpending)
+        let amount = Decimal(calculatedTotal)
         return CurrencyFormatter.shared.format(
             amount: amount,
             currency: selectedCurrency,
@@ -102,6 +103,18 @@ struct MultiCurrencyTabbedView: View {
                 CurrencyExpenseListView(currency: selectedCurrency)
             }
             .navigationBarHidden(true)
+            .onAppear {
+                // Calculate initial total when view appears
+                calculatedTotal = calculateTotal()
+            }
+            .onChange(of: selectedCurrency) { _ in
+                // Recalculate total when currency tab changes
+                calculatedTotal = calculateTotal()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: viewContext)) { _ in
+                // Recalculate total when Core Data saves (new expense added, expense deleted, etc.)
+                calculatedTotal = calculateTotal()
+            }
         }
     }
 }
