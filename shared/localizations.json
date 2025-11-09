@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Shared localization strings for Just Spent iOS and Android apps",
+  "metadata": {
+    "lastUpdated": "2025-01-29",
+    "platforms": ["ios", "android"],
+    "notes": "This is the single source of truth for all user-facing strings. Both platforms must sync with this file."
+  },
+  "strings": {
+    "app": {
+      "title": {
+        "value": "Just Spent",
+        "comment": "App name displayed in navigation",
+        "platforms": {
+          "ios": "app.title",
+          "android": "app_name"
+        }
+      },
+      "subtitle": {
+        "value": "Voice-enabled expense tracker",
+        "comment": "App subtitle/tagline",
+        "platforms": {
+          "ios": "app.subtitle",
+          "android": "app_subtitle"
+        }
+      },
+      "totalLabel": {
+        "value": "Total",
+        "comment": "Label for total amount",
+        "platforms": {
+          "ios": "app.total.label",
+          "android": "app_total_label"
+        }
+      }
+    },
+    "emptyState": {
+      "noExpenses": {
+        "value": "No Expenses Yet",
+        "comment": "Message when no expenses exist",
+        "platforms": {
+          "ios": "emptyState.noExpenses",
+          "android": "empty_state_no_expenses"
+        }
+      },
+      "tapVoiceButton": {
+        "value": {
+          "ios": "Tap the voice button below to get started",
+          "android": "Tap the microphone button to add an expense"
+        },
+        "comment": "Different button names per platform",
+        "platformSpecific": true,
+        "platforms": {
+          "ios": "emptyState.tapVoiceButton",
+          "android": "empty_state_tap_voice_button"
+        }
+      }
+    },
+    "buttons": {
+      "ok": {
+        "value": "OK",
+        "comment": "OK button",
+        "platforms": {
+          "ios": "button.ok",
+          "android": "button_ok"
+        }
+      },
+      "cancel": {
+        "value": "Cancel",
+        "comment": "Cancel button",
+        "platforms": {
+          "ios": "button.cancel",
+          "android": "button_cancel"
+        }
+      },
+      "retry": {
+        "value": "Retry",
+        "comment": "Retry button",
+        "platforms": {
+          "ios": "button.retry",
+          "android": "button_retry"
+        }
+      }
+    },
+    "categories": {
+      "foodDining": {
+        "value": "Food & Dining",
+        "comment": "Food and dining expenses category",
+        "platforms": {
+          "ios": "category.foodDining",
+          "android": "category_food_dining"
+        }
+      },
+      "grocery": {
+        "value": "Grocery",
+        "comment": "Grocery shopping category",
+        "platforms": {
+          "ios": "category.grocery",
+          "android": "category_grocery"
+        }
+      },
+      "transportation": {
+        "value": "Transportation",
+        "comment": "Transportation expenses category",
+        "platforms": {
+          "ios": "category.transportation",
+          "android": "category_transportation"
+        }
+      },
+      "shopping": {
+        "value": "Shopping",
+        "comment": "Shopping category",
+        "platforms": {
+          "ios": "category.shopping",
+          "android": "category_shopping"
+        }
+      },
+      "entertainment": {
+        "value": "Entertainment",
+        "comment": "Entertainment category",
+        "platforms": {
+          "ios": "category.entertainment",
+          "android": "category_entertainment"
+        }
+      },
+      "bills": {
+        "value": "Bills & Utilities",
+        "comment": "Bills and utilities category",
+        "platforms": {
+          "ios": "category.bills",
+          "android": "category_bills_utilities"
+        }
+      },
+      "healthcare": {
+        "value": "Healthcare",
+        "comment": "Healthcare expenses category",
+        "platforms": {
+          "ios": "category.healthcare",
+          "android": "category_healthcare"
+        }
+      },
+      "education": {
+        "value": "Education",
+        "comment": "Education expenses category",
+        "platforms": {
+          "ios": "category.education",
+          "android": "category_education"
+        }
+      },
+      "other": {
+        "value": "Other",
+        "comment": "Other expenses category",
+        "platforms": {
+          "ios": "category.other",
+          "android": "category_other"
+        }
+      },
+      "unknown": {
+        "value": "Unknown",
+        "comment": "Unknown category fallback",
+        "platforms": {
+          "ios": "category.unknown",
+          "android": "category_unknown"
+        }
+      }
+    },
+    "voiceAssistant": {
+      "name": {
+        "value": {
+          "ios": "Siri",
+          "android": "Assistant"
+        },
+        "comment": "Platform-specific voice assistant name",
+        "platformSpecific": true,
+        "platforms": {
+          "ios": "siri.name",
+          "android": "assistant_name"
+        }
+      }
+    }
+  },
+  "platformDifferences": {
+    "documented": [
+      {
+        "key": "emptyState.tapVoiceButton",
+        "reason": "Different UI terminology (voice button vs microphone)",
+        "ios": "Tap the voice button below to get started",
+        "android": "Tap the microphone button to add an expense"
+      },
+      {
+        "key": "voiceAssistant.name",
+        "reason": "Platform-specific branding",
+        "ios": "Siri",
+        "android": "Assistant"
+      }
+    ]
+  }
+}
