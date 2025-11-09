@@ -4,6 +4,7 @@
 @data-models-spec.md
 @TESTING-GUIDE.md
 @docs/GIT-WORKFLOW-RULES.md
+@docs/REUSABLE-COMPONENTS.md
 
 ## 🎯 Current Context
 
@@ -19,9 +20,13 @@
 - ✅ Header card design with gradient background
 - ✅ FAB with recording indicator
 - ✅ Comprehensive UI design documentation
+- ✅ Onboarding screen layout improvements (iOS & Android)
+- ✅ PrimaryButton component (reusable across all screens)
+- ✅ Reusable components documentation system
 
 **Reference Documents:**
 - @ui-design-spec.md - Complete Android UI implementation details
+- @docs/REUSABLE-COMPONENTS.md - UI component catalog and usage guide
 
 ## 🏗️ Architecture Quick Reference
 
@@ -380,6 +385,46 @@ enum ExpenseError: LocalizedError {
 - PascalCase for types, camelCase for variables
 - Descriptive names: `ExpenseRepository`, `VoiceCommandParser`
 - Tests: `ExpenseRepositoryTest`, `testAddExpenseSuccess()`
+
+### UI Components
+
+**Reference:** @docs/REUSABLE-COMPONENTS.md for complete component catalog
+
+**Core Principle:** Always use reusable components when available. Don't create inline UI elements if a component exists.
+
+**Available Components:**
+- **PrimaryButton** - Standard 56dp/pt primary action button (blue, full width)
+  - iOS: `PrimaryButton(text:action:enabled:accessibilityIdentifier:)`
+  - Android: `PrimaryButton(text:onClick:enabled:testTag:)`
+- **AppHeaderCard** - Header with title and total display
+- **EmptyStateView** - Consistent empty state messaging
+- **ExpenseRowView** - Individual expense list items
+
+**When Creating New Components:**
+1. Write tests FIRST (TDD mandatory)
+2. Create both iOS and Android versions
+3. Add to `docs/REUSABLE-COMPONENTS.md`
+4. Follow naming: `ComponentName.swift` / `ComponentName.kt`
+5. Location: `Views/Components/` (iOS) or `ui/components/` (Android)
+
+**Component Usage Example:**
+```swift
+// iOS - Always use PrimaryButton for primary actions
+PrimaryButton(text: "Continue", action: completeOnboarding)
+    .padding(.horizontal, 24)
+```
+
+```kotlin
+// Android - Always use PrimaryButton for primary actions
+PrimaryButton(text = "Continue", onClick = { completeOnboarding() })
+```
+
+**See @docs/REUSABLE-COMPONENTS.md for:**
+- Complete component catalog
+- Usage guidelines and examples
+- Design specifications
+- When to use each component
+- Future planned components
 
 ## ⚡ Performance Constraints
 
