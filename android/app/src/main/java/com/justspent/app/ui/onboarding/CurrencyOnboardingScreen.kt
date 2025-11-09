@@ -110,6 +110,11 @@ private fun CurrencySelectionList(
     selectedCurrency: Currency,
     onCurrencySelected: (Currency) -> Unit
 ) {
+    // Combine default with all common currencies (ensuring no duplicates)
+    val allCurrencies = (listOf(Currency.default) + Currency.common)
+        .distinctBy { it.code }
+        .sortedBy { it != Currency.default } // Default first, then alphabetically
+
     Surface(
         modifier = modifier
             .fillMaxWidth(),
@@ -122,13 +127,13 @@ private fun CurrencySelectionList(
                 .testTag("currency_list"),
             contentPadding = PaddingValues(vertical = 4.dp)
         ) {
-            items(listOf(Currency.default) + Currency.common.filter { it != Currency.default }) { currency ->
+            items(allCurrencies) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
                     isSelected = currency == selectedCurrency,
                     onClick = { onCurrencySelected(currency) }
                 )
-                if (currency != Currency.common.last()) {
+                if (currency != allCurrencies.last()) {
                     Divider()
                 }
             }
