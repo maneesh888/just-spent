@@ -1,0 +1,99 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-29",
+  "app": {
+    "title": "Just Spent",
+    "subtitle": "Voice-enabled expense tracker",
+    "totalLabel": "Total"
+  },
+  "emptyState": {
+    "noExpenses": "No Expenses Yet",
+    "tapVoiceButton": {
+      "ios": "Tap the voice button below to get started",
+      "android": "Tap the microphone button to add an expense"
+    },
+    "permissionsNeeded": "Voice features need permissions",
+    "recognitionUnavailable": "Speech recognition is not available on this device",
+    "grantPermissions": "Grant Speech Recognition and Microphone permissions to use voice expense logging"
+  },
+  "buttons": {
+    "grantPermissions": "Grant Permissions",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "process": "Process",
+    "goToSettings": "Go to Settings",
+    "delete": "Delete",
+    "save": "Save"
+  },
+  "voice": {
+    "listening": "Listening…",
+    "processing": "Processing…",
+    "willStopAuto": "Will stop automatically when you finish speaking",
+    "enterExpense": "Say your expense…",
+    "enterNaturally": "Enter your expense naturally, like: 'I just spent 20 dollars for tea'"
+  },
+  "permission": {
+    "title": {
+      "voiceUnavailable": "Voice Recognition Unavailable"
+    },
+    "message": {
+      "tempUnavailable": "Speech recognition is temporarily unavailable. Please try again in a few moments.",
+      "unavailable": "Speech recognition is not available on this device. Voice recording features require speech recognition support."
+    }
+  },
+  "voiceRecognition": {
+    "entry": {
+      "title": "Voice Expense Entry"
+    },
+    "error": {
+      "title": "Voice Recognition Error"
+    },
+    "success": {
+      "title": "Voice Success"
+    },
+    "speakClearly": "No speech detected. Please try speaking clearly."
+  },
+  "expense": {
+    "addedSuccess": "✅ Voice expense added successfully!\n💰 Amount: %@$%@\n📂 Category: %@\n🎙️ From: '%@'",
+    "couldNotUnderstand": "❌ Could not understand: '%@'\n\nTry saying: 'I just spent 20 dollars for tea'",
+    "failedToSave": "❌ Failed to save expense: %@",
+    "smartProcessing": "Smart processing success!\n💰 Amount: $%@\n📂 Category: %@\n📝 From: '%@'",
+    "addedViaVoice": "Added via voice recognition",
+    "addedViaIntelligent": "Added via intelligent voice processing"
+  },
+  "error": {
+    "couldNotExtract": "❌ Could not extract expense data from: '%@'"
+  },
+  "debug": {
+    "extracted": "🔍 Extracted - Amount: %@, Currency: %@, Category: %@",
+    "processing": "🧠 Processing: '%@'",
+    "processingTranscription": "🧠 Processing transcription: '%@'",
+    "processingURL": "📝 Processing URL text: '%@'",
+    "receivedURL": "🔗 Received URL: %@",
+    "savedExpense": "✅ Intelligently processed and saved expense: $%@ for %@"
+  },
+  "categories": {
+    "foodDining": "Food & Dining",
+    "grocery": "Grocery",
+    "transportation": "Transportation",
+    "shopping": "Shopping",
+    "entertainment": "Entertainment",
+    "bills": "Bills & Utilities",
+    "healthcare": "Healthcare",
+    "education": "Education",
+    "other": "Other",
+    "unknown": "Unknown"
+  },
+  "voiceAssistant": {
+    "name": {
+      "ios": "Siri",
+      "android": "Assistant"
+    }
+  },
+  "platformNotes": {
+    "ellipsis": "Use proper ellipsis character (…) not three dots (...)",
+    "capitalization": "Use Title Case for UI labels and messages",
+    "ampersand": "Android: Use &amp; in XML, both platforms display as &"
+  }
+}
