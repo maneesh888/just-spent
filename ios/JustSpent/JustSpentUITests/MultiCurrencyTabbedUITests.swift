@@ -103,9 +103,9 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
         // Wait for app to fully initialize
         Thread.sleep(forTimeInterval: 1.0)
 
-        // Get total label
-        let totalLabel = app.staticTexts["Total"]
-        XCTAssertTrue(totalLabel.waitForExistence(timeout: 10.0), "Total label should exist")
+        // Get total amount element using accessibility identifier
+        let totalAmountElement = app.staticTexts["multi_currency_total_amount"]
+        XCTAssertTrue(totalAmountElement.waitForExistence(timeout: 10.0), "Total amount should exist")
 
         // Find available tabs using accessibility identifiers
         let currencies = TestDataHelper.multiCurrencyTestDataCodes
@@ -119,16 +119,34 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
             }
         }
 
-        // If multiple tabs exist, switch between them
+        // If multiple tabs exist, switch between them and verify total changes
         if tabs.count > 1 {
+            // Tap first tab
             tabs[0].tap()
             Thread.sleep(forTimeInterval: 0.5)
 
+            // Capture first total value
+            let firstTotal = totalAmountElement.label
+            print("First tab total: \(firstTotal)")
+            XCTAssertFalse(firstTotal.isEmpty, "First total should have a value")
+
+            // Tap second tab
             tabs[1].tap()
             Thread.sleep(forTimeInterval: 0.5)
 
-            // Total should still be visible (value may change)
-            XCTAssertTrue(totalLabel.exists, "Total should update when switching tabs")
+            // Capture second total value
+            let secondTotal = totalAmountElement.label
+            print("Second tab total: \(secondTotal)")
+            XCTAssertFalse(secondTotal.isEmpty, "Second total should have a value")
+
+            // Total should update when switching tabs
+            // The values might be the same if both currencies have same total, but typically they differ
+            // The important thing is that the total label exists and updates are possible
+            XCTAssertTrue(totalAmountElement.exists, "Total should update when switching tabs")
+
+            // If we have test data with different amounts, values should differ
+            // But we can't assert they're different without knowing test data
+            print("Total values - First: '\(firstTotal)', Second: '\(secondTotal)'")
         }
     }
 

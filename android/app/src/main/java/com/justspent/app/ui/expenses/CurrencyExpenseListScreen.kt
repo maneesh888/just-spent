@@ -46,7 +46,8 @@ fun CurrencyExpenseListScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
                     items = currencyExpenses,
@@ -126,9 +127,7 @@ private fun CurrencyExpenseRow(
         state = dismissState,
         background = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = when (dismissState.dismissDirection) {
                     DismissDirection.StartToEnd -> Alignment.CenterStart
                     else -> Alignment.CenterEnd
@@ -139,7 +138,8 @@ private fun CurrencyExpenseRow(
                         text = "Delete",
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }

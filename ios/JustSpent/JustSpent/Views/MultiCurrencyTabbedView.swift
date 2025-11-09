@@ -17,9 +17,6 @@ struct MultiCurrencyTabbedView: View {
     @StateObject private var userPreferences = UserPreferences.shared
     @State private var selectedCurrency: Currency
 
-    // Fetch expenses for selected currency
-    @FetchRequest private var expenses: FetchedResults<Expense>
-
     init(currencies: [Currency]) {
         self.currencies = currencies.sorted { $0.displayName < $1.displayName }
 
@@ -32,19 +29,21 @@ struct MultiCurrencyTabbedView: View {
             initialCurrency = currencies.first ?? .aed
         }
         _selectedCurrency = State(initialValue: initialCurrency)
-
-        // Initialize FetchRequest with initial currency filter
-        let predicate = NSPredicate(format: "currency == %@", initialCurrency.code)
-        _expenses = FetchRequest<Expense>(
-            sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
-            predicate: predicate,
-            animation: .default
-        )
     }
 
+    /// Calculate total spending for the selected currency by fetching from Core Data
     private var totalSpending: Double {
-        expenses.reduce(0) { total, expense in
-            total + (expense.amount?.doubleValue ?? 0)
+        let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "currency == %@", selectedCurrency.code)
+
+        do {
+            let expenses = try viewContext.fetch(fetchRequest)
+            return expenses.reduce(0) { total, expense in
+                total + (expense.amount?.doubleValue ?? 0)
+            }
+        } catch {
+            print("❌ Error fetching expenses for total calculation: \(error.localizedDescription)")
+            return 0
         }
     }
 
