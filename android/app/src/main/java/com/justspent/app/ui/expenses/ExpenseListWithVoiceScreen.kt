@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -58,6 +59,22 @@ fun ExpenseListWithVoiceScreen(
     var showVoiceResultDialog by remember { mutableStateOf(false) }
     var voiceResult by remember { mutableStateOf("")}
     var lastProcessedExpense by remember { mutableStateOf<String?>(null) }
+
+    // Request permission automatically on empty state load (like iOS behavior)
+    var hasRequestedPermission by remember { mutableStateOf(false) }
+    LaunchedEffect(hasAudioPermission, expenseUiState.expenses.isEmpty()) {
+        // Only request permission automatically if:
+        // 1. We haven't requested it yet in this session
+        // 2. Permission is not granted
+        // 3. Expense list is empty (empty state is showing)
+        if (!hasRequestedPermission && !hasAudioPermission && expenseUiState.expenses.isEmpty()) {
+            hasRequestedPermission = true
+            // Small delay to let UI render before showing permission dialog
+            kotlinx.coroutines.delay(500)
+            android.util.Log.d("ExpenseListWithVoiceScreen", "🎤 Auto-requesting microphone permission on empty state load (iOS-like behavior)")
+            onRequestPermission()
+        }
+    }
 
     // Auto-recording disabled for app launch/foreground
     // (kept for future widget support)
@@ -237,16 +254,27 @@ fun ExpenseListWithVoiceScreen(
                                 modifier = Modifier.padding(32.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                // Permission-aware icon similar to iOS
+                                // With permission: Mic icon (blue)
+                                // Without permission: Mic off icon (orange/error)
                                 Icon(
-                                    imageVector = if (hasAudioPermission) Icons.Default.Mic else Icons.Default.Add,
-                                    contentDescription = "Voice Input",
+                                    imageVector = if (hasAudioPermission) {
+                                        Icons.Default.Mic
+                                    } else {
+                                        Icons.Default.MicOff
+                                    },
+                                    contentDescription = if (hasAudioPermission) {
+                                        "Voice Input"
+                                    } else {
+                                        "Permission Needed"
+                                    },
                                     modifier = Modifier
                                         .size(60.dp)
                                         .testTag("empty_state_icon"),
                                     tint = if (hasAudioPermission)
                                         MaterialTheme.colorScheme.primary
                                     else
-                                        MaterialTheme.colorScheme.error
+                                        Color(0xFFFF9800) // Orange color like iOS warning
                                 )
 
                                 Spacer(modifier = Modifier.height(20.dp))
@@ -271,6 +299,20 @@ fun ExpenseListWithVoiceScreen(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.testTag("empty_state_help_text")
                                 )
+
+                                // Show "Grant Permission" button when permission is needed (iOS-like)
+                                if (!hasAudioPermission) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Button(
+                                        onClick = onRequestPermission,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        Text("Grant Permission")
+                                    }
+                                }
 
                                 if (hasAudioPermission) {
                                     Spacer(modifier = Modifier.height(16.dp))
