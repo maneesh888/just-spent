@@ -51,7 +51,7 @@ struct CurrencyOnboardingView: View {
 
                 // Currency Selection List (All 160+ currencies available)
                 List {
-                    ForEach(Currency.all.sorted(by: { $0.displayName < $1.displayName })) { currency in
+                    ForEach([Currency.default] + Currency.all.filter { $0 != Currency.default }.sorted(by: { $0.displayName < $1.displayName })) { currency in
                         CurrencyOnboardingRow(
                             currency: currency,
                             isSelected: currency == selectedCurrency

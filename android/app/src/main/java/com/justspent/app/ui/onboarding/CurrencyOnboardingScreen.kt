@@ -122,7 +122,7 @@ private fun CurrencySelectionList(
                 .testTag("currency_list"),
             contentPadding = PaddingValues(vertical = 4.dp)
         ) {
-            items(Currency.common) { currency ->
+            items(listOf(Currency.default) + Currency.common.filter { it != Currency.default }) { currency ->
                 CurrencyOnboardingRow(
                     currency = currency,
                     isSelected = currency == selectedCurrency,
