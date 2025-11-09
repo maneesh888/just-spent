@@ -2,6 +2,7 @@ package com.justspent.app
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.justspent.app.utils.LocalizationManager
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -12,183 +13,152 @@ import org.robolectric.annotation.Config
 /**
  * LocalizationConsistencyTest
  *
- * Tests to ensure Android localizations match the shared localizations.json source of truth.
- * This ensures consistency with iOS by validating both platforms against the same JSON file.
+ * Tests to ensure Android loads localizations correctly from shared JSON
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class LocalizationConsistencyTest {
 
     private lateinit var context: Context
+    private lateinit var localizationManager: LocalizationManager
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
+        localizationManager = LocalizationManager.getInstance(context)
+    }
+
+    // MARK: - JSON Loading Tests
+
+    /**
+     * Test 1: Verify JSON file loads successfully
+     */
+    @Test
+    fun testJSONLoadsSuccessfully() {
+        // Should not crash and should return valid strings
+        assertFalse(localizationManager.appTitle.isEmpty())
+        assertFalse(localizationManager.appTitle.startsWith("["))
     }
 
     /**
-     * Mapping of JSON keys to Android string resource IDs
-     * Based on localizations.json "platforms.android" values
-     */
-    private val keyMapping = mapOf(
-        // App
-        "app.title" to R.string.app_name,
-        "app.subtitle" to R.string.app_subtitle,
-        "app.totalLabel" to R.string.app_total_label,
-
-        // Empty State
-        "emptyState.noExpenses" to R.string.empty_state_no_expenses,
-        "emptyState.tapVoiceButton" to R.string.empty_state_tap_voice_button,
-
-        // Buttons
-        "buttons.ok" to R.string.button_ok,
-        "buttons.cancel" to R.string.button_cancel,
-        "buttons.retry" to R.string.button_retry,
-
-        // Categories
-        "categories.foodDining" to R.string.category_food_dining,
-        "categories.grocery" to R.string.category_grocery,
-        "categories.transportation" to R.string.category_transportation,
-        "categories.shopping" to R.string.category_shopping,
-        "categories.entertainment" to R.string.category_entertainment,
-        "categories.bills" to R.string.category_bills_utilities,
-        "categories.healthcare" to R.string.category_healthcare,
-        "categories.education" to R.string.category_education,
-        "categories.other" to R.string.category_other,
-        "categories.unknown" to R.string.category_unknown
-    )
-
-    /**
-     * Expected values from shared localizations.json
-     * These should match both iOS and Android (unless platform-specific)
-     */
-    private val expectedValues = mapOf(
-        // App
-        "app.title" to "Just Spent",
-        "app.subtitle" to "Voice-enabled expense tracker",
-        "app.totalLabel" to "Total",
-
-        // Empty State
-        "emptyState.noExpenses" to "No Expenses Yet",
-        // Note: emptyState.tapVoiceButton is platform-specific
-
-        // Buttons
-        "buttons.ok" to "OK",
-        "buttons.cancel" to "Cancel",
-        "buttons.retry" to "Retry",
-
-        // Categories
-        "categories.foodDining" to "Food & Dining",
-        "categories.grocery" to "Grocery",
-        "categories.transportation" to "Transportation",
-        "categories.shopping" to "Shopping",
-        "categories.entertainment" to "Entertainment",
-        "categories.bills" to "Bills & Utilities",
-        "categories.healthcare" to "Healthcare",
-        "categories.education" to "Education",
-        "categories.other" to "Other",
-        "categories.unknown" to "Unknown"
-    )
-
-    /**
-     * Platform-specific strings that differ intentionally
-     */
-    private val platformSpecific = mapOf(
-        "emptyState.tapVoiceButton" to "Tap the microphone button to add an expense",
-        "voiceAssistant.name" to "Assistant"
-    )
-
-    // MARK: - Test Cases
-
-    /**
-     * Test 1: Verify all shared strings exist in Android
+     * Test 2: Verify app strings match JSON
      */
     @Test
-    fun testAllSharedStringsExistInAndroid() {
-        val missingKeys = mutableListOf<String>()
+    fun testAppStringsMatchJSON() {
+        assertEquals("Just Spent", localizationManager.appTitle)
+        assertEquals("Voice-enabled expense tracker", localizationManager.appSubtitle)
+        assertEquals("Total", localizationManager.appTotalLabel)
+    }
 
-        for ((jsonKey, resourceId) in keyMapping) {
-            try {
-                val value = context.getString(resourceId)
-                assertTrue(
-                    "String for key $jsonKey should not be empty",
-                    value.isNotEmpty()
-                )
-            } catch (e: Exception) {
-                missingKeys.add("$jsonKey → Android resource: $resourceId (${e.message})")
-            }
-        }
-
-        assertTrue(
-            "Missing Android string resources:\n${missingKeys.joinToString("\n")}",
-            missingKeys.isEmpty()
+    /**
+     * Test 3: Verify empty state strings match JSON
+     */
+    @Test
+    fun testEmptyStateStringsMatchJSON() {
+        assertEquals("No Expenses Yet", localizationManager.emptyStateNoExpenses)
+        // Platform-specific Android value
+        assertEquals(
+            "Tap the microphone button to add an expense",
+            localizationManager.emptyStateTapVoiceButton
         )
     }
 
     /**
-     * Test 2: Verify shared strings match expected values from JSON
+     * Test 4: Verify button strings match JSON
      */
     @Test
-    fun testSharedStringsMatchExpectedValues() {
-        val mismatches = mutableListOf<Triple<String, String, String>>()
+    fun testButtonStringsMatchJSON() {
+        assertEquals("OK", localizationManager.buttonOK)
+        assertEquals("Cancel", localizationManager.buttonCancel)
+        assertEquals("Retry", localizationManager.buttonRetry)
+    }
 
-        for ((jsonKey, expectedValue) in expectedValues) {
-            val resourceId = keyMapping[jsonKey]
-            if (resourceId == null) {
-                fail("No Android resource mapping for JSON key: $jsonKey")
-                continue
-            }
+    /**
+     * Test 5: Verify voice strings match JSON
+     */
+    @Test
+    fun testVoiceStringsMatchJSON() {
+        // Should use proper ellipsis character
+        assertEquals("Listening…", localizationManager.voiceListening)
+        assertEquals("Processing…", localizationManager.voiceProcessing)
 
-            val actualValue = context.getString(resourceId)
+        // Verify it's NOT three dots
+        assertNotEquals("Listening...", localizationManager.voiceListening)
+    }
 
-            if (actualValue != expectedValue) {
-                mismatches.add(Triple(jsonKey, expectedValue, actualValue))
-            }
-        }
+    /**
+     * Test 6: Verify all categories match JSON
+     */
+    @Test
+    fun testCategoryStringsMatchJSON() {
+        assertEquals("Food & Dining", localizationManager.categoryFoodDining)
+        assertEquals("Grocery", localizationManager.categoryGrocery)
+        assertEquals("Transportation", localizationManager.categoryTransportation)
+        assertEquals("Shopping", localizationManager.categoryShopping)
+        assertEquals("Entertainment", localizationManager.categoryEntertainment)
+        assertEquals("Bills & Utilities", localizationManager.categoryBills)
+        assertEquals("Healthcare", localizationManager.categoryHealthcare)
+        assertEquals("Education", localizationManager.categoryEducation)
+        assertEquals("Other", localizationManager.categoryOther)
+        assertEquals("Unknown", localizationManager.categoryUnknown)
+    }
 
-        if (mismatches.isNotEmpty()) {
-            val errorMessage = mismatches.joinToString("\n\n") { (jsonKey, expected, actual) ->
-                "JSON key: $jsonKey\n  Expected: '$expected'\n  Actual: '$actual'"
-            }
+    /**
+     * Test 7: Verify platform-specific strings use Android values
+     */
+    @Test
+    fun testPlatformSpecificStringsUseAndroidValues() {
+        val voiceAssistantName = localizationManager.get("voiceAssistant.name")
+        assertEquals("Assistant", voiceAssistantName)
+        assertNotEquals("Siri", voiceAssistantName) // iOS value
+    }
 
-            fail("Localization mismatches with shared JSON:\n\n$errorMessage")
+    /**
+     * Test 8: Verify dot-notation path navigation works
+     */
+    @Test
+    fun testDotNotationPathNavigation() {
+        assertEquals("Just Spent", localizationManager.get("app.title"))
+        assertEquals("OK", localizationManager.get("buttons.ok"))
+        assertEquals("Food & Dining", localizationManager.get("categories.foodDining"))
+    }
+
+    /**
+     * Test 9: Verify missing keys return bracketed key
+     */
+    @Test
+    fun testMissingKeysReturnBracketedKey() {
+        val missingKey = localizationManager.get("nonexistent.key")
+        assertEquals("[nonexistent.key]", missingKey)
+    }
+
+    /**
+     * Test 10: Verify no empty strings
+     */
+    @Test
+    fun testNoEmptyStrings() {
+        val strings = listOf(
+            localizationManager.appTitle,
+            localizationManager.appSubtitle,
+            localizationManager.buttonOK,
+            localizationManager.buttonCancel,
+            localizationManager.categoryFoodDining,
+            localizationManager.categoryGrocery
+        )
+
+        for (string in strings) {
+            assertFalse("Found empty string", string.isEmpty())
+            assertFalse("Found unresolved key: $string", string.startsWith("["))
         }
     }
 
     /**
-     * Test 3: Verify platform-specific Android strings have correct values
+     * Test 11: Cross-platform consistency documentation
      */
     @Test
-    fun testPlatformSpecificStringsAreCorrect() {
-        val mismatches = mutableListOf<Triple<String, String, String>>()
-
-        for ((jsonKey, expectedValue) in platformSpecific) {
-            val resourceId = keyMapping[jsonKey] ?: continue
-
-            val actualValue = context.getString(resourceId)
-
-            if (actualValue != expectedValue) {
-                mismatches.add(Triple(jsonKey, expectedValue, actualValue))
-            }
-        }
-
-        if (mismatches.isNotEmpty()) {
-            val errorMessage = mismatches.joinToString("\n\n") { (jsonKey, expected, actual) ->
-                "JSON key: $jsonKey (platform-specific)\n  Expected: '$expected'\n  Actual: '$actual'"
-            }
-
-            fail("Platform-specific string mismatches:\n\n$errorMessage")
-        }
-    }
-
-    /**
-     * Test 4: Document intentional platform differences
-     */
-    @Test
-    fun testDocumentedPlatformDifferences() {
-        // This test always passes but documents known differences
-
-        data class PlatformDifference(
+    fun testDocumentedCrossPlatformDifferences() {
+        // Document intentional platform differences
+        data class Difference(
             val key: String,
             val ios: String,
             val android: String,
@@ -196,65 +166,34 @@ class LocalizationConsistencyTest {
         )
 
         val differences = listOf(
-            PlatformDifference(
+            Difference(
                 key = "emptyState.tapVoiceButton",
-                ios = "Tap the voice button below to get started",
-                android = "Tap the microphone button to add an expense",
+                ios = "iOS: Tap the voice button below to get started",
+                android = "Android: Tap the microphone button to add an expense",
                 reason = "Different UI terminology"
             ),
-            PlatformDifference(
+            Difference(
                 key = "voiceAssistant.name",
-                ios = "Siri",
-                android = "Assistant",
+                ios = "iOS: Siri",
+                android = "Android: Assistant",
                 reason = "Platform-specific branding"
             )
         )
 
-        println("\n=== Documented Platform Differences ===")
+        println("\n=== Cross-Platform Differences ===")
         for (diff in differences) {
             println("\nKey: ${diff.key}")
-            println("  iOS: ${diff.ios}")
-            println("  Android: ${diff.android}")
+            println("  ${diff.ios}")
+            println("  ${diff.android}")
             println("  Reason: ${diff.reason}")
         }
-        println("\n========================================\n")
+        println("\n===================================\n")
 
-        assertEquals("Expected 2 documented platform differences", 2, differences.size)
-    }
-
-    /**
-     * Test 5: Verify no empty strings
-     */
-    @Test
-    fun testNoEmptyStrings() {
-        val emptyResources = mutableListOf<String>()
-
-        for ((jsonKey, resourceId) in keyMapping) {
-            val value = context.getString(resourceId)
-
-            if (value.trim().isEmpty()) {
-                emptyResources.add("$jsonKey → $resourceId")
-            }
-        }
-
-        assertTrue(
-            "Found empty string resources:\n${emptyResources.joinToString("\n")}",
-            emptyResources.isEmpty()
-        )
-    }
-
-    /**
-     * Test 6: Verify category count matches
-     */
-    @Test
-    fun testCategoryCountMatches() {
-        val categoryKeys = keyMapping.filter { it.key.startsWith("categories.") }
-
-        // Should have 10 categories (9 main categories + unknown)
+        // Verify Android uses correct platform-specific values
         assertEquals(
-            "Expected 10 category strings (9 categories + unknown)",
-            10,
-            categoryKeys.size
+            "Tap the microphone button to add an expense",
+            localizationManager.get("emptyState.tapVoiceButton")
         )
+        assertEquals("Assistant", localizationManager.get("voiceAssistant.name"))
     }
 }

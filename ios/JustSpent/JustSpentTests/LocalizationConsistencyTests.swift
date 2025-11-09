@@ -2,7 +2,7 @@
 //  LocalizationConsistencyTests.swift
 //  JustSpentTests
 //
-//  Tests to ensure iOS localizations match the shared localizations.json source of truth
+//  Tests to ensure iOS loads localizations correctly from shared JSON
 //
 
 import XCTest
@@ -10,209 +10,131 @@ import XCTest
 
 class LocalizationConsistencyTests: XCTestCase {
 
-    // MARK: - Test Properties
+    var localizationManager: LocalizationManager!
 
-    /// Path to shared localizations.json (single source of truth)
-    private let sharedLocalizationsPath = "../../shared/localizations.json"
-
-    /// Mapping of JSON keys to expected iOS Localizable.strings keys
-    /// Based on localizations.json "platforms.ios" values
-    private let keyMapping: [String: String] = [
-        // App
-        "app.title": "app.title",
-        "app.subtitle": "app.subtitle",
-        "app.totalLabel": "app.total.label",
-
-        // Empty State
-        "emptyState.noExpenses": "emptyState.noExpenses",
-        "emptyState.tapVoiceButton": "emptyState.tapVoiceButton",
-
-        // Buttons
-        "buttons.ok": "button.ok",
-        "buttons.cancel": "button.cancel",
-        "buttons.retry": "button.retry",
-
-        // Categories
-        "categories.foodDining": "category.foodDining",
-        "categories.grocery": "category.grocery",
-        "categories.transportation": "category.transportation",
-        "categories.shopping": "category.shopping",
-        "categories.entertainment": "category.entertainment",
-        "categories.bills": "category.bills",
-        "categories.healthcare": "category.healthcare",
-        "categories.education": "category.education",
-        "categories.other": "category.other",
-        "categories.unknown": "category.unknown"
-    ]
-
-    /// Expected values from shared localizations.json
-    /// These should match both iOS and Android (unless platform-specific)
-    private let expectedValues: [String: String] = [
-        // App
-        "app.title": "Just Spent",
-        "app.subtitle": "Voice-enabled expense tracker",
-        "app.totalLabel": "Total",
-
-        // Empty State
-        "emptyState.noExpenses": "No Expenses Yet",
-        // Note: emptyState.tapVoiceButton is platform-specific
-
-        // Buttons
-        "buttons.ok": "OK",
-        "buttons.cancel": "Cancel",
-        "buttons.retry": "Retry",
-
-        // Categories
-        "categories.foodDining": "Food & Dining",
-        "categories.grocery": "Grocery",
-        "categories.transportation": "Transportation",
-        "categories.shopping": "Shopping",
-        "categories.entertainment": "Entertainment",
-        "categories.bills": "Bills & Utilities",
-        "categories.healthcare": "Healthcare",
-        "categories.education": "Education",
-        "categories.other": "Other",
-        "categories.unknown": "Unknown"
-    ]
-
-    /// Platform-specific strings that differ intentionally
-    private let platformSpecific: [String: String] = [
-        "emptyState.tapVoiceButton": "Tap the voice button below to get started",
-        "voiceAssistant.name": "Siri"
-    ]
-
-    // MARK: - Test Cases
-
-    /// Test 1: Verify all shared strings exist in iOS
-    func testAllSharedStringsExistInIOS() {
-        let bundle = Bundle(for: type(of: self))
-        var missingKeys: [String] = []
-
-        for (jsonKey, iosKey) in keyMapping {
-            let localizedString = NSLocalizedString(iosKey, bundle: bundle, comment: "")
-
-            // If localization fails, iOS returns the key itself
-            if localizedString == iosKey {
-                missingKeys.append("\(jsonKey) → iOS key: \(iosKey)")
-            }
-        }
-
-        XCTAssertTrue(
-            missingKeys.isEmpty,
-            "Missing iOS localization keys:\n\(missingKeys.joined(separator: "\n"))"
-        )
+    override func setUp() {
+        super.setUp()
+        localizationManager = LocalizationManager.shared
     }
 
-    /// Test 2: Verify shared strings match expected values from JSON
-    func testSharedStringsMatchExpectedValues() {
-        let bundle = Bundle(for: type(of: self))
-        var mismatches: [(jsonKey: String, expected: String, actual: String)] = []
+    // MARK: - JSON Loading Tests
 
-        for (jsonKey, expectedValue) in expectedValues {
-            guard let iosKey = keyMapping[jsonKey] else {
-                XCTFail("No iOS key mapping for JSON key: \(jsonKey)")
-                continue
-            }
-
-            let actualValue = NSLocalizedString(iosKey, bundle: bundle, comment: "")
-
-            if actualValue != expectedValue {
-                mismatches.append((jsonKey: jsonKey, expected: expectedValue, actual: actualValue))
-            }
-        }
-
-        if !mismatches.isEmpty {
-            let errorMessage = mismatches.map { item in
-                "JSON key: \(item.jsonKey)\n  Expected: '\(item.expected)'\n  Actual: '\(item.actual)'"
-            }.joined(separator: "\n\n")
-
-            XCTFail("Localization mismatches with shared JSON:\n\n\(errorMessage)")
-        }
+    /// Test 1: Verify JSON file loads successfully
+    func testJSONLoadsSuccessfully() {
+        // Should not crash and should return valid strings
+        XCTAssertFalse(localizationManager.appTitle.isEmpty)
+        XCTAssertFalse(localizationManager.appTitle.hasPrefix("["))
     }
 
-    /// Test 3: Verify platform-specific iOS strings have correct values
-    func testPlatformSpecificStringsAreCorrect() {
-        let bundle = Bundle(for: type(of: self))
-        var mismatches: [(jsonKey: String, expected: String, actual: String)] = []
-
-        for (jsonKey, expectedValue) in platformSpecific {
-            guard let iosKey = keyMapping[jsonKey] else { continue }
-
-            let actualValue = NSLocalizedString(iosKey, bundle: bundle, comment: "")
-
-            if actualValue != expectedValue {
-                mismatches.append((jsonKey: jsonKey, expected: expectedValue, actual: actualValue))
-            }
-        }
-
-        if !mismatches.isEmpty {
-            let errorMessage = mismatches.map { item in
-                "JSON key: \(item.jsonKey) (platform-specific)\n  Expected: '\(item.expected)'\n  Actual: '\(item.actual)'"
-            }.joined(separator: "\n\n")
-
-            XCTFail("Platform-specific string mismatches:\n\n\(errorMessage)")
-        }
+    /// Test 2: Verify app strings match JSON
+    func testAppStringsMatchJSON() {
+        XCTAssertEqual(localizationManager.appTitle, "Just Spent")
+        XCTAssertEqual(localizationManager.appSubtitle, "Voice-enabled expense tracker")
+        XCTAssertEqual(localizationManager.appTotalLabel, "Total")
     }
 
-    /// Test 4: Document intentional platform differences
-    func testDocumentedPlatformDifferences() {
-        // This test always passes but documents known differences
+    /// Test 3: Verify empty state strings match JSON
+    func testEmptyStateStringsMatchJSON() {
+        XCTAssertEqual(localizationManager.emptyStateNoExpenses, "No Expenses Yet")
+        // Platform-specific iOS value
+        XCTAssertEqual(localizationManager.emptyStateTapVoiceButton,
+                      "Tap the voice button below to get started")
+    }
 
-        let differences = [
-            (
-                key: "emptyState.tapVoiceButton",
-                ios: "Tap the voice button below to get started",
-                android: "Tap the microphone button to add an expense",
-                reason: "Different UI terminology"
-            ),
-            (
-                key: "voiceAssistant.name",
-                ios: "Siri",
-                android: "Assistant",
-                reason: "Platform-specific branding"
-            )
+    /// Test 4: Verify button strings match JSON
+    func testButtonStringsMatchJSON() {
+        XCTAssertEqual(localizationManager.buttonOK, "OK")
+        XCTAssertEqual(localizationManager.buttonCancel, "Cancel")
+        XCTAssertEqual(localizationManager.buttonRetry, "Retry")
+    }
+
+    /// Test 5: Verify voice strings match JSON
+    func testVoiceStringsMatchJSON() {
+        // Should use proper ellipsis character
+        XCTAssertEqual(localizationManager.voiceListening, "Listening…")
+        XCTAssertEqual(localizationManager.voiceProcessing, "Processing…")
+
+        // Verify it's NOT three dots
+        XCTAssertNotEqual(localizationManager.voiceListening, "Listening...")
+    }
+
+    /// Test 6: Verify all categories match JSON
+    func testCategoryStringsMatchJSON() {
+        XCTAssertEqual(localizationManager.categoryFoodDining, "Food & Dining")
+        XCTAssertEqual(localizationManager.categoryGrocery, "Grocery")
+        XCTAssertEqual(localizationManager.categoryTransportation, "Transportation")
+        XCTAssertEqual(localizationManager.categoryShopping, "Shopping")
+        XCTAssertEqual(localizationManager.categoryEntertainment, "Entertainment")
+        XCTAssertEqual(localizationManager.categoryBills, "Bills & Utilities")
+        XCTAssertEqual(localizationManager.categoryHealthcare, "Healthcare")
+        XCTAssertEqual(localizationManager.categoryEducation, "Education")
+        XCTAssertEqual(localizationManager.categoryOther, "Other")
+        XCTAssertEqual(localizationManager.categoryUnknown, "Unknown")
+    }
+
+    /// Test 7: Verify platform-specific strings use iOS values
+    func testPlatformSpecificStringsUseIOSValues() {
+        let voiceAssistantName = localizationManager.get("voiceAssistant.name")
+        XCTAssertEqual(voiceAssistantName, "Siri")
+        XCTAssertNotEqual(voiceAssistantName, "Assistant") // Android value
+    }
+
+    /// Test 8: Verify dot-notation path navigation works
+    func testDotNotationPathNavigation() {
+        XCTAssertEqual(localizationManager.get("app.title"), "Just Spent")
+        XCTAssertEqual(localizationManager.get("buttons.ok"), "OK")
+        XCTAssertEqual(localizationManager.get("categories.foodDining"), "Food & Dining")
+    }
+
+    /// Test 9: Verify missing keys return bracketed key
+    func testMissingKeysReturnBracketedKey() {
+        let missingKey = localizationManager.get("nonexistent.key")
+        XCTAssertEqual(missingKey, "[nonexistent.key]")
+    }
+
+    /// Test 10: Verify no empty strings
+    func testNoEmptyStrings() {
+        let strings = [
+            localizationManager.appTitle,
+            localizationManager.appSubtitle,
+            localizationManager.buttonOK,
+            localizationManager.buttonCancel,
+            localizationManager.categoryFoodDining,
+            localizationManager.categoryGrocery
         ]
 
-        print("\n=== Documented Platform Differences ===")
-        for diff in differences {
-            print("\nKey: \(diff.key)")
-            print("  iOS: \(diff.ios)")
-            print("  Android: \(diff.android)")
-            print("  Reason: \(diff.reason)")
+        for string in strings {
+            XCTAssertFalse(string.isEmpty, "Found empty string")
+            XCTAssertFalse(string.hasPrefix("["), "Found unresolved key: \(string)")
         }
-        print("\n========================================\n")
-
-        XCTAssertEqual(differences.count, 2, "Expected 2 documented platform differences")
     }
 
-    /// Test 5: Verify no empty strings
-    func testNoEmptyStrings() {
-        let bundle = Bundle(for: type(of: self))
-        var emptyKeys: [String] = []
+    /// Test 11: Cross-platform consistency documentation
+    func testDocumentedCrossPlatformDifferences() {
+        // Document intentional platform differences
+        let differences = [
+            ("emptyState.tapVoiceButton",
+             "iOS: Tap the voice button below to get started",
+             "Android: Tap the microphone button to add an expense",
+             "Different UI terminology"),
+            ("voiceAssistant.name",
+             "iOS: Siri",
+             "Android: Assistant",
+             "Platform-specific branding")
+        ]
 
-        for (_, iosKey) in keyMapping {
-            let localizedString = NSLocalizedString(iosKey, bundle: bundle, comment: "")
-
-            if localizedString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                emptyKeys.append(iosKey)
-            }
+        print("\n=== Cross-Platform Differences ===")
+        for (key, ios, android, reason) in differences {
+            print("\nKey: \(key)")
+            print("  \(ios)")
+            print("  \(android)")
+            print("  Reason: \(reason)")
         }
+        print("\n===================================\n")
 
-        XCTAssertTrue(
-            emptyKeys.isEmpty,
-            "Found empty localized strings:\n\(emptyKeys.joined(separator: "\n"))"
-        )
-    }
-
-    /// Test 6: Verify category count matches
-    func testCategoryCountMatches() {
-        let categoryKeys = keyMapping.filter { $0.key.starts(with: "categories.") }
-
-        // Should have 10 categories (9 main categories + unknown)
-        XCTAssertEqual(
-            categoryKeys.count,
-            10,
-            "Expected 10 category strings (9 categories + unknown)"
-        )
+        // Verify iOS uses correct platform-specific values
+        XCTAssertEqual(localizationManager.get("emptyState.tapVoiceButton"),
+                      "Tap the voice button below to get started")
+        XCTAssertEqual(localizationManager.get("voiceAssistant.name"), "Siri")
     }
 }
