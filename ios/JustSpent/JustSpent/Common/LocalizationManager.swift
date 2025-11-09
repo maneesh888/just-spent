@@ -28,12 +28,20 @@ class LocalizationManager {
 
         // Try multiple paths to find the shared localization file
 
-        // 1. Try from current working directory (works in tests)
+        // 1. Try from current working directory and relative paths (works in tests and CI)
         let currentDirPath = fileManager.currentDirectoryPath
-        let sharedFromCurrent = "\(currentDirPath)/shared/localizations.json"
-        if fileManager.fileExists(atPath: sharedFromCurrent) {
-            jsonURL = URL(fileURLWithPath: sharedFromCurrent)
-            print("📍 Found localizations.json in shared folder (from current dir)")
+        let possiblePaths = [
+            "\(currentDirPath)/shared/localizations.json",        // From project root
+            "\(currentDirPath)/../shared/localizations.json",     // From ios/ directory
+            "\(currentDirPath)/../../shared/localizations.json"   // From ios/JustSpent/ directory
+        ]
+
+        for path in possiblePaths {
+            if fileManager.fileExists(atPath: path) {
+                jsonURL = URL(fileURLWithPath: path)
+                print("📍 Found localizations.json in shared folder (from current dir: \(path))")
+                break
+            }
         }
 
         // 2. Try searching up from bundle path to find project root (works in simulator)

@@ -34,13 +34,21 @@ class LocalizationManager private constructor(context: Context) {
 
     private fun loadLocalizations(context: Context): JSONObject {
         return try {
-            // First, try to load from shared folder (for tests and development)
-            val sharedFile = java.io.File("shared/localizations.json")
-            if (sharedFile.exists()) {
-                val json = sharedFile.readText()
-                val jsonObject = JSONObject(json)
-                println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")} from shared folder")
-                return jsonObject
+            // Try multiple paths to find shared/localizations.json
+            val possiblePaths = listOf(
+                "shared/localizations.json",           // From project root
+                "../shared/localizations.json",        // From android/ directory (CI and local tests)
+                "../../shared/localizations.json"      // From android/app/ directory
+            )
+
+            for (path in possiblePaths) {
+                val sharedFile = java.io.File(path)
+                if (sharedFile.exists()) {
+                    val json = sharedFile.readText()
+                    val jsonObject = JSONObject(json)
+                    println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")} from $path")
+                    return jsonObject
+                }
             }
 
             // Fallback: load from assets (for production APK)
