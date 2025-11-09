@@ -91,7 +91,7 @@ class OnboardingFlowUITest {
         Thread.sleep(800)
         composeTestRule.waitForIdle()
 
-        // AED is typically first - should be visible without scrolling
+        // Default currency is always first - should be visible without scrolling
         composeTestRule.onNodeWithTag("currency_option_AED")
             .assertExists()
             .assertHasClickAction()
