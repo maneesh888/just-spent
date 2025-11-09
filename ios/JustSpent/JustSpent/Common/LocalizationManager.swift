@@ -36,18 +36,9 @@ class LocalizationManager {
             print("📍 Found localizations.json in shared folder (from current dir)")
         }
 
-        // 2. Try navigating up from bundle path (works in simulator)
-        if jsonURL == nil, let bundlePath = Bundle.main.bundlePath as NSString? {
-            // Navigate up from .app bundle to project root
-            let projectRoot = bundlePath.deletingLastPathComponent
-                .deletingLastPathComponent
-                .deletingLastPathComponent
-                .deletingLastPathComponent
-            let sharedPath = "\(projectRoot)/shared/localizations.json"
-            if fileManager.fileExists(atPath: sharedPath) {
-                jsonURL = URL(fileURLWithPath: sharedPath)
-                print("📍 Found localizations.json in shared folder (from bundle path)")
-            }
+        // 2. Try searching up from bundle path to find project root (works in simulator)
+        if jsonURL == nil {
+            jsonURL = findLocalizationFileFromBundle(fileManager: fileManager)
         }
 
         // 3. Fallback: load from bundle (production build with file added to Xcode)
@@ -68,6 +59,31 @@ class LocalizationManager {
 
         localizations = json
         print("✅ Loaded localizations.json version: \(json["version"] as? String ?? "unknown")")
+    }
+
+    /// Search for project root by looking for shared/localizations.json
+    private func findLocalizationFileFromBundle(fileManager: FileManager) -> URL? {
+        guard let bundlePath = Bundle.main.bundlePath else { return nil }
+
+        var currentPath = (bundlePath as NSString).deletingLastPathComponent
+
+        // Search up to 10 levels to find project root
+        for _ in 0..<10 {
+            let sharedPath = (currentPath as NSString).appendingPathComponent("shared/localizations.json")
+            if fileManager.fileExists(atPath: sharedPath) {
+                print("📍 Found localizations.json in shared folder (from bundle path)")
+                return URL(fileURLWithPath: sharedPath)
+            }
+
+            // Go up one level
+            let parentPath = (currentPath as NSString).deletingLastPathComponent
+            if parentPath == currentPath {
+                break // Reached root
+            }
+            currentPath = parentPath
+        }
+
+        return nil
     }
 
     // MARK: - String Access
