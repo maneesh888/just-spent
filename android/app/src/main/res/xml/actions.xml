@@ -58,48 +58,48 @@
 
     <!-- Entity Sets -->
     <entity-set entitySetId="ExpenseCategories">
-        <entity identifier="FOOD" name="@string/category_food">
+        <entity identifier="FOOD" name="Food &amp; Dining">
             <synonym>dining</synonym>
             <synonym>restaurant</synonym>
             <synonym>meal</synonym>
         </entity>
-        <entity identifier="GROCERY" name="@string/category_grocery">
+        <entity identifier="GROCERY" name="Grocery">
             <synonym>groceries</synonym>
             <synonym>supermarket</synonym>
             <synonym>shopping</synonym>
         </entity>
-        <entity identifier="TRANSPORT" name="@string/category_transport">
+        <entity identifier="TRANSPORT" name="Transportation">
             <synonym>transportation</synonym>
             <synonym>taxi</synonym>
             <synonym>gas</synonym>
             <synonym>fuel</synonym>
         </entity>
-        <entity identifier="SHOPPING" name="@string/category_shopping">
+        <entity identifier="SHOPPING" name="Shopping">
             <synonym>store</synonym>
             <synonym>mall</synonym>
             <synonym>purchase</synonym>
         </entity>
-        <entity identifier="ENTERTAINMENT" name="@string/category_entertainment">
+        <entity identifier="ENTERTAINMENT" name="Entertainment">
             <synonym>movie</synonym>
             <synonym>cinema</synonym>
             <synonym>fun</synonym>
         </entity>
-        <entity identifier="BILLS" name="@string/category_bills">
+        <entity identifier="BILLS" name="Bills &amp; Utilities">
             <synonym>utility</synonym>
             <synonym>electricity</synonym>
             <synonym>rent</synonym>
         </entity>
-        <entity identifier="HEALTHCARE" name="@string/category_healthcare">
+        <entity identifier="HEALTHCARE" name="Healthcare">
             <synonym>doctor</synonym>
             <synonym>hospital</synonym>
             <synonym>medicine</synonym>
         </entity>
-        <entity identifier="EDUCATION" name="@string/category_education">
+        <entity identifier="EDUCATION" name="Education">
             <synonym>school</synonym>
             <synonym>course</synonym>
             <synonym>training</synonym>
         </entity>
-        <entity identifier="OTHER" name="@string/category_other">
+        <entity identifier="OTHER" name="Other">
             <synonym>misc</synonym>
             <synonym>miscellaneous</synonym>
         </entity>

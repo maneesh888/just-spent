@@ -1,0 +1,3 @@
+# Ignore localization file copied from shared folder during build
+# Source of truth is in shared/localizations.json
+localizations.json
