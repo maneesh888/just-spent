@@ -80,7 +80,7 @@ android {
     buildToolsVersion = "34.0.0"
 }
 
-// Copy shared localizations.json to assets before build
+// Copy shared resources to assets before build
 tasks.register<Copy>("copySharedLocalizations") {
     from("${project.rootDir}/../shared/localizations.json")
     into("${project.projectDir}/src/main/assets")
@@ -93,10 +93,23 @@ tasks.register<Copy>("copySharedLocalizations") {
     }
 }
 
-// Run copySharedLocalizations before preBuild
+tasks.register<Copy>("copySharedCurrencies") {
+    from("${project.rootDir}/../shared/currencies.json")
+    into("${project.projectDir}/src/main/assets")
+
+    doFirst {
+        println("📋 Copying shared/currencies.json to Android assets...")
+    }
+    doLast {
+        println("✅ Copied shared currencies file to assets")
+    }
+}
+
+// Run copy tasks before preBuild
 tasks.whenTaskAdded {
     if (name == "preBuild") {
         dependsOn("copySharedLocalizations")
+        dependsOn("copySharedCurrencies")
     }
 }
 
