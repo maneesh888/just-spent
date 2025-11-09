@@ -79,6 +79,7 @@
 		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 		9F7363342EAC94A300D50166 /* JustSpentTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentTests; sourceTree = "<group>"; };
 		9F73634D2EAC951B00D50166 /* JustSpentUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentUITests; sourceTree = "<group>"; };
+		9FBC18832EC0291000ECDB75 /* shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); name = shared; path = "/Users/maneesh/Documents/Hobby/just-spent/shared"; sourceTree = "<absolute>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,6 +149,7 @@
 				9F7362822EA5841400D50166 /* Views */,
 				9FC1297F2EBA293D000999C2 /* MainContent.swift */,
 				9FC129812EBA2941000999C2 /* Footer.swift */,
+				9FBC18832EC0291000ECDB75 /* shared */,
 			);
 			path = JustSpent;
 			sourceTree = "<group>";
@@ -187,6 +189,7 @@
 				9F7362792EA5841400D50166 /* Presentation */,
 				9F73627C2EA5841400D50166 /* Siri */,
 				9F7362822EA5841400D50166 /* Views */,
+				9FBC18832EC0291000ECDB75 /* shared */,
 			);
 			name = JustSpent;
 			productName = JustSpent;
@@ -208,6 +211,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9F7363342EAC94A300D50166 /* JustSpentTests */,
+				9FBC18832EC0291000ECDB75 /* shared */,
 			);
 			name = JustSpentTests;
 			packageProductDependencies = (
@@ -231,6 +235,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9F73634D2EAC951B00D50166 /* JustSpentUITests */,
+				9FBC18832EC0291000ECDB75 /* shared */,
 			);
 			name = JustSpentUITests;
 			packageProductDependencies = (
