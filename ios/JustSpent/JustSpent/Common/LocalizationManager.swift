@@ -23,10 +23,46 @@ class LocalizationManager {
     // MARK: - Loading
 
     private func loadLocalizations() {
-        guard let url = Bundle.main.url(forResource: "localizations", withExtension: "json"),
+        let fileManager = FileManager.default
+        var jsonURL: URL?
+
+        // Try multiple paths to find the shared localization file
+
+        // 1. Try from current working directory (works in tests)
+        let currentDirPath = fileManager.currentDirectoryPath
+        let sharedFromCurrent = "\(currentDirPath)/shared/localizations.json"
+        if fileManager.fileExists(atPath: sharedFromCurrent) {
+            jsonURL = URL(fileURLWithPath: sharedFromCurrent)
+            print("📍 Found localizations.json in shared folder (from current dir)")
+        }
+
+        // 2. Try navigating up from bundle path (works in simulator)
+        if jsonURL == nil, let bundlePath = Bundle.main.bundlePath as NSString? {
+            // Navigate up from .app bundle to project root
+            let projectRoot = bundlePath.deletingLastPathComponent
+                .deletingLastPathComponent
+                .deletingLastPathComponent
+                .deletingLastPathComponent
+            let sharedPath = "\(projectRoot)/shared/localizations.json"
+            if fileManager.fileExists(atPath: sharedPath) {
+                jsonURL = URL(fileURLWithPath: sharedPath)
+                print("📍 Found localizations.json in shared folder (from bundle path)")
+            }
+        }
+
+        // 3. Fallback: load from bundle (production build with file added to Xcode)
+        if jsonURL == nil {
+            jsonURL = Bundle.main.url(forResource: "localizations", withExtension: "json")
+            if jsonURL != nil {
+                print("📍 Found localizations.json in app bundle")
+            }
+        }
+
+        guard let url = jsonURL,
               let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            print("❌ Failed to load localizations.json")
+            print("❌ Failed to load localizations.json from any location")
+            print("   Searched: current dir, bundle path, and app bundle")
             return
         }
 
