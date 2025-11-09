@@ -155,7 +155,7 @@ struct CurrencyOnboardingRow: View {
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(currency.displayName) (\(currency.code))")
-        .accessibilityIdentifier(currency.code)
+        .accessibilityIdentifier("currency_option_\(currency.code)")
         .accessibilityAddTraits(.isButton)
     }
 }
