@@ -165,4 +165,19 @@ class LocalizationManager {
     var categoryEducation: String { get { return get("categories.education") } }
     var categoryOther: String { get { return get("categories.other") } }
     var categoryUnknown: String { get { return get("categories.unknown") } }
+
+    // Settings
+    var settingsTitle: String { get { return get("settings.title") } }
+    var settingsCurrencySettings: String { get { return get("settings.currencySettings") } }
+    var settingsCurrencyFooter: String { get { return get("settings.currencyFooter") } }
+    var settingsUserInformation: String { get { return get("settings.userInformation") } }
+    var settingsAbout: String { get { return get("settings.about") } }
+    var settingsVersion: String { get { return get("settings.version") } }
+    var settingsBuild: String { get { return get("settings.build") } }
+    var settingsName: String { get { return get("settings.name") } }
+    var settingsEmail: String { get { return get("settings.email") } }
+    var settingsMemberSince: String { get { return get("settings.memberSince") } }
+    var settingsDefaultCurrency: String { get { return get("settings.defaultCurrency") } }
+    var settingsResetToDefaults: String { get { return get("settings.resetToDefaults") } }
+    var settingsDone: String { get { return get("settings.done") } }
 }
