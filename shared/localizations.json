@@ -95,5 +95,28 @@
     "ellipsis": "Use proper ellipsis character (…) not three dots (...)",
     "capitalization": "Use Title Case for UI labels and messages",
     "ampersand": "Android: Use &amp; in XML, both platforms display as &"
+  },
+  "settings": {
+    "title": "Settings",
+    "currencySettings": "Currency Settings",
+    "currencyFooter": "All expenses will be displayed in your selected currency.",
+    "userInformation": "User Information",
+    "about": "About",
+    "version": "Version",
+    "build": "Build",
+    "name": "Name",
+    "email": "Email",
+    "memberSince": "Member Since",
+    "defaultCurrency": "Default Currency",
+    "resetToDefaults": "Reset to Defaults",
+    "selectCurrency": "Select Currency",
+    "done": "Done",
+    "back": "Back"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to Just Spent!",
+    "welcomeSubtitle": "We've pre-selected your currency based on your location",
+    "helperText": "You can choose a different currency below.\nThis will be used when no currency is specified.",
+    "continueButton": "Continue"
   }
 }
