@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.justspent.app.data.model.Currency
+import com.justspent.app.ui.components.PrimaryButton
 
 /**
  * Onboarding screen for first-launch default currency selection
@@ -42,8 +43,9 @@ fun CurrencyOnboardingScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Currency Selection List
+            // Currency Selection List (flexible height)
             CurrencySelectionList(
+                modifier = Modifier.weight(1f),
                 selectedCurrency = selectedCurrency,
                 onCurrencySelected = {
                     selectedCurrency = it
@@ -56,13 +58,13 @@ fun CurrencyOnboardingScreen(
             // Helper Text
             HelperText()
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Continue Button
-            ContinueButton(
-                onClick = {
-                    onComplete()
-                }
+            PrimaryButton(
+                text = "Continue",
+                onClick = { onComplete() },
+                testTag = "continue_button"
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -104,13 +106,13 @@ private fun WelcomeHeader() {
 
 @Composable
 private fun CurrencySelectionList(
+    modifier: Modifier = Modifier,
     selectedCurrency: Currency,
     onCurrencySelected: (Currency) -> Unit
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 200.dp, max = 500.dp), // Flexible height that works for both production and tests
+        modifier = modifier
+            .fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 2.dp
     ) {
@@ -197,24 +199,6 @@ private fun HelperText() {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
     )
-}
-
-@Composable
-private fun ContinueButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .testTag("continue_button"),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Text(
-            text = "Continue",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
 }
 
 // MARK: - Previews
