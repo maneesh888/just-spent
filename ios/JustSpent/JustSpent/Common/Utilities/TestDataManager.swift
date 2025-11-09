@@ -64,6 +64,8 @@ class TestDataManager {
             print("🧪 Forcing onboarding to show")
             // Reset onboarding by setting UserDefaults key to false
             UserDefaults.standard.set(false, forKey: "user_has_completed_onboarding")
+            // Also reset via UserPreferences
+            UserDefaults.standard.removeObject(forKey: "has_completed_onboarding")
         } else if TestDataManager.shouldSkipOnboarding() || TestDataManager.isUITesting() {
             print("🧪 Skipping onboarding")
             UserPreferences.shared.completeOnboarding()
@@ -81,10 +83,20 @@ class TestDataManager {
             populateDefaultTestData(context: context)
         }
 
-        // Save changes
+        // Save changes with explicit synchronous save
         do {
             try context.save()
-            print("✅ Test environment setup complete")
+
+            // Force process pending changes to ensure data is immediately available
+            context.processPendingChanges()
+
+            // Verify data was saved
+            let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
+            let count = try context.count(for: fetchRequest)
+            print("✅ Test environment setup complete - Verified \(count) expenses in database")
+
+            // Extra sync delay to ensure Core Data stack is fully ready
+            Thread.sleep(forTimeInterval: 0.5)
         } catch {
             print("❌ Failed to save test data: \(error)")
         }

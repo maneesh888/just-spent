@@ -150,6 +150,33 @@ ANDROID_BUILD_HTML=$(get_status_html "$ANDROID_BUILD_STATUS" "0" "0" "0" "true")
 ANDROID_UNIT_HTML=$(get_status_html "$ANDROID_UNIT_STATUS" "$ANDROID_UNIT_COUNT" "$ANDROID_UNIT_PASSED" "$ANDROID_UNIT_FAILED" "false")
 ANDROID_UI_HTML=$(get_status_html "$ANDROID_UI_STATUS" "$ANDROID_UI_COUNT" "$ANDROID_UI_PASSED" "$ANDROID_UI_FAILED" "false")
 
+# Function to generate log link HTML
+generate_log_link() {
+  local log_file=$1
+  local description=$2
+  local icon=$3
+
+  if [ -f "$RESULTS_DIR/$log_file" ]; then
+    echo "<div class=\"log-item\">$icon <a href=\"$log_file\" class=\"log-link\">$description</a> <span class=\"log-status exists\">✓ Available</span></div>"
+  else
+    echo "<div class=\"log-item\">$icon <span style=\"color: #a0aec0;\">$description</span> <span class=\"log-status missing\">✗ Not Generated</span></div>"
+  fi
+}
+
+# Generate iOS log links
+IOS_LOG_LINKS=""
+IOS_LOG_LINKS="$IOS_LOG_LINKS$(generate_log_link "ios_build_$TIMESTAMP.log" "Build Log" "🔨")"
+IOS_LOG_LINKS="$IOS_LOG_LINKS$(generate_log_link "ios_unit_$TIMESTAMP.log" "Unit Tests Log" "🧪")"
+IOS_LOG_LINKS="$IOS_LOG_LINKS$(generate_log_link "ios_ui_$TIMESTAMP.log" "UI Tests Log" "📱")"
+IOS_LOG_LINKS="$IOS_LOG_LINKS$(generate_log_link "ios_unit_$TIMESTAMP.xcresult" "XCResult Bundle (Open in Xcode)" "📊")"
+
+# Generate Android log links
+ANDROID_LOG_LINKS=""
+ANDROID_LOG_LINKS="$ANDROID_LOG_LINKS$(generate_log_link "android_build_$TIMESTAMP.log" "Build Log" "🔨")"
+ANDROID_LOG_LINKS="$ANDROID_LOG_LINKS$(generate_log_link "android_unit_$TIMESTAMP.log" "Unit Tests Log" "🧪")"
+ANDROID_LOG_LINKS="$ANDROID_LOG_LINKS$(generate_log_link "android_ui_$TIMESTAMP.log" "UI Tests Log" "📱")"
+ANDROID_LOG_LINKS="$ANDROID_LOG_LINKS$(generate_log_link "android_emulator_$TIMESTAMP.log" "Emulator Management Log" "📟")"
+
 # Generate HTML
 cat > "$REPORT_HTML" << 'EOF'
 <!DOCTYPE html>
@@ -308,6 +335,37 @@ cat > "$REPORT_HTML" << 'EOF'
             color: #2d3748;
         }
 
+        .log-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .log-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .log-status {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .log-status.exists {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .log-status.missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         .footer {
             text-align: center;
             color: white;
@@ -412,19 +470,13 @@ cat > "$REPORT_HTML" << 'EOF'
 
         <div class="logs-section">
             <h2>📋 Test Logs</h2>
-            <p class="stat-label" style="margin-bottom: 16px;">Detailed logs are available in the .ci-results directory</p>
-            <div class="log-item">
-                📁 Build logs: .ci-results/ios_build_*.log
-            </div>
-            <div class="log-item">
-                📁 Unit test logs: .ci-results/*_unit_*.log
-            </div>
-            <div class="log-item">
-                📁 UI test logs: .ci-results/*_ui_*.log
-            </div>
-            <div class="log-item">
-                📁 Test results: .ci-results/*.xcresult
-            </div>
+            <p class="stat-label" style="margin-bottom: 16px;">Click on any log file below to view details</p>
+
+            <h3 style="font-size: 16px; color: #1a202c; margin: 24px 0 12px 0;">📱 iOS Logs</h3>
+            IOS_LOG_LINKS_PLACEHOLDER
+
+            <h3 style="font-size: 16px; color: #1a202c; margin: 24px 0 12px 0;">🤖 Android Logs</h3>
+            ANDROID_LOG_LINKS_PLACEHOLDER
         </div>
 
         <div class="footer">
@@ -452,6 +504,12 @@ sed -i '' "s@IOS_UI_PLACEHOLDER@$IOS_UI_HTML@g" "$REPORT_HTML"
 sed -i '' "s@ANDROID_BUILD_PLACEHOLDER@$ANDROID_BUILD_HTML@g" "$REPORT_HTML"
 sed -i '' "s@ANDROID_UNIT_PLACEHOLDER@$ANDROID_UNIT_HTML@g" "$REPORT_HTML"
 sed -i '' "s@ANDROID_UI_PLACEHOLDER@$ANDROID_UI_HTML@g" "$REPORT_HTML"
+
+# Replace log link placeholders (using | as delimiter to avoid conflicts with HTML)
+IOS_LOG_LINKS_ESCAPED=$(echo "$IOS_LOG_LINKS" | sed 's/[&/\]/\\&/g')
+ANDROID_LOG_LINKS_ESCAPED=$(echo "$ANDROID_LOG_LINKS" | sed 's/[&/\]/\\&/g')
+sed -i '' "s|IOS_LOG_LINKS_PLACEHOLDER|$IOS_LOG_LINKS_ESCAPED|g" "$REPORT_HTML"
+sed -i '' "s|ANDROID_LOG_LINKS_PLACEHOLDER|$ANDROID_LOG_LINKS_ESCAPED|g" "$REPORT_HTML"
 
 echo "✅ HTML report generated: $REPORT_HTML"
 

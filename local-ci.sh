@@ -591,6 +591,27 @@ run_ios_pipeline() {
   fi
 
   # iOS UI Tests
+  # Reset simulator for clean state (matches GitHub Actions behavior)
+  # This ensures no stale UserDefaults, Core Data, or app state from previous runs
+  info "Resetting iOS simulator for clean test environment..."
+  SIMULATOR_ID=$(xcrun simctl list devices | grep "iPhone 16" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+
+  if [ -n "$SIMULATOR_ID" ]; then
+    # Erase simulator data
+    xcrun simctl erase "$SIMULATOR_ID" 2>/dev/null || true
+
+    # Boot simulator
+    xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
+
+    # Wait for simulator to fully boot (matching GitHub Actions)
+    info "Waiting for simulator to fully boot..."
+    sleep 10
+
+    success "Simulator reset complete - clean state ready"
+  else
+    warning "Could not find iPhone 16 simulator ID - continuing without reset"
+  fi
+
   # Grant permissions before UI tests (microphone access required)
   grant_ios_simulator_permissions "iPhone 16"
 
