@@ -34,32 +34,66 @@ class LocalizationManager private constructor(context: Context) {
 
     private fun loadLocalizations(context: Context): JSONObject {
         return try {
-            // Try multiple paths to find shared/localizations.json
-            val possiblePaths = listOf(
-                "shared/localizations.json",           // From project root
-                "../shared/localizations.json",        // From android/ directory (CI and local tests)
-                "../../shared/localizations.json"      // From android/app/ directory
-            )
+            // Try multiple paths to find the shared localization file
 
-            for (path in possiblePaths) {
-                val sharedFile = java.io.File(path)
-                if (sharedFile.exists()) {
-                    val json = sharedFile.readText()
-                    val jsonObject = JSONObject(json)
-                    println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")} from $path")
-                    return jsonObject
-                }
+            // 1. Try from current working directory (works in tests)
+            var localizationFile = java.io.File("shared/localizations.json")
+            if (localizationFile.exists()) {
+                val json = localizationFile.readText()
+                val jsonObject = JSONObject(json)
+                println("📍 Found localizations.json in shared folder (from current dir)")
+                println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")}")
+                return jsonObject
             }
 
-            // Fallback: load from assets (for production APK)
+            // 2. Search up from current directory to find project root (works in tests)
+            val searchedFile = findLocalizationFileFromProjectRoot()
+            if (searchedFile != null && searchedFile.exists()) {
+                val json = searchedFile.readText()
+                val jsonObject = JSONObject(json)
+                println("📍 Found localizations.json by searching up from current directory")
+                println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")}")
+                return jsonObject
+            }
+
+            // 3. Fallback: load from assets (for production APK)
             val json = context.assets.open("localizations.json").bufferedReader().use { it.readText() }
             val jsonObject = JSONObject(json)
-            println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")} from assets")
+            println("📍 Found localizations.json in app assets")
+            println("✅ Loaded localizations.json version: ${jsonObject.optString("version", "unknown")}")
             jsonObject
         } catch (e: IOException) {
-            println("❌ Failed to load localizations.json: ${e.message}")
+            println("❌ Failed to load localizations.json from any location")
+            println("   Searched: current dir, project root, and app assets")
+            println("   Error: ${e.message}")
             JSONObject()
         }
+    }
+
+    /**
+     * Search for localizations.json by traversing up from current directory
+     * Similar to iOS implementation
+     */
+    private fun findLocalizationFileFromProjectRoot(): java.io.File? {
+        var currentDir = java.io.File(System.getProperty("user.dir") ?: ".")
+
+        // Search up to 10 levels to find project root
+        for (i in 0..9) {
+            val sharedPath = java.io.File(currentDir, "shared/localizations.json")
+            if (sharedPath.exists()) {
+                println("📍 Found localizations.json by searching up $i levels")
+                return sharedPath
+            }
+
+            // Go up one level
+            val parentDir = currentDir.parentFile
+            if (parentDir == null || parentDir == currentDir) {
+                break // Reached filesystem root
+            }
+            currentDir = parentDir
+        }
+
+        return null
     }
 
     // MARK: - String Access

@@ -71,7 +71,7 @@ class LocalizationManager {
 
     /// Search for project root by looking for shared/localizations.json
     private func findLocalizationFileFromBundle(fileManager: FileManager) -> URL? {
-        guard let bundlePath = Bundle.main.bundlePath else { return nil }
+        let bundlePath = Bundle.main.bundlePath
 
         var currentPath = (bundlePath as NSString).deletingLastPathComponent
 
@@ -125,28 +125,44 @@ class LocalizationManager {
 
     // MARK: - Convenience Accessors
 
-    var appTitle: String { get("app.title") }
-    var appSubtitle: String { get("app.subtitle") }
-    var appTotalLabel: String { get("app.totalLabel") }
+    // App General
+    var appTitle: String { get { return get("app.title") } }
+    var appSubtitle: String { get { return get("app.subtitle") } }
+    var appTotalLabel: String { get { return get("app.totalLabel") } }
 
-    var emptyStateNoExpenses: String { get("emptyState.noExpenses") }
-    var emptyStateTapVoiceButton: String { get("emptyState.tapVoiceButton") }
+    // Empty State
+    var emptyStateNoExpenses: String { get { return get("emptyState.noExpenses") } }
+    var emptyStateTapVoiceButton: String { get { return get("emptyState.tapVoiceButton") } }
+    var emptyStatePermissionsNeeded: String { get { return get("emptyState.permissionsNeeded") } }
+    var emptyStateRecognitionUnavailable: String { get { return get("emptyState.recognitionUnavailable") } }
+    var emptyStateGrantPermissions: String { get { return get("emptyState.grantPermissions") } }
 
-    var buttonOK: String { get("buttons.ok") }
-    var buttonCancel: String { get("buttons.cancel") }
-    var buttonRetry: String { get("buttons.retry") }
+    // Buttons
+    var buttonGrantPermissions: String { get { return get("buttons.grantPermissions") } }
+    var buttonOK: String { get { return get("buttons.ok") } }
+    var buttonCancel: String { get { return get("buttons.cancel") } }
+    var buttonRetry: String { get { return get("buttons.retry") } }
+    var buttonProcess: String { get { return get("buttons.process") } }
+    var buttonGoToSettings: String { get { return get("buttons.goToSettings") } }
+    var buttonDelete: String { get { return get("buttons.delete") } }
+    var buttonSave: String { get { return get("buttons.save") } }
 
-    var voiceListening: String { get("voice.listening") }
-    var voiceProcessing: String { get("voice.processing") }
+    // Voice
+    var voiceListening: String { get { return get("voice.listening") } }
+    var voiceProcessing: String { get { return get("voice.processing") } }
+    var voiceWillStopAuto: String { get { return get("voice.willStopAuto") } }
+    var voiceEnterExpense: String { get { return get("voice.enterExpense") } }
+    var voiceEnterNaturally: String { get { return get("voice.enterNaturally") } }
 
-    var categoryFoodDining: String { get("categories.foodDining") }
-    var categoryGrocery: String { get("categories.grocery") }
-    var categoryTransportation: String { get("categories.transportation") }
-    var categoryShopping: String { get("categories.shopping") }
-    var categoryEntertainment: String { get("categories.entertainment") }
-    var categoryBills: String { get("categories.bills") }
-    var categoryHealthcare: String { get("categories.healthcare") }
-    var categoryEducation: String { get("categories.education") }
-    var categoryOther: String { get("categories.other") }
-    var categoryUnknown: String { get("categories.unknown") }
+    // Categories
+    var categoryFoodDining: String { get { return get("categories.foodDining") } }
+    var categoryGrocery: String { get { return get("categories.grocery") } }
+    var categoryTransportation: String { get { return get("categories.transportation") } }
+    var categoryShopping: String { get { return get("categories.shopping") } }
+    var categoryEntertainment: String { get { return get("categories.entertainment") } }
+    var categoryBills: String { get { return get("categories.bills") } }
+    var categoryHealthcare: String { get { return get("categories.healthcare") } }
+    var categoryEducation: String { get { return get("categories.education") } }
+    var categoryOther: String { get { return get("categories.other") } }
+    var categoryUnknown: String { get { return get("categories.unknown") } }
 }
