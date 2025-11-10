@@ -61,31 +61,80 @@ class OnboardingFlowUITests: BaseUITestCase {
         let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
         XCTAssertGreaterThan(allCurrencies.count, 0, "Should load currencies from JSON")
 
-        print("🔍 Testing for \(allCurrencies.count) currencies from JSON")
+        // Helper to collect currencies from currently visible elements
+        // Uses same approach as TestDataHelper.findCurrencyOption()
+        func collectVisibleCurrencies() -> Set<String> {
+            var found = Set<String>()
 
-        // Use TestDataHelper's scrollToElement approach which already works
-        // Try to find each currency - scrollToElement will scroll if needed
-        var foundCurrencies = Set<String>()
-        var missingCurrencies: [String] = []
-
-        for currencyCode in allCurrencies {
-            // Use the proven working scrollToElement method
-            if let element = testHelper.scrollToElement(withIdentifier: "currency_option_\(currencyCode)") {
-                if element.exists {
-                    foundCurrencies.insert(currencyCode)
-                    print("✅ Found: \(currencyCode)")
-                } else {
-                    missingCurrencies.append(currencyCode)
-                    print("❌ Missing: \(currencyCode)")
+            // Iterate through all expected currencies and check if they exist
+            // This mirrors the working logic in TestDataHelper.scrollToElement()
+            for currencyCode in allCurrencies {
+                // Use testHelper's working findCurrencyOption method
+                if let element = testHelper.findCurrencyOption(currencyCode), element.exists {
+                    found.insert(currencyCode)
                 }
-            } else {
-                missingCurrencies.append(currencyCode)
-                print("❌ Missing: \(currencyCode)")
             }
+
+            return found
         }
 
+        // Collect currencies while scrolling through the list
+        var foundCurrencies = Set<String>()
+        var previousCount = 0
+        var stuckAttempts = 0
+        var scrollAttempts = 0
+        let maxScrollAttempts = 20  // Increased from 15 to handle all 36 currencies
+
+        // Find the scrollable list container
+        let scrollView = app.scrollViews.firstMatch
+
+        while scrollAttempts < maxScrollAttempts {
+            // Collect currencies from current view
+            let currentlyVisible = collectVisibleCurrencies()
+            let newFound = currentlyVisible.subtracting(foundCurrencies)
+            foundCurrencies.formUnion(currentlyVisible)
+
+            print("📊 Scroll \(scrollAttempts + 1): Found \(foundCurrencies.count)/\(allCurrencies.count) (+\(newFound.count) new)")
+
+            // If we found all currencies, stop
+            if foundCurrencies.count == allCurrencies.count {
+                print("✅ All currencies found after \(scrollAttempts + 1) scrolls")
+                break
+            }
+
+            // Check if we're stuck (no new currencies found)
+            if foundCurrencies.count == previousCount {
+                stuckAttempts += 1
+                if stuckAttempts >= 5 {  // Increased from 3 to 5 attempts
+                    print("⚠️ Stopped scrolling - no new currencies found for 5 attempts")
+                    print("⚠️ Last found: \(foundCurrencies.sorted().suffix(5).joined(separator: ", "))")
+                    break
+                }
+            } else {
+                stuckAttempts = 0
+            }
+
+            previousCount = foundCurrencies.count
+
+            // Scroll down to reveal more currencies
+            if scrollView.exists {
+                scrollView.swipeUp()
+            } else {
+                // Fallback: swipe on the app itself
+                app.swipeUp()
+            }
+
+            Thread.sleep(forTimeInterval: 0.5)  // Increased from 0.3s to 0.5s for better cell loading
+            scrollAttempts += 1
+        }
+
+        // Calculate missing currencies
+        let allCurrenciesSet = Set(allCurrencies)
+        let missingCurrencies = allCurrenciesSet.subtracting(foundCurrencies).sorted()
+
         // Report results
-        print("📊 Results: Found \(foundCurrencies.count)/\(allCurrencies.count) currencies")
+        print("✅ Found \(foundCurrencies.count)/\(allCurrencies.count) currencies")
+        print("📋 Found currencies: \(foundCurrencies.sorted().joined(separator: ", "))")
         if !missingCurrencies.isEmpty {
             print("❌ Missing currencies: \(missingCurrencies.joined(separator: ", "))")
         }
