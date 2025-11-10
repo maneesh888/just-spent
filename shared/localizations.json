@@ -8,9 +8,15 @@
   },
   "emptyState": {
     "noExpenses": "No Expenses Yet",
+    "noCurrencyExpenses": "No %@ Expenses",
     "tapVoiceButton": {
       "ios": "Tap the voice button below to get started",
       "android": "Tap the microphone button to add an expense"
+    },
+    "trySaying": "Try saying:",
+    "exampleCommand": "• \"I just spent 20 dollars on coffee\"",
+    "googleAssistantPrompt": {
+      "android": "Say \"Hey Google, I just spent...\" to get started"
     },
     "permissionsNeeded": "Voice features need permissions",
     "recognitionUnavailable": "Speech recognition is not available on this device",
@@ -24,7 +30,17 @@
     "process": "Process",
     "goToSettings": "Go to Settings",
     "delete": "Delete",
-    "save": "Save"
+    "save": "Save",
+    "addSampleExpense": "Add Sample Expense"
+  },
+  "voiceConfirmation": {
+    "title": "Please confirm this expense:",
+    "amount": "Amount:",
+    "category": "Category:",
+    "merchant": "Merchant:",
+    "notes": "Notes:",
+    "confidence": "Confidence: %d%%",
+    "trySayingExample": "Try saying: 'I just spent 20 dollars on coffee'"
   },
   "voice": {
     "listening": "Listening…",
@@ -95,5 +111,28 @@
     "ellipsis": "Use proper ellipsis character (…) not three dots (...)",
     "capitalization": "Use Title Case for UI labels and messages",
     "ampersand": "Android: Use &amp; in XML, both platforms display as &"
+  },
+  "settings": {
+    "title": "Settings",
+    "currencySettings": "Currency Settings",
+    "currencyFooter": "All expenses will be displayed in your selected currency.",
+    "userInformation": "User Information",
+    "about": "About",
+    "version": "Version",
+    "build": "Build",
+    "name": "Name",
+    "email": "Email",
+    "memberSince": "Member Since",
+    "defaultCurrency": "Default Currency",
+    "resetToDefaults": "Reset to Defaults",
+    "selectCurrency": "Select Currency",
+    "done": "Done",
+    "back": "Back"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to Just Spent!",
+    "welcomeSubtitle": "We've pre-selected your currency based on your location",
+    "helperText": "You can choose a different currency below.\nThis will be used when no currency is specified.",
+    "continueButton": "Continue"
   }
 }

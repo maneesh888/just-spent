@@ -31,14 +31,14 @@ struct CurrencyOnboardingView: View {
                         .foregroundColor(.blue)
                         .accessibilityIdentifier("onboarding_icon")
 
-                    Text("Welcome to Just Spent!")
+                    Text(LocalizationManager.shared.get("onboarding.welcomeTitle"))
                         .font(.title)
                         .fontWeight(.bold)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("onboarding_title")
 
-                    Text("We've pre-selected your currency based on your location")
+                    Text(LocalizationManager.shared.get("onboarding.welcomeSubtitle"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -66,7 +66,7 @@ struct CurrencyOnboardingView: View {
                 .accessibilityIdentifier("currency_list")
 
                 // Helper Text
-                Text("Choose from 160+ world currencies.\nScroll to find your preferred currency.")
+                Text(LocalizationManager.shared.get("onboarding.helperText"))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -78,7 +78,7 @@ struct CurrencyOnboardingView: View {
 
                 // Continue Button
                 PrimaryButton(
-                    text: "Continue",
+                    text: LocalizationManager.shared.get("onboarding.continueButton"),
                     action: completeOnboarding,
                     accessibilityIdentifier: "onboarding_continue_button"
                 )
