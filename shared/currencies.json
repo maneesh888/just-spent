@@ -279,7 +279,7 @@
       "shortName": "Dollar",
       "localeIdentifier": "en_SG",
       "isRTL": false,
-      "voiceKeywords": ["sgd", "dollar", "dollars", "singapore dollar"]
+      "voiceKeywords": ["sgd", "dollar", "dollars", "singapore dollar", "singapore dollars"]
     },
     {
       "code": "THB",
@@ -306,7 +306,7 @@
       "shortName": "Dollar",
       "localeIdentifier": "en_US",
       "isRTL": false,
-      "voiceKeywords": ["usd", "dollar", "dollars", "$", "buck", "bucks", "us dollar"]
+      "voiceKeywords": ["usd", "dollar", "dollars", "$", "buck", "bucks", "us dollar", "us dollars"]
     },
     {
       "code": "VND",
