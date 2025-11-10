@@ -62,34 +62,16 @@ class OnboardingFlowUITests: BaseUITestCase {
         XCTAssertGreaterThan(allCurrencies.count, 0, "Should load currencies from JSON")
 
         // Helper to collect currencies from currently visible elements
-        // NOTE: With .accessibilityElement(children: .ignore), buttons are children of the list, not cells
+        // Uses same approach as TestDataHelper.findCurrencyOption()
         func collectVisibleCurrencies() -> Set<String> {
             var found = Set<String>()
 
-            // Find the currency list container
-            let currencyList = app.otherElements["currency_list"]
-
-            // Collect from buttons within the currency list
-            let listButtons = currencyList.buttons.allElementsBoundByIndex
-            for button in listButtons {
-                let identifier = button.identifier
-                if identifier.hasPrefix("currency_option_") {
-                    let currencyCode = String(identifier.dropFirst("currency_option_".count))
-                    if allCurrencies.contains(currencyCode) {
-                        found.insert(currencyCode)
-                    }
-                }
-            }
-
-            // Also check otherElements within the list
-            let listOthers = currencyList.otherElements.allElementsBoundByIndex
-            for other in listOthers {
-                let identifier = other.identifier
-                if identifier.hasPrefix("currency_option_") {
-                    let currencyCode = String(identifier.dropFirst("currency_option_".count))
-                    if allCurrencies.contains(currencyCode) {
-                        found.insert(currencyCode)
-                    }
+            // Iterate through all expected currencies and check if they exist
+            // This mirrors the working logic in TestDataHelper.scrollToElement()
+            for currencyCode in allCurrencies {
+                // Use testHelper's working findCurrencyOption method
+                if let element = testHelper.findCurrencyOption(currencyCode), element.exists {
+                    found.insert(currencyCode)
                 }
             }
 
