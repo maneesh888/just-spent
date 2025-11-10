@@ -18,7 +18,7 @@
       "shortName": "Dollar",
       "localeIdentifier": "en_AU",
       "isRTL": false,
-      "voiceKeywords": ["aud", "dollar", "dollars", "australian dollar", "aussie dollar"]
+      "voiceKeywords": ["aud", "dollar", "dollars", "australian dollar", "australian dollars", "aussie dollar", "aussie dollars"]
     },
     {
       "code": "BHD",
@@ -27,7 +27,7 @@
       "shortName": "Dinar",
       "localeIdentifier": "ar_BH",
       "isRTL": true,
-      "voiceKeywords": ["bhd", "dinar", "dinars", "bahraini dinar"]
+      "voiceKeywords": ["bhd", "dinar", "dinars", "bahraini dinar", "bahraini dinars"]
     },
     {
       "code": "BRL",
@@ -45,7 +45,7 @@
       "shortName": "Dollar",
       "localeIdentifier": "en_CA",
       "isRTL": false,
-      "voiceKeywords": ["cad", "dollar", "dollars", "canadian dollar", "loonie"]
+      "voiceKeywords": ["cad", "dollar", "dollars", "canadian dollar", "canadian dollars", "loonie", "loonies"]
     },
     {
       "code": "CHF",
@@ -72,7 +72,7 @@
       "shortName": "Koruna",
       "localeIdentifier": "cs_CZ",
       "isRTL": false,
-      "voiceKeywords": ["czk", "koruna", "korunas", "crown"]
+      "voiceKeywords": ["czk", "koruna", "korunas", "crown", "crowns"]
     },
     {
       "code": "DKK",
@@ -108,7 +108,7 @@
       "shortName": "Dollar",
       "localeIdentifier": "zh_HK",
       "isRTL": false,
-      "voiceKeywords": ["hkd", "dollar", "dollars", "hong kong dollar"]
+      "voiceKeywords": ["hkd", "dollar", "dollars", "hong kong dollar", "hong kong dollars"]
     },
     {
       "code": "HUF",
@@ -126,7 +126,7 @@
       "shortName": "Rupiah",
       "localeIdentifier": "id_ID",
       "isRTL": false,
-      "voiceKeywords": ["idr", "rupiah", "rupiahs"]
+      "voiceKeywords": ["idr", "rupiah", "rupiahs", "indonesian rupiah", "indonesian rupiahs"]
     },
     {
       "code": "INR",
@@ -135,7 +135,7 @@
       "shortName": "Rupee",
       "localeIdentifier": "en_IN",
       "isRTL": false,
-      "voiceKeywords": ["inr", "rupee", "rupees", "₹", "rs", "rs.", "₨", "indian rupee"]
+      "voiceKeywords": ["inr", "rupee", "rupees", "₹", "rs", "rs.", "₨", "indian rupee", "indian rupees"]
     },
     {
       "code": "JPY",
@@ -162,7 +162,7 @@
       "shortName": "Dinar",
       "localeIdentifier": "ar_KW",
       "isRTL": true,
-      "voiceKeywords": ["kwd", "dinar", "dinars", "kuwaiti dinar"]
+      "voiceKeywords": ["kwd", "dinar", "dinars", "kuwaiti dinar", "kuwaiti dinars"]
     },
     {
       "code": "MXN",
@@ -171,7 +171,7 @@
       "shortName": "Peso",
       "localeIdentifier": "es_MX",
       "isRTL": false,
-      "voiceKeywords": ["mxn", "peso", "pesos", "mexican peso"]
+      "voiceKeywords": ["mxn", "peso", "pesos", "mexican peso", "mexican pesos"]
     },
     {
       "code": "MYR",
@@ -189,7 +189,7 @@
       "shortName": "Krone",
       "localeIdentifier": "no_NO",
       "isRTL": false,
-      "voiceKeywords": ["nok", "krone", "kroner", "norwegian krone"]
+      "voiceKeywords": ["nok", "krone", "kroner", "norwegian krone", "norwegian kroner"]
     },
     {
       "code": "NZD",
@@ -198,7 +198,7 @@
       "shortName": "Dollar",
       "localeIdentifier": "en_NZ",
       "isRTL": false,
-      "voiceKeywords": ["nzd", "dollar", "dollars", "new zealand dollar", "kiwi dollar"]
+      "voiceKeywords": ["nzd", "dollar", "dollars", "new zealand dollar", "new zealand dollars", "kiwi dollar", "kiwi dollars"]
     },
     {
       "code": "OMR",
@@ -207,7 +207,7 @@
       "shortName": "Rial",
       "localeIdentifier": "ar_OM",
       "isRTL": true,
-      "voiceKeywords": ["omr", "rial", "rials", "omani rial"]
+      "voiceKeywords": ["omr", "rial", "rials", "omani rial", "omani rials"]
     },
     {
       "code": "PHP",
@@ -216,7 +216,7 @@
       "shortName": "Peso",
       "localeIdentifier": "fil_PH",
       "isRTL": false,
-      "voiceKeywords": ["php", "peso", "pesos", "philippine peso"]
+      "voiceKeywords": ["php", "peso", "pesos", "philippine peso", "philippine pesos"]
     },
     {
       "code": "PLN",
@@ -234,7 +234,7 @@
       "shortName": "Riyal",
       "localeIdentifier": "ar_QA",
       "isRTL": true,
-      "voiceKeywords": ["qar", "riyal", "riyals", "qatari riyal"]
+      "voiceKeywords": ["qar", "riyal", "riyals", "qatari riyal", "qatari riyals"]
     },
     {
       "code": "RON",
@@ -252,7 +252,7 @@
       "shortName": "Ruble",
       "localeIdentifier": "ru_RU",
       "isRTL": false,
-      "voiceKeywords": ["rub", "ruble", "rubles", "rouble"]
+      "voiceKeywords": ["rub", "ruble", "rubles", "rouble", "roubles"]
     },
     {
       "code": "SAR",
