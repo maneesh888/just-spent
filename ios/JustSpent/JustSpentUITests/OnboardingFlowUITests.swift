@@ -32,20 +32,25 @@ class OnboardingFlowUITests: BaseUITestCase {
         let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
         let expectedCount = allCurrencies.count
 
-        // Test with a sample of currencies to verify the list is populated (avoid infinite scrolling)
-        let sampleCurrencies = Array(allCurrencies.prefix(15))
+        // Quick check: count visible currency cells (fast, no scrolling)
+        var visibleCurrencies = 0
+        let cells = app.cells.allElementsBoundByIndex
 
-        var foundCurrencies = 0
-        for code in sampleCurrencies {
-            // Use scroll helper to find currency (works for any number of currencies)
-            if let element = testHelper.findCurrencyOption(code), element.exists {
-                foundCurrencies += 1
+        for cell in cells {
+            let cellButtons = cell.buttons.allElementsBoundByIndex
+            let cellOthers = cell.otherElements.allElementsBoundByIndex
+
+            for element in cellButtons + cellOthers {
+                if element.identifier.hasPrefix("currency_option_") {
+                    visibleCurrencies += 1
+                }
             }
         }
 
-        // Expect to find most of the sample (at least 10 out of 15)
-        XCTAssertGreaterThanOrEqual(foundCurrencies, 10,
-                                   "Should show at least 10 out of \(expectedCount) total currency options (with scroll)")
+        // Expect to see at least 5 currencies visible without scrolling
+        // (Comprehensive check is done in testOnboardingDisplaysAllCurrenciesFromJSON)
+        XCTAssertGreaterThanOrEqual(visibleCurrencies, 5,
+                                   "Should show at least 5 out of \(expectedCount) total currencies initially visible")
     }
 
     func testOnboardingDisplaysAllCurrenciesFromJSON() throws {
@@ -83,7 +88,7 @@ class OnboardingFlowUITests: BaseUITestCase {
         var previousCount = 0
         var stuckAttempts = 0
         var scrollAttempts = 0
-        let maxScrollAttempts = 15  // Enough to scroll through 36 currencies
+        let maxScrollAttempts = 20  // Increased from 15 to handle all 36 currencies
 
         // Find the scrollable list container
         let scrollView = app.scrollViews.firstMatch
@@ -91,9 +96,10 @@ class OnboardingFlowUITests: BaseUITestCase {
         while scrollAttempts < maxScrollAttempts {
             // Collect currencies from current view
             let currentlyVisible = collectVisibleCurrencies()
+            let newFound = currentlyVisible.subtracting(foundCurrencies)
             foundCurrencies.formUnion(currentlyVisible)
 
-            print("📊 Scroll \(scrollAttempts + 1): Found \(foundCurrencies.count)/\(allCurrencies.count) total currencies")
+            print("📊 Scroll \(scrollAttempts + 1): Found \(foundCurrencies.count)/\(allCurrencies.count) (+\(newFound.count) new)")
 
             // If we found all currencies, stop
             if foundCurrencies.count == allCurrencies.count {
@@ -104,8 +110,9 @@ class OnboardingFlowUITests: BaseUITestCase {
             // Check if we're stuck (no new currencies found)
             if foundCurrencies.count == previousCount {
                 stuckAttempts += 1
-                if stuckAttempts >= 3 {
-                    print("⚠️ Stopped scrolling - no new currencies found for 3 attempts")
+                if stuckAttempts >= 5 {  // Increased from 3 to 5 attempts
+                    print("⚠️ Stopped scrolling - no new currencies found for 5 attempts")
+                    print("⚠️ Last found: \(foundCurrencies.sorted().suffix(5).joined(separator: ", "))")
                     break
                 }
             } else {
@@ -122,7 +129,7 @@ class OnboardingFlowUITests: BaseUITestCase {
                 app.swipeUp()
             }
 
-            Thread.sleep(forTimeInterval: 0.3)
+            Thread.sleep(forTimeInterval: 0.5)  // Increased from 0.3s to 0.5s for better cell loading
             scrollAttempts += 1
         }
 
