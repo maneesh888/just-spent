@@ -40,7 +40,9 @@
       "Bash(gh run list:*)",
       "Bash(gh run watch:*)",
       "Bash(git revert:*)",
-      "Bash(xcrun simctl:*)"
+      "Bash(xcrun simctl:*)",
+      "Bash(git push)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

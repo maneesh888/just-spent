@@ -41,6 +41,9 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingDisplaysAEDOption() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         // Find currency with scroll support (dynamic for any number of currencies)
         let aedElement = testHelper.findCurrencyOption("AED")
         XCTAssertNotNil(aedElement, "AED option should be displayed (with scroll)")
@@ -48,18 +51,27 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingDisplaysUSDOption() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         let usdElement = testHelper.findCurrencyOption("USD")
         XCTAssertNotNil(usdElement, "USD option should be displayed (with scroll)")
         XCTAssertTrue(usdElement?.exists ?? false, "USD should exist")
     }
 
     func testOnboardingDisplaysEUROption() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         let eurElement = testHelper.findCurrencyOption("EUR")
         XCTAssertNotNil(eurElement, "EUR option should be displayed (with scroll)")
         XCTAssertTrue(eurElement?.exists ?? false, "EUR should exist")
     }
 
     func testOnboardingDisplaysGBPOption() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         let gbpElement = testHelper.findCurrencyOption("GBP")
         XCTAssertNotNil(gbpElement, "GBP option should be displayed (with scroll)")
         XCTAssertTrue(gbpElement?.exists ?? false, "GBP should exist")
@@ -75,6 +87,9 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingDisplaysSAROption() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         let sarElement = testHelper.findCurrencyOption("SAR")
         XCTAssertNotNil(sarElement, "SAR option should be displayed (with scroll)")
         XCTAssertTrue(sarElement?.exists ?? false, "SAR should exist")
@@ -311,33 +326,27 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingHandlesScreenRotation() throws {
-        // Wait for onboarding to fully render
+        // Wait for currency list to fully load
         Thread.sleep(forTimeInterval: 1.5)
 
-        // Verify onboarding elements exist using accessibility identifier
-        let identifier = "currency_option_USD"
-
-        // SwiftUI List buttons appear as "other" element type
-        var usdButton = app.otherElements.matching(identifier: identifier).firstMatch
-        if !usdButton.waitForExistence(timeout: 2.0) {
-            // Fallback: Try as button
-            usdButton = app.buttons.matching(identifier: identifier).firstMatch
-            _ = usdButton.waitForExistence(timeout: 2.0)
+        // Find USD option using scroll helper (works reliably)
+        guard let usdElement = testHelper.findCurrencyOption("USD") else {
+            XCTFail("USD option should be displayed in portrait")
+            return
         }
-        XCTAssertTrue(usdButton.exists, "Onboarding should show currency options in portrait")
+        XCTAssertTrue(usdElement.exists, "Onboarding should show currency options in portrait")
 
         // Perform actual rotation to landscape
         XCUIDevice.shared.orientation = .landscapeLeft
         Thread.sleep(forTimeInterval: 0.5)
 
-        // Verify button still exists after rotation
-        // Need to re-query after orientation change
-        usdButton = app.otherElements.matching(identifier: identifier).firstMatch
-        if !usdButton.waitForExistence(timeout: 2.0) {
-            usdButton = app.buttons.matching(identifier: identifier).firstMatch
-            _ = usdButton.waitForExistence(timeout: 2.0)
+        // Verify button still exists after rotation (re-find using scroll helper)
+        guard let usdElementAfterRotation = testHelper.findCurrencyOption("USD") else {
+            XCUIDevice.shared.orientation = .portrait // Cleanup before failing
+            XCTFail("USD option should still be displayed after rotation to landscape")
+            return
         }
-        XCTAssertTrue(usdButton.exists, "Onboarding should remain stable after rotation to landscape")
+        XCTAssertTrue(usdElementAfterRotation.exists, "Onboarding should remain stable after rotation to landscape")
 
         // Rotate back to portrait for cleanup
         XCUIDevice.shared.orientation = .portrait
