@@ -56,21 +56,83 @@ class OnboardingFlowUITests: BaseUITestCase {
         let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
         XCTAssertGreaterThan(allCurrencies.count, 0, "Should load currencies from JSON")
 
-        // Track which currencies are found vs missing
-        var foundCurrencies: [String] = []
-        var missingCurrencies: [String] = []
+        // Helper to collect currencies from currently visible cells
+        func collectVisibleCurrencies() -> Set<String> {
+            var found = Set<String>()
+            let cells = app.cells.allElementsBoundByIndex
 
-        // Verify each currency from JSON is displayed in onboarding
-        for currencyCode in allCurrencies {
-            if let element = testHelper.findCurrencyOption(currencyCode), element.exists {
-                foundCurrencies.append(currencyCode)
-            } else {
-                missingCurrencies.append(currencyCode)
+            for cell in cells {
+                let cellButtons = cell.buttons.allElementsBoundByIndex
+                let cellOthers = cell.otherElements.allElementsBoundByIndex
+
+                for element in cellButtons + cellOthers {
+                    let identifier = element.identifier
+                    if identifier.hasPrefix("currency_option_") {
+                        let currencyCode = String(identifier.dropFirst("currency_option_".count))
+                        if allCurrencies.contains(currencyCode) {
+                            found.insert(currencyCode)
+                        }
+                    }
+                }
             }
+            return found
         }
+
+        // Collect currencies while scrolling through the list
+        var foundCurrencies = Set<String>()
+        var previousCount = 0
+        var stuckAttempts = 0
+        var scrollAttempts = 0
+        let maxScrollAttempts = 15  // Enough to scroll through 36 currencies
+
+        // Find the scrollable list container
+        let scrollView = app.scrollViews.firstMatch
+
+        while scrollAttempts < maxScrollAttempts {
+            // Collect currencies from current view
+            let currentlyVisible = collectVisibleCurrencies()
+            foundCurrencies.formUnion(currentlyVisible)
+
+            print("📊 Scroll \(scrollAttempts + 1): Found \(foundCurrencies.count)/\(allCurrencies.count) total currencies")
+
+            // If we found all currencies, stop
+            if foundCurrencies.count == allCurrencies.count {
+                print("✅ All currencies found after \(scrollAttempts + 1) scrolls")
+                break
+            }
+
+            // Check if we're stuck (no new currencies found)
+            if foundCurrencies.count == previousCount {
+                stuckAttempts += 1
+                if stuckAttempts >= 3 {
+                    print("⚠️ Stopped scrolling - no new currencies found for 3 attempts")
+                    break
+                }
+            } else {
+                stuckAttempts = 0
+            }
+
+            previousCount = foundCurrencies.count
+
+            // Scroll down to reveal more currencies
+            if scrollView.exists {
+                scrollView.swipeUp()
+            } else {
+                // Fallback: swipe on the app itself
+                app.swipeUp()
+            }
+
+            Thread.sleep(forTimeInterval: 0.3)
+            scrollAttempts += 1
+        }
+
+        // Calculate missing currencies
+        let allCurrenciesSet = Set(allCurrencies)
+        let missingCurrencies = allCurrenciesSet.subtracting(foundCurrencies).sorted()
 
         // Report results
         print("✅ Found \(foundCurrencies.count)/\(allCurrencies.count) currencies")
+        print("📋 Found currencies: \(foundCurrencies.sorted().joined(separator: ", "))")
         if !missingCurrencies.isEmpty {
             print("❌ Missing currencies: \(missingCurrencies.joined(separator: ", "))")
         }
