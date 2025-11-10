@@ -61,25 +61,35 @@ class OnboardingFlowUITests: BaseUITestCase {
         let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
         XCTAssertGreaterThan(allCurrencies.count, 0, "Should load currencies from JSON")
 
-        // Helper to collect currencies from currently visible cells
+        // Helper to collect currencies from currently visible elements
+        // NOTE: With .accessibilityElement(children: .ignore), buttons are direct app elements, not cell children
         func collectVisibleCurrencies() -> Set<String> {
             var found = Set<String>()
-            let cells = app.cells.allElementsBoundByIndex
 
-            for cell in cells {
-                let cellButtons = cell.buttons.allElementsBoundByIndex
-                let cellOthers = cell.otherElements.allElementsBoundByIndex
-
-                for element in cellButtons + cellOthers {
-                    let identifier = element.identifier
-                    if identifier.hasPrefix("currency_option_") {
-                        let currencyCode = String(identifier.dropFirst("currency_option_".count))
-                        if allCurrencies.contains(currencyCode) {
-                            found.insert(currencyCode)
-                        }
+            // Collect from all buttons with currency_option_ prefix
+            let allButtons = app.buttons.allElementsBoundByIndex
+            for button in allButtons {
+                let identifier = button.identifier
+                if identifier.hasPrefix("currency_option_") {
+                    let currencyCode = String(identifier.dropFirst("currency_option_".count))
+                    if allCurrencies.contains(currencyCode) {
+                        found.insert(currencyCode)
                     }
                 }
             }
+
+            // Also check otherElements (in case some are classified differently)
+            let allOthers = app.otherElements.allElementsBoundByIndex
+            for other in allOthers {
+                let identifier = other.identifier
+                if identifier.hasPrefix("currency_option_") {
+                    let currencyCode = String(identifier.dropFirst("currency_option_".count))
+                    if allCurrencies.contains(currencyCode) {
+                        found.insert(currencyCode)
+                    }
+                }
+            }
+
             return found
         }
 
