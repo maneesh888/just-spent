@@ -42,7 +42,9 @@
       "Bash(git revert:*)",
       "Bash(xcrun simctl:*)",
       "Bash(git push)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []

@@ -118,7 +118,6 @@ struct CurrencyOnboardingRow: View {
                 Text(currency.symbol)
                     .font(.title2)
                     .frame(width: 50)
-                    .accessibilityIdentifier("currency_symbol_\(currency.code)")
 
                 // Currency Info
                 VStack(alignment: .leading, spacing: 4) {
@@ -126,12 +125,10 @@ struct CurrencyOnboardingRow: View {
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
-                        .accessibilityIdentifier("currency_name_\(currency.code)")
 
                     Text(currency.code)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .accessibilityIdentifier("currency_code_\(currency.code)")
                 }
 
                 Spacer()
@@ -141,22 +138,20 @@ struct CurrencyOnboardingRow: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.blue)
                         .font(.title2)
-                        .accessibilityIdentifier("currency_selected_\(currency.code)")
                 } else {
                     Image(systemName: "circle")
                         .foregroundColor(.gray.opacity(0.3))
                         .font(.title2)
-                        .accessibilityIdentifier("currency_unselected_\(currency.code)")
                 }
             }
             .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("currency_option_\(currency.code)")
         .accessibilityLabel("\(currency.displayName) (\(currency.code))")
         .accessibilityAddTraits(.isButton)
-        .accessibilityElement(children: .combine)
     }
 }
 
