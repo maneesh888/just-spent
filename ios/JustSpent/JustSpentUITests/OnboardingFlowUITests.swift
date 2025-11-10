@@ -25,79 +25,67 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingShowsAll36Currencies() throws {
-        // Verify all 36 supported currency options are present (with scrolling support)
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
+        // Load currencies from JSON to get accurate count
+        let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
+        let expectedCount = allCurrencies.count
+
         // Test with a sample of currencies to verify the list is populated (avoid infinite scrolling)
-        let currencies = Array(TestDataHelper.allCurrencyCodes.prefix(15))
+        let sampleCurrencies = Array(allCurrencies.prefix(15))
 
         var foundCurrencies = 0
-        for code in currencies {
+        for code in sampleCurrencies {
             // Use scroll helper to find currency (works for any number of currencies)
             if let element = testHelper.findCurrencyOption(code), element.exists {
                 foundCurrencies += 1
             }
         }
 
-        XCTAssertGreaterThanOrEqual(foundCurrencies, 10, "Should show at least 10 currency options (with scroll)")
+        // Expect to find most of the sample (at least 10 out of 15)
+        XCTAssertGreaterThanOrEqual(foundCurrencies, 10,
+                                   "Should show at least 10 out of \(expectedCount) total currency options (with scroll)")
     }
 
-    func testOnboardingDisplaysAEDOption() throws {
+    func testOnboardingDisplaysAllCurrenciesFromJSON() throws {
         // Wait for currency list to fully load
         Thread.sleep(forTimeInterval: 1.5)
 
-        // Find currency with scroll support (dynamic for any number of currencies)
-        let aedElement = testHelper.findCurrencyOption("AED")
-        XCTAssertNotNil(aedElement, "AED option should be displayed (with scroll)")
-        XCTAssertTrue(aedElement?.exists ?? false, "AED should exist")
-    }
+        // Load all currencies from shared/currencies.json
+        let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
+        XCTAssertGreaterThan(allCurrencies.count, 0, "Should load currencies from JSON")
 
-    func testOnboardingDisplaysUSDOption() throws {
-        // Wait for currency list to fully load
-        Thread.sleep(forTimeInterval: 1.5)
+        // Track which currencies are found vs missing
+        var foundCurrencies: [String] = []
+        var missingCurrencies: [String] = []
 
-        let usdElement = testHelper.findCurrencyOption("USD")
-        XCTAssertNotNil(usdElement, "USD option should be displayed (with scroll)")
-        XCTAssertTrue(usdElement?.exists ?? false, "USD should exist")
-    }
+        // Verify each currency from JSON is displayed in onboarding
+        for currencyCode in allCurrencies {
+            if let element = testHelper.findCurrencyOption(currencyCode), element.exists {
+                foundCurrencies.append(currencyCode)
+            } else {
+                missingCurrencies.append(currencyCode)
+            }
+        }
 
-    func testOnboardingDisplaysEUROption() throws {
-        // Wait for currency list to fully load
-        Thread.sleep(forTimeInterval: 1.5)
+        // Report results
+        print("✅ Found \(foundCurrencies.count)/\(allCurrencies.count) currencies")
+        if !missingCurrencies.isEmpty {
+            print("❌ Missing currencies: \(missingCurrencies.joined(separator: ", "))")
+        }
 
-        let eurElement = testHelper.findCurrencyOption("EUR")
-        XCTAssertNotNil(eurElement, "EUR option should be displayed (with scroll)")
-        XCTAssertTrue(eurElement?.exists ?? false, "EUR should exist")
-    }
-
-    func testOnboardingDisplaysGBPOption() throws {
-        // Wait for currency list to fully load
-        Thread.sleep(forTimeInterval: 1.5)
-
-        let gbpElement = testHelper.findCurrencyOption("GBP")
-        XCTAssertNotNil(gbpElement, "GBP option should be displayed (with scroll)")
-        XCTAssertTrue(gbpElement?.exists ?? false, "GBP should exist")
-    }
-
-    func testOnboardingDisplaysINROption() throws {
-        // Wait for currency list to fully load
-        Thread.sleep(forTimeInterval: 1.5)
-
-        let inrElement = testHelper.findCurrencyOption("INR")
-        XCTAssertNotNil(inrElement, "INR option should be displayed (with scroll)")
-        XCTAssertTrue(inrElement?.exists ?? false, "INR should exist")
-    }
-
-    func testOnboardingDisplaysSAROption() throws {
-        // Wait for currency list to fully load
-        Thread.sleep(forTimeInterval: 1.5)
-
-        let sarElement = testHelper.findCurrencyOption("SAR")
-        XCTAssertNotNil(sarElement, "SAR option should be displayed (with scroll)")
-        XCTAssertTrue(sarElement?.exists ?? false, "SAR should exist")
+        // Assert all currencies are present
+        XCTAssertEqual(foundCurrencies.count, allCurrencies.count,
+                      "All \(allCurrencies.count) currencies from JSON should be displayed. Missing: \(missingCurrencies)")
     }
 
     // MARK: - Currency Selection Tests (2 tests)
 
     func testOnboardingCanSelectAED() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         // Find AED option with scroll support
         guard let aedElement = testHelper.findCurrencyOption("AED") else {
             XCTFail("AED button should exist")
@@ -112,6 +100,9 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingCanSelectUSD() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         // Find USD option with scroll support
         guard let usdElement = testHelper.findCurrencyOption("USD") else {
             XCTFail("USD button should exist")
