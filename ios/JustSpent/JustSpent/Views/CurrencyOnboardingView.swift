@@ -58,7 +58,7 @@ struct CurrencyOnboardingView: View {
                         ) {
                             selectedCurrency = currency
                         }
-                        .accessibilityIdentifier("currency_option_\(currency.code)")
+                        // Note: accessibilityIdentifier is set on CurrencyOnboardingRow itself (line 158)
                     }
                 }
                 .listStyle(.insetGrouped)
@@ -153,10 +153,10 @@ struct CurrencyOnboardingRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(currency.displayName) (\(currency.code))")
         .accessibilityIdentifier("currency_option_\(currency.code)")
+        .accessibilityLabel("\(currency.displayName) (\(currency.code))")
         .accessibilityAddTraits(.isButton)
+        .accessibilityElement(children: .combine)
     }
 }
 
