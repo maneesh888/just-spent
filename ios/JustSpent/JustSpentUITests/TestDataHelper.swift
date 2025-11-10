@@ -170,43 +170,19 @@ class TestDataHelper {
 
     // MARK: - Currency Data Loading
 
-    /// Currency JSON structure matching shared/currencies.json
-    private struct CurrencyJSON: Codable {
-        let version: String
-        let lastUpdated: String
-        let currencies: [CurrencyEntry]
-    }
-
-    private struct CurrencyEntry: Codable {
-        let code: String
-        let symbol: String
-        let displayName: String
-        let shortName: String
-        let localeIdentifier: String
-        let isRTL: Bool
-        let voiceKeywords: [String]
-    }
-
-    /// Load all currency codes from shared/currencies.json
+    /// Load all currency codes from shared/currencies.json using JSONLoader
     /// Returns array of currency codes dynamically loaded from JSON
     static func loadCurrencyCodesFromJSON() -> [String] {
-        // Try to find currencies.json in test bundle
-        guard let jsonURL = Bundle(for: TestDataHelper.self).url(forResource: "currencies", withExtension: "json") else {
-            print("❌ TestDataHelper: currencies.json not found in test bundle")
-            return allCurrencyCodes // Fallback to hardcoded
+        // Use JSONLoader (works in both main app and test bundles)
+        let codes = JSONLoader.loadCurrencyCodes(from: Bundle(for: TestDataHelper.self))
+
+        if codes.isEmpty {
+            print("⚠️ TestDataHelper: JSONLoader returned empty, falling back to hardcoded")
+            return allCurrencyCodes
         }
 
-        do {
-            let data = try Data(contentsOf: jsonURL)
-            let decoder = JSONDecoder()
-            let currencyData = try decoder.decode(CurrencyJSON.self, from: data)
-            let codes = currencyData.currencies.map { $0.code }
-            print("✅ TestDataHelper: Loaded \(codes.count) currencies from JSON")
-            return codes
-        } catch {
-            print("❌ TestDataHelper: Failed to parse currencies.json: \(error)")
-            return allCurrencyCodes // Fallback to hardcoded
-        }
+        print("✅ TestDataHelper: Loaded \(codes.count) currencies via JSONLoader")
+        return codes
     }
 
     /// All supported currency codes (DEPRECATED - use loadCurrencyCodesFromJSON())
