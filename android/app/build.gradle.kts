@@ -78,25 +78,16 @@ android {
         includeInBundle = false
     }
     buildToolsVersion = "34.0.0"
-}
 
-// Copy shared localizations.json to assets before build
-tasks.register<Copy>("copySharedLocalizations") {
-    from("${project.rootDir}/../shared/localizations.json")
-    into("${project.projectDir}/src/main/assets")
-
-    doFirst {
-        println("📋 Copying shared/localizations.json to Android assets...")
-    }
-    doLast {
-        println("✅ Copied shared localization file to assets")
-    }
-}
-
-// Run copySharedLocalizations before preBuild
-tasks.whenTaskAdded {
-    if (name == "preBuild") {
-        dependsOn("copySharedLocalizations")
+    // Configure source sets to use shared folder for assets
+    // This allows direct reference to shared/ files without copying
+    sourceSets {
+        getByName("main") {
+            assets.srcDirs(
+                "src/main/assets",
+                "${project.rootDir}/../shared"  // Reference shared folder directly
+            )
+        }
     }
 }
 

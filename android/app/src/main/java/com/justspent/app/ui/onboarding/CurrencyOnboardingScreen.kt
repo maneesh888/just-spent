@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -17,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.justspent.app.data.model.Currency
 import com.justspent.app.ui.components.PrimaryButton
+import com.justspent.app.utils.LocalizationManager
 
 /**
  * Onboarding screen for first-launch default currency selection
@@ -26,6 +28,8 @@ fun CurrencyOnboardingScreen(
     onCurrencySelected: (Currency) -> Unit,
     onComplete: () -> Unit
 ) {
+    val context = LocalContext.current
+    val localization = LocalizationManager.getInstance(context)
     var selectedCurrency by remember { mutableStateOf(Currency.default) }
 
     Scaffold { paddingValues ->
@@ -62,7 +66,7 @@ fun CurrencyOnboardingScreen(
 
             // Continue Button
             PrimaryButton(
-                text = "Continue",
+                text = localization.get("onboarding.continueButton"),
                 onClick = { onComplete() },
                 testTag = "continue_button"
             )
@@ -74,6 +78,9 @@ fun CurrencyOnboardingScreen(
 
 @Composable
 private fun WelcomeHeader() {
+    val context = LocalContext.current
+    val localization = LocalizationManager.getInstance(context)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -88,7 +95,7 @@ private fun WelcomeHeader() {
 
         // Title
         Text(
-            text = "Welcome to Just Spent!",
+            text = localization.get("onboarding.welcomeTitle"),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -96,7 +103,7 @@ private fun WelcomeHeader() {
 
         // Subtitle
         Text(
-            text = "We've pre-selected your currency based on your location",
+            text = localization.get("onboarding.welcomeSubtitle"),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -198,8 +205,11 @@ private fun CurrencyOnboardingRow(
 
 @Composable
 private fun HelperText() {
+    val context = LocalContext.current
+    val localization = LocalizationManager.getInstance(context)
+
     Text(
-        text = "You can choose a different currency below.\nThis will be used when no currency is specified.",
+        text = localization.get("onboarding.helperText"),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
