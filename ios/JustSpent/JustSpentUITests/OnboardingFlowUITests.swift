@@ -66,6 +66,9 @@ class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testOnboardingDisplaysINROption() throws {
+        // Wait for currency list to fully load
+        Thread.sleep(forTimeInterval: 1.5)
+
         let inrElement = testHelper.findCurrencyOption("INR")
         XCTAssertNotNil(inrElement, "INR option should be displayed (with scroll)")
         XCTAssertTrue(inrElement?.exists ?? false, "INR should exist")
@@ -312,7 +315,6 @@ class OnboardingFlowUITests: BaseUITestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Verify onboarding elements exist using accessibility identifier
-        // Use the correct identifier pattern from CurrencyOnboardingView
         let identifier = "currency_option_USD"
 
         // SwiftUI List buttons appear as "other" element type
@@ -322,15 +324,24 @@ class OnboardingFlowUITests: BaseUITestCase {
             usdButton = app.buttons.matching(identifier: identifier).firstMatch
             _ = usdButton.waitForExistence(timeout: 2.0)
         }
-        XCTAssertTrue(usdButton.exists, "Onboarding should show currency options")
+        XCTAssertTrue(usdButton.exists, "Onboarding should show currency options in portrait")
 
-        // Note: Rotation testing requires device orientation changes
-        // XCUIDevice.shared.orientation = .landscapeLeft
-        // This is a placeholder for rotation testing
-
-        // Verify elements still exist after orientation change
+        // Perform actual rotation to landscape
+        XCUIDevice.shared.orientation = .landscapeLeft
         Thread.sleep(forTimeInterval: 0.5)
-        XCTAssertTrue(usdButton.exists, "Onboarding should remain stable after rotation")
+
+        // Verify button still exists after rotation
+        // Need to re-query after orientation change
+        usdButton = app.otherElements.matching(identifier: identifier).firstMatch
+        if !usdButton.waitForExistence(timeout: 2.0) {
+            usdButton = app.buttons.matching(identifier: identifier).firstMatch
+            _ = usdButton.waitForExistence(timeout: 2.0)
+        }
+        XCTAssertTrue(usdButton.exists, "Onboarding should remain stable after rotation to landscape")
+
+        // Rotate back to portrait for cleanup
+        XCUIDevice.shared.orientation = .portrait
+        Thread.sleep(forTimeInterval: 0.5)
     }
 
     // MARK: - Performance Tests (1 test)
