@@ -451,6 +451,51 @@ class OnboardingFlowUITest {
         ).assertExists()
     }
 
+    // MARK: - Localization Tests
+
+    @Test
+    fun onboarding_loadsLocalizedWelcomeTitle() {
+        composeTestRule.waitForIdle()
+
+        // Verify localized welcome title is displayed
+        composeTestRule.onNode(
+            hasText("Welcome to Just Spent!", substring = false),
+            useUnmergedTree = true
+        ).assertExists()
+    }
+
+    @Test
+    fun onboarding_loadsLocalizedWelcomeSubtitle() {
+        composeTestRule.waitForIdle()
+
+        // Verify localized subtitle is displayed
+        composeTestRule.onNode(
+            hasText("We've pre-selected your currency based on your location", substring = true, ignoreCase = true),
+            useUnmergedTree = true
+        ).assertExists()
+    }
+
+    @Test
+    fun onboarding_loadsLocalizedHelperText() {
+        composeTestRule.waitForIdle()
+
+        // Verify localized helper text is displayed
+        composeTestRule.onNode(
+            hasText("You can choose a different currency below", substring = true, ignoreCase = true),
+            useUnmergedTree = true
+        ).assertExists()
+    }
+
+    @Test
+    fun onboarding_loadsLocalizedContinueButton() {
+        composeTestRule.waitForIdle()
+
+        // Verify localized continue button text
+        composeTestRule.onNodeWithTag("continue_button")
+            .assertExists()
+            .assert(hasText("Continue"))
+    }
+
     // Helper extension function for flexible assertion counts
     private fun SemanticsNodeInteractionCollection.assertCountEquals(vararg acceptableCounts: Int) {
         val actualCount = fetchSemanticsNodes().size
