@@ -13,9 +13,9 @@ class FloatingActionButtonUITests: XCTestCase {
         app.launchArguments = ["--uitesting"]
         app.launch()
 
-        // Wait for app to load
+        // Wait for app to load (increased timeout for simulator boot time)
         let appTitle = app.staticTexts["Just Spent"]
-        XCTAssertTrue(appTitle.waitForExistence(timeout: 10.0), "App should launch and show title")
+        XCTAssertTrue(appTitle.waitForExistence(timeout: 30.0), "App should launch and show title")
     }
     
     override func tearDownWithError() throws {
