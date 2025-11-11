@@ -279,6 +279,45 @@ Polish/Deploy  ████░░░░░░░░░░░░░░░░  20%
 | CI/CD Pipeline | ✅ Active | ✅ Active | 100% | ✅ Met |
 | Documentation | 100% | 100% | 100% | ✅ Complete |
 
+### 🐛 Issues & Feature Requests
+
+**Issue Status**: 7 Open | 0 Closed | [View All Issues →](https://github.com/maneesh888/just-spent/issues)
+
+#### 📋 Open Issues by Category
+
+**🎨 UI/UX Enhancements** (3 issues)
+- [#41](https://github.com/maneesh888/just-spent/issues/41) Tablet design for iOS and Android
+- [#40](https://github.com/maneesh888/just-spent/issues/40) Welcome scene with terms & conditions, privacy policy + tips
+- [#34](https://github.com/maneesh888/just-spent/issues/34) Enable touch for title view to explore app settings
+
+**✨ Feature Requests** (4 issues)
+- [#33](https://github.com/maneesh888/just-spent/issues/33) Implement AI assistant for iOS and Android ⭐ *Priority*
+- [#38](https://github.com/maneesh888/just-spent/issues/38) Cloud backup option
+- [#37](https://github.com/maneesh888/just-spent/issues/37) Tap on total view for currency summary with filters
+- [#35](https://github.com/maneesh888/just-spent/issues/35) Implement filtering (daily, monthly, weekly expenses)
+
+#### 📊 Issue Distribution
+
+```
+UI/UX      ███████████░░░░░░░░░  43% (3 issues)
+Features   ████████████████████ 57% (4 issues)
+```
+
+#### 🎯 Planned Issue Resolution
+
+**Current Sprint** (Next 2 weeks):
+- ⏳ #33 - AI assistant implementation (aligns with Phase 4)
+- ⏳ #35 - Filtering functionality
+
+**Next Sprint** (Weeks 3-4):
+- ⏳ #37 - Currency summary view
+- ⏳ #40 - Welcome scene improvements
+- ⏳ #34 - Settings navigation
+
+**Future Releases**:
+- ⏳ #38 - Cloud backup integration
+- ⏳ #41 - Tablet optimization
+
 ### 🚀 Recent Completions (Last 30 Days)
 
 - ✅ **iOS UI Overhaul**: Complete multi-currency interface with custom header (Jan 2025)
