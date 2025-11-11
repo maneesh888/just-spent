@@ -1,0 +1,407 @@
+# Just Spent - Android Fastlane Configuration
+# Documentation: https://docs.fastlane.tools/
+
+default_platform(:android)
+
+platform :android do
+  # ============================================
+  # Configuration
+  # ============================================
+
+  APP_PACKAGE_NAME = "com.justspent.app"
+  GRADLE_FILE = "app/build.gradle"
+  JSON_KEY_FILE = ENV["SUPPLY_JSON_KEY"] || "play-store-key.json"
+
+  # ============================================
+  # Before All Actions
+  # ============================================
+
+  before_all do
+    # Ensure we're on the latest code
+    ensure_git_status_clean unless ENV['SKIP_GIT_CHECK']
+  end
+
+  # ============================================
+  # Lane: Tests
+  # ============================================
+
+  desc "Run all tests"
+  lane :test do
+    gradle(
+      task: "test",
+      project_dir: "android/"
+    )
+  end
+
+  desc "Run unit tests only"
+  lane :test_unit do
+    gradle(
+      task: "testDebugUnitTest",
+      project_dir: "android/"
+    )
+  end
+
+  desc "Run instrumentation tests (requires emulator)"
+  lane :test_instrumentation do
+    gradle(
+      task: "connectedAndroidTest",
+      project_dir: "android/"
+    )
+  end
+
+  # ============================================
+  # Lane: Build
+  # ============================================
+
+  desc "Build debug APK"
+  lane :build_debug do
+    gradle(
+      task: "assembleDebug",
+      project_dir: "android/"
+    )
+  end
+
+  desc "Build release APK"
+  lane :build_apk do
+    gradle(
+      task: "assembleRelease",
+      project_dir: "android/",
+      properties: {
+        "android.injected.signing.store.file" => ENV["KEYSTORE_FILE"],
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+      }
+    )
+  end
+
+  desc "Build release AAB (Android App Bundle)"
+  lane :build_aab do
+    gradle(
+      task: "bundleRelease",
+      project_dir: "android/",
+      properties: {
+        "android.injected.signing.store.file" => ENV["KEYSTORE_FILE"],
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+      }
+    )
+  end
+
+  # ============================================
+  # Lane: Deploy to Play Store
+  # ============================================
+
+  desc "Deploy to Internal Testing track"
+  lane :deploy_internal do
+    # Build AAB
+    build_aab
+
+    # Upload to Play Store
+    upload_to_play_store(
+      track: 'internal',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      json_key: JSON_KEY_FILE,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: 'completed'
+    )
+
+    UI.success("✅ Successfully deployed to Internal Testing!")
+  end
+
+  desc "Deploy to Beta (Closed Testing) track"
+  lane :deploy_beta do
+    # Build AAB
+    build_aab
+
+    # Upload to Play Store
+    upload_to_play_store(
+      track: 'beta',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      json_key: JSON_KEY_FILE,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      release_status: 'completed',
+      rollout: '1.0'  # 100% rollout for beta
+    )
+
+    UI.success("✅ Successfully deployed to Beta Testing!")
+  end
+
+  desc "Deploy to Production track"
+  lane :deploy_production do |options|
+    rollout_percentage = options[:rollout_percentage] || 0.1
+
+    # Build AAB
+    build_aab
+
+    # Upload to Play Store
+    upload_to_play_store(
+      track: 'production',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      json_key: JSON_KEY_FILE,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      release_status: 'completed',
+      rollout: rollout_percentage.to_s
+    )
+
+    UI.success("✅ Successfully deployed to Production with #{(rollout_percentage.to_f * 100).to_i}% rollout!")
+  end
+
+  # ============================================
+  # Lane: Promote Between Tracks
+  # ============================================
+
+  desc "Promote Internal to Beta"
+  lane :promote_to_beta do
+    upload_to_play_store(
+      track: 'internal',
+      track_promote_to: 'beta',
+      json_key: JSON_KEY_FILE,
+      skip_upload_aab: true,
+      skip_upload_metadata: true
+    )
+
+    UI.success("✅ Successfully promoted to Beta!")
+  end
+
+  desc "Promote Beta to Production"
+  lane :promote_to_production do |options|
+    rollout_percentage = options[:rollout_percentage] || 0.1
+
+    upload_to_play_store(
+      track: 'beta',
+      track_promote_to: 'production',
+      rollout: rollout_percentage.to_s,
+      json_key: JSON_KEY_FILE,
+      skip_upload_aab: true,
+      skip_upload_metadata: false
+    )
+
+    UI.success("✅ Successfully promoted to Production with #{(rollout_percentage.to_f * 100).to_i}% rollout!")
+  end
+
+  # ============================================
+  # Lane: Rollout Management
+  # ============================================
+
+  desc "Increase production rollout percentage"
+  lane :increase_rollout do |options|
+    percentage = options[:percentage] || 0.5
+
+    upload_to_play_store(
+      track: 'production',
+      rollout: percentage.to_s,
+      json_key: JSON_KEY_FILE,
+      skip_upload_aab: true,
+      skip_upload_metadata: true
+    )
+
+    UI.success("✅ Increased rollout to #{(percentage.to_f * 100).to_i}%!")
+  end
+
+  desc "Complete rollout (100%)"
+  lane :complete_rollout do
+    upload_to_play_store(
+      track: 'production',
+      rollout: '1.0',
+      json_key: JSON_KEY_FILE,
+      skip_upload_aab: true,
+      skip_upload_metadata: true
+    )
+
+    UI.success("✅ Completed rollout to 100%!")
+  end
+
+  desc "Halt rollout"
+  lane :halt_rollout do
+    upload_to_play_store(
+      track: 'production',
+      track_promote_to: 'production',
+      rollout: '0.0',  # Halt rollout
+      json_key: JSON_KEY_FILE,
+      skip_upload_aab: true,
+      skip_upload_metadata: true
+    )
+
+    UI.success("⏸️ Rollout halted!")
+  end
+
+  # ============================================
+  # Lane: Version Management
+  # ============================================
+
+  desc "Bump version code"
+  lane :bump_version_code do
+    increment_version_code(
+      gradle_file_path: GRADLE_FILE
+    )
+
+    version_code = get_version_code(gradle_file: GRADLE_FILE)
+    UI.success("Version code bumped to #{version_code}")
+  end
+
+  desc "Bump version name"
+  lane :bump_version_name do |options|
+    version_type = options[:type] || "patch"  # major, minor, patch
+
+    increment_version_name(
+      gradle_file_path: GRADLE_FILE,
+      bump_type: version_type
+    )
+
+    version_name = get_version_name(gradle_file: GRADLE_FILE)
+    UI.success("Version name bumped to #{version_name}")
+  end
+
+  desc "Get current version"
+  lane :version do
+    version_name = get_version_name(gradle_file: GRADLE_FILE)
+    version_code = get_version_code(gradle_file: GRADLE_FILE)
+    UI.message("Current version: #{version_name} (#{version_code})")
+  end
+
+  # ============================================
+  # Lane: Screenshots
+  # ============================================
+
+  desc "Generate screenshots for Play Store"
+  lane :screenshots do
+    screengrab(
+      locales: ['en-US', 'ar-AE'],
+      clear_previous_screenshots: true,
+      app_package_name: APP_PACKAGE_NAME,
+      use_timestamp_suffix: false,
+      reinstall_app: true
+    )
+  end
+
+  # ============================================
+  # Lane: Metadata Management
+  # ============================================
+
+  desc "Upload metadata to Play Console"
+  lane :upload_metadata do
+    upload_to_play_store(
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_screenshots: false,
+      skip_upload_images: false,
+      json_key: JSON_KEY_FILE
+    )
+  end
+
+  desc "Download metadata from Play Console"
+  lane :download_metadata do
+    download_from_play_store(
+      json_key: JSON_KEY_FILE,
+      metadata_path: "./fastlane/metadata"
+    )
+  end
+
+  # ============================================
+  # Lane: Beta Testing Workflow
+  # ============================================
+
+  desc "Complete beta release workflow"
+  lane :beta do
+    # 1. Run tests
+    test_unit
+
+    # 2. Build AAB
+    build_aab
+
+    # 3. Deploy to beta track
+    deploy_beta
+
+    # 4. Notify team
+    slack(
+      message: "New Android beta build available on Play Store!",
+      success: true
+    ) if ENV['SLACK_WEBHOOK_URL']
+  end
+
+  # ============================================
+  # Lane: Production Release Workflow
+  # ============================================
+
+  desc "Complete production release workflow"
+  lane :release do
+    # 1. Run all tests
+    test
+
+    # 2. Build AAB
+    build_aab
+
+    # 3. Deploy to production with 10% rollout
+    deploy_production(rollout_percentage: 0.1)
+
+    # 4. Notify team
+    slack(
+      message: "New Android production build released with 10% rollout!",
+      success: true
+    ) if ENV['SLACK_WEBHOOK_URL']
+  end
+
+  # ============================================
+  # Lane: Utility
+  # ============================================
+
+  desc "Clean build artifacts"
+  lane :clean do
+    gradle(
+      task: "clean",
+      project_dir: "android/"
+    )
+
+    UI.success("Build artifacts cleaned!")
+  end
+
+  desc "Validate Play Store credentials"
+  lane :validate_credentials do
+    validate_play_store_json_key(
+      json_key: JSON_KEY_FILE
+    )
+
+    UI.success("✅ Play Store credentials are valid!")
+  end
+
+  # ============================================
+  # After All Actions
+  # ============================================
+
+  after_all do |lane|
+    # Notify success
+    UI.success("✅ Successfully completed '#{lane}' lane!")
+  end
+
+  # ============================================
+  # Error Handling
+  # ============================================
+
+  error do |lane, exception|
+    UI.error("❌ Error in '#{lane}' lane:")
+    UI.error(exception.message)
+
+    # Notify on Slack if configured
+    slack(
+      message: "Android build failed in lane '#{lane}'",
+      success: false,
+      attachment_properties: {
+        fields: [
+          {
+            title: "Error",
+            value: exception.message,
+            short: false
+          }
+        ]
+      }
+    ) if ENV['SLACK_WEBHOOK_URL']
+  end
+end

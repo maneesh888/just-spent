@@ -1,0 +1,344 @@
+# Just Spent - iOS Fastlane Configuration
+# Documentation: https://docs.fastlane.tools/
+
+default_platform(:ios)
+
+platform :ios do
+  # ============================================
+  # Configuration
+  # ============================================
+
+  PROJECT_PATH = "JustSpent/JustSpent.xcodeproj"
+  SCHEME = "JustSpent"
+  APP_IDENTIFIER = "com.justspent.app"
+  TEAM_ID = ENV["APPLE_TEAM_ID"] || "YOUR_TEAM_ID"
+
+  # ============================================
+  # Before All Actions
+  # ============================================
+
+  before_all do
+    # Ensure we're on the latest code
+    ensure_git_status_clean unless ENV['SKIP_GIT_CHECK']
+
+    # Set Xcode version
+    xcversion(version: "15.0")
+  end
+
+  # ============================================
+  # Lane: Tests
+  # ============================================
+
+  desc "Run all tests"
+  lane :test do
+    run_tests(
+      project: PROJECT_PATH,
+      scheme: SCHEME,
+      devices: ["iPhone 16"],
+      clean: true,
+      code_coverage: true,
+      output_directory: "./test_output",
+      output_types: "html,junit"
+    )
+  end
+
+  desc "Run unit tests only"
+  lane :test_unit do
+    run_tests(
+      project: PROJECT_PATH,
+      scheme: SCHEME,
+      devices: ["iPhone 16"],
+      only_testing: ["JustSpentTests"],
+      clean: true
+    )
+  end
+
+  desc "Run UI tests only"
+  lane :test_ui do
+    run_tests(
+      project: PROJECT_PATH,
+      scheme: SCHEME,
+      devices: ["iPhone 16"],
+      only_testing: ["JustSpentUITests"],
+      clean: true
+    )
+  end
+
+  # ============================================
+  # Lane: Build
+  # ============================================
+
+  desc "Build IPA for distribution"
+  lane :build_ipa do
+    # Increment build number
+    increment_build_number(
+      xcodeproj: PROJECT_PATH,
+      build_number: latest_testflight_build_number + 1
+    )
+
+    # Build the app
+    build_app(
+      project: PROJECT_PATH,
+      scheme: SCHEME,
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "JustSpent.ipa",
+      clean: true,
+      export_options: {
+        provisioningProfiles: {
+          APP_IDENTIFIER => "match AppStore #{APP_IDENTIFIER}"
+        }
+      }
+    )
+  end
+
+  # ============================================
+  # Lane: TestFlight Deployment
+  # ============================================
+
+  desc "Upload to TestFlight (Internal Testing)"
+  lane :upload_testflight do
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      skip_submission: false,
+      distribute_external: false,  # Internal testing only
+      notify_external_testers: false,
+      changelog: changelog_from_git_commits(
+        pretty: "- %s",
+        merge_commit_filtering: "exclude_merges"
+      ),
+      groups: ["Internal Testers"]  # TestFlight group name
+    )
+  end
+
+  desc "Upload to TestFlight (External Testing)"
+  lane :upload_testflight_external do
+    upload_to_testflight(
+      skip_waiting_for_build_processing: false,
+      skip_submission: false,
+      distribute_external: true,
+      notify_external_testers: true,
+      changelog: changelog_from_git_commits(
+        pretty: "- %s",
+        merge_commit_filtering: "exclude_merges"
+      ),
+      groups: ["Beta Testers"]
+    )
+  end
+
+  # ============================================
+  # Lane: App Store Deployment
+  # ============================================
+
+  desc "Upload to App Store for review"
+  lane :release do
+    # Build and upload
+    build_ipa
+    upload_testflight
+
+    # Submit for review
+    deliver(
+      submit_for_review: true,
+      automatic_release: false,  # Manual release after approval
+      force: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_limits_tracking: true,
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_action: true,
+        add_id_info_tracks_install: true,
+        content_rights_has_rights: true,
+        content_rights_contains_third_party_content: false,
+        export_compliance_platform: 'ios',
+        export_compliance_compliance_required: false,
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: true,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false
+      }
+    )
+  end
+
+  # ============================================
+  # Lane: Beta Release (Complete Flow)
+  # ============================================
+
+  desc "Complete beta release workflow"
+  lane :beta do
+    # 1. Run tests
+    test
+
+    # 2. Build IPA
+    build_ipa
+
+    # 3. Upload to TestFlight
+    upload_testflight
+
+    # 4. Notify team
+    slack(
+      message: "New iOS beta build available on TestFlight!",
+      success: true
+    ) if ENV['SLACK_WEBHOOK_URL']
+  end
+
+  # ============================================
+  # Lane: Version Management
+  # ============================================
+
+  desc "Bump version number"
+  lane :bump_version do |options|
+    version_type = options[:type] || "patch"  # major, minor, patch
+
+    increment_version_number(
+      xcodeproj: PROJECT_PATH,
+      bump_type: version_type
+    )
+
+    version = get_version_number(xcodeproj: PROJECT_PATH)
+    UI.success("Version bumped to #{version}")
+  end
+
+  desc "Get current version"
+  lane :version do
+    version = get_version_number(xcodeproj: PROJECT_PATH)
+    build = get_build_number(xcodeproj: PROJECT_PATH)
+    UI.message("Current version: #{version} (#{build})")
+  end
+
+  # ============================================
+  # Lane: Screenshots
+  # ============================================
+
+  desc "Generate screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      scheme: SCHEME,
+      devices: [
+        "iPhone 16 Pro Max",
+        "iPhone 16",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ],
+      languages: ["en-US", "ar-AE"],
+      output_directory: "./screenshots",
+      clear_previous_screenshots: true
+    )
+  end
+
+  # ============================================
+  # Lane: Metadata Management
+  # ============================================
+
+  desc "Upload metadata to App Store Connect"
+  lane :upload_metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      force: true
+    )
+  end
+
+  desc "Download metadata from App Store Connect"
+  lane :download_metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      download_metadata: true
+    )
+  end
+
+  # ============================================
+  # Lane: Code Signing (Fastlane Match)
+  # ============================================
+
+  desc "Sync development certificates"
+  lane :sync_dev do
+    match(
+      type: "development",
+      app_identifier: APP_IDENTIFIER,
+      readonly: true
+    )
+  end
+
+  desc "Sync app store certificates"
+  lane :sync_appstore do
+    match(
+      type: "appstore",
+      app_identifier: APP_IDENTIFIER,
+      readonly: true
+    )
+  end
+
+  desc "Create new certificates (use with caution!)"
+  lane :create_certificates do
+    match(
+      type: "appstore",
+      app_identifier: APP_IDENTIFIER,
+      readonly: false,
+      force_for_new_devices: true
+    )
+  end
+
+  # ============================================
+  # Lane: Utility
+  # ============================================
+
+  desc "Clean build artifacts"
+  lane :clean do
+    clean_build_artifacts
+    sh("rm -rf ../build")
+    sh("rm -rf ../test_output")
+    UI.success("Build artifacts cleaned!")
+  end
+
+  desc "Register new device"
+  lane :register_device do |options|
+    device_name = options[:name]
+    device_udid = options[:udid]
+
+    register_devices(
+      devices: {
+        device_name => device_udid
+      }
+    )
+
+    # Regenerate provisioning profiles
+    match(type: "development", force_for_new_devices: true)
+  end
+
+  # ============================================
+  # After All Actions
+  # ============================================
+
+  after_all do |lane|
+    # Notify success
+    UI.success("✅ Successfully completed '#{lane}' lane!")
+  end
+
+  # ============================================
+  # Error Handling
+  # ============================================
+
+  error do |lane, exception|
+    UI.error("❌ Error in '#{lane}' lane:")
+    UI.error(exception.message)
+
+    # Notify on Slack if configured
+    slack(
+      message: "iOS build failed in lane '#{lane}'",
+      success: false,
+      attachment_properties: {
+        fields: [
+          {
+            title: "Error",
+            value: exception.message,
+            short: false
+          }
+        ]
+      }
+    ) if ENV['SLACK_WEBHOOK_URL']
+  end
+end
