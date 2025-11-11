@@ -86,7 +86,7 @@ XCTAssertTrue(appTitle.waitForExistence(timeout: 30.0), "App should launch and s
 
 ### 3. Test: `testOnboardingDisplaysAllCurrenciesFromJSON`
 **File**: `OnboardingFlowUITests.swift:56`
-**Status**: ⏳ FINAL FIX PENDING VERIFICATION
+**Status**: ❌ REVERTED - Need Alternative Approach
 
 **Problem History**:
 1. **Initial Issue**: Only finding 27/36 currencies from JSON
@@ -100,61 +100,22 @@ XCTAssertTrue(appTitle.waitForExistence(timeout: 30.0), "App should launch and s
    - Commit 4a092b6: Used `TestDataHelper.findCurrencyOption()` (too slow)
 4. **User Feedback**: "I can see the scroll view keep bouncing" - scroll loop issue
 
-**Final Solution** (Commit 16e846d):
-Completely rewrote test to eliminate manual scroll management:
+**Attempted Solution** (Commit 16e846d - REVERTED in c516063):
+Rewrote test to use `scrollToElement()` for each currency.
 
-```swift
-func testOnboardingDisplaysAllCurrenciesFromJSON() throws {
-    // Wait for currency list to fully load
-    Thread.sleep(forTimeInterval: 1.5)
+**Why It Was Reverted**:
+- Caused test regression from 80/83 (96.4%) to 70/82 (85.4%)
+- 12 tests failed instead of original 3
+- The scrollToElement approach destabilized other tests
+- CI log: `.ci-results/ios_ui_20251111_033809.log`
 
-    // Load all currencies from shared/currencies.json
-    let allCurrencies = TestDataHelper.loadCurrencyCodesFromJSON()
-    XCTAssertGreaterThan(allCurrencies.count, 0, "Should load currencies from JSON")
+**Lessons Learned**:
+1. **Proven patterns aren't universal** - scrollToElement works for single element finding, not iterating through 36 items
+2. **Test isolation matters** - Changes to one test can affect others via shared test infrastructure
+3. **Verify before committing** - Should have run full test suite before committing
+4. **Revert fast** - When something makes things worse, revert immediately
 
-    print("🔍 Testing for \(allCurrencies.count) currencies from JSON")
-
-    // Use TestDataHelper's scrollToElement approach which already works
-    // Try to find each currency - scrollToElement will scroll if needed
-    var foundCurrencies = Set<String>()
-    var missingCurrencies: [String] = []
-
-    for currencyCode in allCurrencies {
-        // Use the proven working scrollToElement method
-        if let element = testHelper.scrollToElement(withIdentifier: "currency_option_\(currencyCode)") {
-            if element.exists {
-                foundCurrencies.insert(currencyCode)
-                print("✅ Found: \(currencyCode)")
-            } else {
-                missingCurrencies.append(currencyCode)
-                print("❌ Missing: \(currencyCode)")
-            }
-        } else {
-            missingCurrencies.append(currencyCode)
-            print("❌ Missing: \(currencyCode)")
-        }
-    }
-
-    // Report results
-    print("📊 Results: Found \(foundCurrencies.count)/\(allCurrencies.count) currencies")
-    if !missingCurrencies.isEmpty {
-        print("❌ Missing currencies: \(missingCurrencies.joined(separator: ", "))")
-    }
-
-    // Assert all currencies are present
-    XCTAssertEqual(foundCurrencies.count, allCurrencies.count,
-                  "All \(allCurrencies.count) currencies from JSON should be displayed. Missing: \(missingCurrencies)")
-}
-```
-
-**Why This Should Work**:
-- Uses proven `scrollToElement()` method from TestDataHelper
-- Same logic as passing tests like `testOnboardingCanSelectAED`
-- Eliminates manual scroll management that caused scroll loop
-- Handles SwiftUI List virtualization correctly
-- No complex scroll stuck detection needed
-
-**Status**: Full iOS CI pipeline running to verify fix
+**Status**: Back to 2 of 3 tests fixed, need alternative approach for currency test fix
 
 ---
 
@@ -181,17 +142,20 @@ func testOnboardingDisplaysAllCurrenciesFromJSON() throws {
 
 ## Test Suite Statistics
 
-### Overall Results (Pending Final Verification)
+### Overall Results (After Revert - Stable)
 ```
 Total Tests:        83
-Passing:           80-83  (96.4-100%)
-Failing:            0-3    (0-3.6%)
+Passing:           80  (96.4%)
+Failing:            3   (3.6%)
 Unit Tests:       103/107 (96.3% - 4 JSONLoader tests failing)
+
+Status: Reverted commit 16e846d to maintain stability
+Next: Need alternative approach for testOnboardingDisplaysAllCurrenciesFromJSON
 ```
 
 ### By Test File
 ```
-OnboardingFlowUITests:      Pending verification (2/3 or 3/3 passing)
+OnboardingFlowUITests:      2/3 passing (66.7%)
 FloatingActionButtonUITests: 15/15 passing (100%) ✅
 MultiCurrencyUITests:       All passing ✅
 EmptyStateUITests:          All passing ✅
@@ -279,17 +243,21 @@ Both platforms achieve industry-standard test coverage (>95%).
 
 ## Conclusion
 
-This test improvement effort was **highly successful**:
+This test improvement effort was **partially successful**:
 
 ✅ **Fixed 2 of 3 UI test failures** with systematic investigation
-✅ **Simplified test infrastructure** with proven scrollToElement approach
 ✅ **Improved test reliability** by increasing simulator boot timeouts
 ✅ **Updated testing policy** to remove landscape mode from mobile phones
 ✅ **Documented all changes** for future maintenance
+✅ **Reverted regression quickly** when approach caused more failures
 
-**Pending**: Final verification that testOnboardingDisplaysAllCurrenciesFromJSON passes with the new simplified approach.
+⚠️ **Remaining Work**:
+- 1 test still failing: testOnboardingDisplaysAllCurrenciesFromJSON
+- Need alternative approach (scrollToElement caused instability)
+- 4 JSONLoader unit tests need Xcode target configuration
 
-**Status**: Ready to move to new session once final test results are confirmed.
+**Current Status**: 80/83 tests passing (96.4%) - stable and documented
+**Next Session**: Investigate alternative approach for currency test
 
 ---
 
