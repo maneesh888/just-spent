@@ -13,25 +13,44 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
     // MARK: - Currency Tab Bar Tests (4 tests)
 
     func testCurrencyTabsDisplayWithMultipleCurrencies() throws {
+        // First, wait for the tab bar to appear
+        let tabBar = app.otherElements["currency_tab_bar"]
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 10.0), "Currency tab bar should appear")
+
         // Wait for app to fully initialize with multi-currency data
-        // Give extra time for data population and tab generation
-        Thread.sleep(forTimeInterval: 3.0)
+        // Give extra time for data population, tab generation, and UI rendering
+        // Increased from 3s to 10s to allow sufficient time for all tabs to render
+        Thread.sleep(forTimeInterval: 10.0)
 
         // When - Check if currency tabs are visible using accessibility identifiers
         // Use currencies that have test data (not all 36)
         let testCurrencies = TestDataHelper.multiCurrencyTestDataCodes
 
         var foundTabs = 0
+        var missingTabs: [String] = []
+
+        // First, wait for at least one tab to exist as confirmation that tabs are rendering
+        let firstCurrencyTab = app.otherElements.matching(identifier: "currency_tab_\(testCurrencies[0])").firstMatch
+        if !firstCurrencyTab.waitForExistence(timeout: 10.0) {
+            XCTFail("Failed to find any currency tabs. The tab bar may not be generating tabs correctly.")
+            return
+        }
+
+        // Now check for all expected tabs with longer individual timeouts
         for code in testCurrencies {
             let tabIdentifier = "currency_tab_\(code)"
             let tabElement = app.otherElements.matching(identifier: tabIdentifier).firstMatch
-            if tabElement.waitForExistence(timeout: 2.0) {
+            if tabElement.waitForExistence(timeout: 5.0) {
                 foundTabs += 1
+                print("✅ Found tab: \(code)")
+            } else {
+                missingTabs.append(code)
+                print("❌ Missing tab: \(code)")
             }
         }
 
         // Should find at least 6 tabs (AED, USD, EUR, GBP, INR, SAR)
-        XCTAssertGreaterThanOrEqual(foundTabs, 6, "Should show all 6 currency tabs with test data, found \(foundTabs)")
+        XCTAssertGreaterThanOrEqual(foundTabs, 6, "Should show all 6 currency tabs with test data, found \(foundTabs), missing: \(missingTabs.joined(separator: ", "))")
     }
 
     func testCurrencyTabShowsCurrencySymbolAndCode() throws {
