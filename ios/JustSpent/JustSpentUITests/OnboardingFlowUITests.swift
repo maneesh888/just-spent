@@ -277,13 +277,13 @@ class OnboardingFlowUITests: BaseUITestCase {
         XCUIDevice.shared.orientation = .portrait
         Thread.sleep(forTimeInterval: 0.5)
 
-        // Find USD option using scroll helper (works reliably)
-        guard let usdElement = testHelper.findCurrencyOption("USD") else {
-            XCTFail("USD option should be displayed in portrait")
+        // Find AED option (first alphabetically, always visible without scrolling)
+        guard let aedElement = testHelper.findCurrencyOption("AED") else {
+            XCTFail("AED option should be displayed in portrait")
             return
         }
-        XCTAssertTrue(usdElement.exists, "Onboarding should show currency options in portrait")
-        XCTAssertTrue(usdElement.isHittable, "USD option should be tappable in portrait mode")
+        XCTAssertTrue(aedElement.exists, "Onboarding should show currency options in portrait")
+        XCTAssertTrue(aedElement.isHittable, "AED option should be tappable in portrait mode")
 
         // Verify other essential UI elements are present in portrait
         let continueButton = app.buttons["Continue"]

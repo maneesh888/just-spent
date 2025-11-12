@@ -154,6 +154,7 @@ class JSONLoader {
         let transportation: String
         let shopping: String
         let entertainment: String
+        let bills: String?  // Android compatibility
         let billsUtilities: String
         let healthcare: String
         let education: String
@@ -174,13 +175,20 @@ class JSONLoader {
 
     struct SettingsLocalizations: Codable {
         let title: String
-        let voiceSettings: String
-        let defaultCurrency: String
-        let language: String
-        let theme: String
-        let notifications: String
+        let currencySettings: String
+        let currencyFooter: String
+        let userInformation: String
         let about: String
         let version: String
+        let build: String
+        let name: String
+        let email: String
+        let memberSince: String
+        let defaultCurrency: String
+        let resetToDefaults: String
+        let selectCurrency: String
+        let done: String
+        let back: String
     }
 
     struct CurrencyLocalizations: Codable {
