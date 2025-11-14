@@ -231,13 +231,15 @@ fun ExpenseListWithVoiceScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
                 if (expenseUiState.expenses.isEmpty()) {
                     // Empty State
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .widthIn(max = 600.dp) // Max width for tablet layout
+                            .fillMaxWidth()
                             .padding(32.dp)
                             .testTag("empty_state"),
                         verticalArrangement = Arrangement.Center,
