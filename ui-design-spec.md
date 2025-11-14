@@ -492,40 +492,32 @@ val scale by infiniteTransition.animateFloat(
 
 ## 📏 Responsive Design
 
-### Breakpoints
+### Device Support
+
+**Phone-Only Application:**
+This app is designed exclusively for phones (not tablets/iPads).
 
 **Android:**
-```yaml
-compact: 0-599dp (phones)
-medium: 600-839dp (large phones, small tablets)
-expanded: 840dp+ (tablets)
-```
+- Portrait orientation locked (`android:screenOrientation="portrait"`)
+- Single column layout optimized for phones
+- Full-width cards
+- Foldable support: `android:max_aspect="2.4"` and `resizeableActivity="true"` to fill screen without letterboxing
+- Tablet filtering done via Google Play Console during app submission
+- Technical note: No `<supports-screens>` element to avoid compatibility scaling issues
 
 **iOS:**
-```yaml
-compact_width: iPhone portrait
-regular_width: iPhone landscape, iPad
-compact_height: iPhone landscape
-regular_height: iPhone portrait, iPad
-```
+- iPhone only (`TARGETED_DEVICE_FAMILY = 1`)
+- Portrait orientation only
+- Single column layout
+- Full-width cards
 
-### Adaptive Layouts
+### Layout
 
-**Compact (Phone):**
+**Phone Layout:**
 - Single column layout
 - Full-width cards
 - FAB bottom-right
 - Scrollable tabs (horizontal)
-
-**Medium (Tablet):**
-- Single column with wider cards (max-width: 600dp)
-- FAB bottom-right with increased margin
-- Tabs can show all if ≤6 currencies
-
-**Expanded (Large Tablet):**
-- Two-column layout (list + detail view)
-- Master-detail pattern
-- FAB in detail pane
 
 ## 💱 Currency Formatting
 
