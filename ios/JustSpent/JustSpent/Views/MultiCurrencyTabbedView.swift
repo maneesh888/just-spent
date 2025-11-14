@@ -139,9 +139,7 @@ struct CurrencyTabBar: View {
                             selectedCurrency = currency
                         }
                     }
-                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("currency_tab_\(currency.code)")
-                    .accessibilityLabel("\(currency.displayName) tab")
                 }
             }
             .padding(.horizontal, 16)
@@ -149,6 +147,7 @@ struct CurrencyTabBar: View {
         }
         .background(Color(.systemBackground))
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 2)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("currency_tab_bar")
     }
 }
@@ -165,11 +164,9 @@ struct CurrencyTab: View {
             HStack(spacing: 6) {
                 Text(currency.symbol)
                     .font(.system(size: 18, weight: isSelected ? .bold : .medium))
-                    .accessibilityIdentifier("tab_symbol_\(currency.code)")
 
                 Text(currency.code)
                     .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                    .accessibilityIdentifier("tab_code_\(currency.code)")
             }
             .foregroundColor(isSelected ? .white : .primary)
             .padding(.horizontal, 16)
@@ -185,13 +182,16 @@ struct CurrencyTab: View {
                     .fill(Color.blue)
                     .frame(height: 3)
                     .cornerRadius(1.5)
-                    .accessibilityIdentifier("tab_indicator_\(currency.code)")
             } else {
                 Rectangle()
                     .fill(Color.clear)
                     .frame(height: 3)
             }
         }
+        // Combine all child elements into a single accessibility element
+        // This ensures XCUITest can find the tab by its identifier
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(currency.displayName) tab")
     }
 }
 
