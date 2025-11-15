@@ -25,7 +25,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JustSpent"
         tools:targetApi="31">
-        
+
+        <!-- Support for large screens and foldables -->
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.4" />
+
         <!-- App Actions metadata -->
         <meta-data
             android:name="com.google.assistant.app.ACTIONS"
@@ -36,6 +41,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="Just Spent"
+            android:screenOrientation="portrait"
+            android:resizeableActivity="true"
             android:theme="@style/Theme.JustSpent">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -47,6 +54,8 @@
         <activity
             android:name=".ui.voice.VoiceDeepLinkActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
+            android:resizeableActivity="true"
             android:theme="@style/Theme.JustSpent.NoActionBar"
             android:launchMode="singleTop">
             <intent-filter android:autoVerify="true">

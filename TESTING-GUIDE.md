@@ -34,6 +34,13 @@ Both platforms follow the **Testing Pyramid** approach from `comprehensive-test-
 - **UI Tests:** Critical user paths
 - **Performance Tests:** Voice processing <1.5s
 
+### Testing Policy Updates
+
+**Landscape Mode Testing** (Updated 2025-11-11):
+- ✅ **Mobile Phones (iOS & Android)**: Portrait orientation only
+- ✅ **Tablets (iOS & Android)**: Portrait and landscape orientations
+- **Rationale**: Simplifies testing, reduces execution time, mobile landscape not a priority
+
 ---
 
 ## iOS Testing

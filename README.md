@@ -281,12 +281,11 @@ Polish/Deploy  ████░░░░░░░░░░░░░░░░  20%
 
 ### 🐛 Issues & Feature Requests
 
-**Issue Status**: 7 Open | 0 Closed | [View All Issues →](https://github.com/maneesh888/just-spent/issues)
+**Issue Status**: 6 Open | 0 Closed | [View All Issues →](https://github.com/maneesh888/just-spent/issues)
 
 #### 📋 Open Issues by Category
 
-**🎨 UI/UX Enhancements** (3 issues)
-- [#41](https://github.com/maneesh888/just-spent/issues/41) Tablet design for iOS and Android
+**🎨 UI/UX Enhancements** (2 issues)
 - [#40](https://github.com/maneesh888/just-spent/issues/40) Welcome scene with terms & conditions, privacy policy + tips
 - [#34](https://github.com/maneesh888/just-spent/issues/34) Enable touch for title view to explore app settings
 
@@ -296,11 +295,14 @@ Polish/Deploy  ████░░░░░░░░░░░░░░░░  20%
 - [#37](https://github.com/maneesh888/just-spent/issues/37) Tap on total view for currency summary with filters
 - [#35](https://github.com/maneesh888/just-spent/issues/35) Implement filtering (daily, monthly, weekly expenses)
 
+**❌ Closed/Not Applicable** (1 issue)
+- ~~[#41](https://github.com/maneesh888/just-spent/issues/41) Tablet design~~ - App is phone-only by design
+
 #### 📊 Issue Distribution
 
 ```
-UI/UX      ███████████░░░░░░░░░  43% (3 issues)
-Features   ████████████████████ 57% (4 issues)
+UI/UX      ███████░░░░░░░░░░░░░  33% (2 issues)
+Features   █████████████████████ 67% (4 issues)
 ```
 
 #### 🎯 Planned Issue Resolution
@@ -316,7 +318,6 @@ Features   ████████████████████ 57% (4 i
 
 **Future Releases**:
 - ⏳ #38 - Cloud backup integration
-- ⏳ #41 - Tablet optimization
 
 ### 🚀 Recent Completions (Last 30 Days)
 
