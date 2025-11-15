@@ -40,7 +40,15 @@
       "Bash(gh run list:*)",
       "Bash(gh run watch:*)",
       "Bash(git revert:*)",
-      "Bash(xcrun simctl:*)"
+      "Bash(xcrun simctl:*)",
+      "Bash(git push)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(for i in {1..3})",
+      "Bash(do echo \"=== Test Run #$i ===\")",
+      "Bash(python3:*)",
+      "Bash(./local-ci.sh:*)"
     ],
     "deny": [],
     "ask": []
