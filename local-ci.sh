@@ -1084,11 +1084,11 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
 
     # Expected test counts
     IOS_EXPECTED_TESTS=186  # 105 unit + 81 UI
-    ANDROID_EXPECTED_TESTS=242  # 145 unit + 97 UI
+    ANDROID_EXPECTED_TESTS=359  # 262 unit + 97 UI
 
     if [ "$SKIP_UI_TESTS" = true ]; then
       IOS_EXPECTED_TESTS=105  # Unit tests only
-      ANDROID_EXPECTED_TESTS=145  # Unit tests only
+      ANDROID_EXPECTED_TESTS=262  # Unit tests only
     fi
 
     # Track platform status
