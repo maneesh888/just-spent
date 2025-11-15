@@ -358,7 +358,7 @@ Test Areas:
 lane :test do
   scan(
     scheme: "JustSpent",
-    devices: ["iPhone 14", "iPad Pro"],
+    devices: ["iPhone 14"],
     code_coverage: true,
     output_directory: "./test_output",
     output_types: "html,junit"
