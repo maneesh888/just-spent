@@ -7,16 +7,17 @@
 # feedback during development. Part of the hybrid CI/CD approach.
 #
 # Usage:
-#   ./local-ci.sh [--ios] [--android] [--all] [--skip-ui] [--quick] [--kill-emulator] [--parallel] [--verbose] [--no-progress]
+#   ./local-ci.sh [--ios] [--android] [--all] [--skip-ui] [--quick] [--commit-mode] [--kill-emulator] [--sequential] [--verbose] [--no-progress]
 #
 # Options:
 #   --ios            Run iOS checks only
 #   --android        Run Android checks only
 #   --all            Run both iOS and Android (default)
 #   --skip-ui        Skip UI tests (faster, unit tests only)
-#   --quick          Fast mode: build + unit tests only
+#   --quick          Fast mode: build + unit tests only (alias for --skip-ui)
+#   --commit-mode    Pre-commit mode: skip UI tests for faster commits (same as --quick)
 #   --kill-emulator  Stop Android emulator after tests complete
-#   --parallel       Run iOS and Android simultaneously (40-50% faster)
+#   --sequential     Run iOS and Android one after another (default is parallel, 40-50% faster)
 #   --verbose        Show detailed progress including current test names
 #   --no-progress    Disable progress indicators (spinners, counters)
 #   --help           Show this help message
@@ -73,7 +74,7 @@ RUN_ALL=false
 SKIP_UI_TESTS=false
 QUICK_MODE=false
 KILL_EMULATOR=false
-PARALLEL_MODE=false
+PARALLEL_MODE=true  # Default to parallel mode (40-50% faster)
 VERBOSE_MODE=false
 SHOW_PROGRESS=true
 
@@ -100,12 +101,17 @@ while [[ $# -gt 0 ]]; do
       SKIP_UI_TESTS=true
       shift
       ;;
+    --commit-mode)
+      QUICK_MODE=true
+      SKIP_UI_TESTS=true
+      shift
+      ;;
     --kill-emulator)
       KILL_EMULATOR=true
       shift
       ;;
-    --parallel)
-      PARALLEL_MODE=true
+    --sequential)
+      PARALLEL_MODE=false
       shift
       ;;
     --verbose)
@@ -1075,19 +1081,188 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
   if [ "$SHOW_PROGRESS" = true ]; then
     SPINNER='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     ELAPSED=0
+
+    # Expected test counts
+    IOS_EXPECTED_TESTS=186  # 105 unit + 81 UI
+    ANDROID_EXPECTED_TESTS=242  # 145 unit + 97 UI
+
+    if [ "$SKIP_UI_TESTS" = true ]; then
+      IOS_EXPECTED_TESTS=105  # Unit tests only
+      ANDROID_EXPECTED_TESTS=145  # Unit tests only
+    fi
+
+    # Track platform status
+    IOS_STATUS="🏗️ Building"
+    ANDROID_STATUS="🏗️ Building"
+    IOS_DONE=false
+    ANDROID_DONE=false
+    IOS_DURATION=0
+    ANDROID_DURATION=0
+    IOS_CURRENT_TESTS=0
+    ANDROID_CURRENT_TESTS=0
+
+    # Save cursor position and hide cursor
+    tput sc 2>/dev/null || true
+    tput civis 2>/dev/null || true
+
     while kill -0 $IOS_PID 2>/dev/null || kill -0 $ANDROID_PID 2>/dev/null; do
       for i in $(seq 0 9); do
         if ! kill -0 $IOS_PID 2>/dev/null && ! kill -0 $ANDROID_PID 2>/dev/null; then
           break 2
         fi
+
+        # Check iOS status and test progress
+        if ! kill -0 $IOS_PID 2>/dev/null && [ "$IOS_DONE" = false ]; then
+          IOS_DONE=true
+          IOS_DURATION=$((ELAPSED / 10))
+          IOS_STATUS="✅ Done"
+          IOS_CURRENT_TESTS=$IOS_EXPECTED_TESTS
+        elif [ "$IOS_DONE" = false ]; then
+          # Parse test counts from log files in real-time
+          IOS_CURRENT_TESTS=0
+
+          # Check build status
+          if [ -f "$RESULTS_DIR/ios_build_$TIMESTAMP.log" ]; then
+            IOS_STATUS="🧪 Testing"
+          fi
+
+          # Count unit tests - count individual test case passes
+          if [ -f "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" ]; then
+            unit_count=$(grep -c "Test case.*passed" "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" 2>/dev/null || echo "0")
+            # Trim whitespace and ensure it's a valid number
+            unit_count=$(echo "$unit_count" | tr -d ' \n\r')
+            IOS_CURRENT_TESTS=$((IOS_CURRENT_TESTS + ${unit_count:-0}))
+          fi
+
+          # Count UI tests - count individual test case passes
+          if [ -f "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" ] && [ "$SKIP_UI_TESTS" = false ]; then
+            ui_count=$(grep -c "Test case.*passed" "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" 2>/dev/null || echo "0")
+            # Trim whitespace and ensure it's a valid number
+            ui_count=$(echo "$ui_count" | tr -d ' \n\r')
+            IOS_CURRENT_TESTS=$((IOS_CURRENT_TESTS + ${ui_count:-0}))
+          fi
+        fi
+
+        # Check Android status and test progress
+        if ! kill -0 $ANDROID_PID 2>/dev/null && [ "$ANDROID_DONE" = false ]; then
+          ANDROID_DONE=true
+          ANDROID_DURATION=$((ELAPSED / 10))
+          ANDROID_STATUS="✅ Done"
+          ANDROID_CURRENT_TESTS=$ANDROID_EXPECTED_TESTS
+        elif [ "$ANDROID_DONE" = false ]; then
+          # Parse test counts from log files in real-time
+          ANDROID_CURRENT_TESTS=0
+
+          # Check build status
+          if [ -f "$RESULTS_DIR/android_build_$TIMESTAMP.log" ]; then
+            ANDROID_STATUS="🧪 Testing"
+          fi
+
+          # Count unit tests - Gradle completes all tests at once, so check if task completed
+          # Gradle doesn't output per-test progress - it runs all tests and then writes XML files
+          if [ -f "$RESULTS_DIR/android_unit_$TIMESTAMP.log" ]; then
+            # Check if unit tests completed by looking for BUILD SUCCESSFUL or testDebugUnitTest completion
+            if grep -q "BUILD SUCCESSFUL\|> Task :app:testDebugUnitTest" "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>/dev/null; then
+              # Tests completed - count from XML files
+              unit_test_dir="android/app/build/test-results/testDebugUnitTest"
+              if [ -d "$unit_test_dir" ]; then
+                unit_count=0
+                shopt -s nullglob
+                for xml_file in "$unit_test_dir"/*.xml; do
+                  if [ -f "$xml_file" ]; then
+                    file_tests=$(grep '<testsuite' "$xml_file" | sed 's/.*tests="\([0-9]*\)".*/\1/' | head -1)
+                    if [ -n "$file_tests" ]; then
+                      unit_count=$((unit_count + file_tests))
+                    fi
+                  fi
+                done
+                shopt -u nullglob
+                unit_count=$(echo "$unit_count" | tr -d ' \n\r')
+                ANDROID_CURRENT_TESTS=${unit_count:-0}
+              fi
+            else
+              # Tests still running - estimate progress based on task
+              if grep -q "> Task :app:compileDebugUnitTestKotlin" "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>/dev/null; then
+                # Compiling tests - show ~30% progress
+                ANDROID_CURRENT_TESTS=$((ANDROID_EXPECTED_TESTS * 30 / 100))
+              elif grep -q "> Task :app:testDebugUnitTest" "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>/dev/null; then
+                # Running tests - show ~80% progress
+                ANDROID_CURRENT_TESTS=$((ANDROID_EXPECTED_TESTS * 80 / 100))
+              fi
+            fi
+          fi
+
+          # Count UI tests - same approach for UI tests
+          if [ -f "$RESULTS_DIR/android_ui_$TIMESTAMP.log" ] && [ "$SKIP_UI_TESTS" = false ]; then
+            if grep -q "BUILD SUCCESSFUL\|> Task :app:connectedDebugAndroidTest" "$RESULTS_DIR/android_ui_$TIMESTAMP.log" 2>/dev/null; then
+              ui_test_dir="android/app/build/outputs/androidTest-results/connected"
+              if [ -d "$ui_test_dir" ]; then
+                ui_count=0
+                while IFS= read -r -d '' xml_file; do
+                  if [ -f "$xml_file" ]; then
+                    file_tests=$(grep '<testsuite' "$xml_file" | sed 's/.*tests="\([0-9]*\)".*/\1/' | head -1)
+                    if [ -n "$file_tests" ]; then
+                      ui_count=$((ui_count + file_tests))
+                    fi
+                  fi
+                done < <(find "$ui_test_dir" -name "*.xml" -print0 2>/dev/null)
+                ui_count=$(echo "$ui_count" | tr -d ' \n\r')
+                ANDROID_CURRENT_TESTS=$((ANDROID_CURRENT_TESTS + ${ui_count:-0}))
+              fi
+            fi
+          fi
+        fi
+
         SPINNER_CHAR="${SPINNER:$i:1}"
-        echo -ne "\r${SPINNER_CHAR} Running both platforms in parallel... [$(format_duration $ELAPSED)]"
+        SECONDS_ELAPSED=$((ELAPSED / 10))
+
+        # Build iOS progress bar with test count
+        if [ "$IOS_DONE" = true ]; then
+          IOS_LINE="iOS: [${IOS_CURRENT_TESTS}/${IOS_EXPECTED_TESTS}] [████████████████████] 100% ${IOS_STATUS} ($(format_duration $IOS_DURATION))"
+        else
+          # Calculate progress based on test count
+          if [ $IOS_EXPECTED_TESTS -gt 0 ]; then
+            IOS_PROGRESS=$((IOS_CURRENT_TESTS * 100 / IOS_EXPECTED_TESTS))
+          else
+            IOS_PROGRESS=0
+          fi
+          [ $IOS_PROGRESS -gt 99 ] && IOS_PROGRESS=99
+          IOS_BARS=$((IOS_PROGRESS / 5))
+          IOS_SPACES=$((20 - IOS_BARS))
+          IOS_LINE="iOS: [${IOS_CURRENT_TESTS}/${IOS_EXPECTED_TESTS}] [$(printf '█%.0s' $(seq 1 $IOS_BARS))$(printf '░%.0s' $(seq 1 $IOS_SPACES))] ${IOS_PROGRESS}% ${IOS_STATUS}"
+        fi
+
+        # Build Android progress bar with test count
+        if [ "$ANDROID_DONE" = true ]; then
+          ANDROID_LINE="Android: [${ANDROID_CURRENT_TESTS}/${ANDROID_EXPECTED_TESTS}] [████████████████████] 100% ${ANDROID_STATUS} ($(format_duration $ANDROID_DURATION))"
+        else
+          # Calculate progress based on test count
+          if [ $ANDROID_EXPECTED_TESTS -gt 0 ]; then
+            ANDROID_PROGRESS=$((ANDROID_CURRENT_TESTS * 100 / ANDROID_EXPECTED_TESTS))
+          else
+            ANDROID_PROGRESS=0
+          fi
+          [ $ANDROID_PROGRESS -gt 99 ] && ANDROID_PROGRESS=99
+          ANDROID_BARS=$((ANDROID_PROGRESS / 5))
+          ANDROID_SPACES=$((20 - ANDROID_BARS))
+          ANDROID_LINE="Android: [${ANDROID_CURRENT_TESTS}/${ANDROID_EXPECTED_TESTS}] [$(printf '█%.0s' $(seq 1 $ANDROID_BARS))$(printf '░%.0s' $(seq 1 $ANDROID_SPACES))] ${ANDROID_PROGRESS}% ${ANDROID_STATUS}"
+        fi
+
+        # Restore cursor position, clear line, and display new content
+        tput rc 2>/dev/null || true
+        tput el 2>/dev/null || true
+        printf "%s [%s] %s | %s" "${SPINNER_CHAR}" "$(format_duration $SECONDS_ELAPSED)" "${IOS_LINE}" "${ANDROID_LINE}"
+
         sleep 0.1
         ELAPSED=$((ELAPSED + 1))
       done
-      ELAPSED=$((ELAPSED / 10))
     done
-    echo -ne "\r$(printf ' %.0s' {1..100})\r"
+
+    # Restore cursor position, clear line, show cursor, and add newline
+    tput rc 2>/dev/null || true
+    tput el 2>/dev/null || true
+    tput cnorm 2>/dev/null || true
+    echo ""
   fi
 
   # Wait for both to complete
