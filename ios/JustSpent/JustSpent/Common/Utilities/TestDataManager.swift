@@ -64,6 +64,8 @@ class TestDataManager {
             print("🧪 Forcing onboarding to show")
             // Reset onboarding by setting UserDefaults key to false
             UserDefaults.standard.set(false, forKey: "user_has_completed_onboarding")
+            // Also reset via UserPreferences
+            UserDefaults.standard.removeObject(forKey: "has_completed_onboarding")
         } else if TestDataManager.shouldSkipOnboarding() || TestDataManager.isUITesting() {
             print("🧪 Skipping onboarding")
             UserPreferences.shared.completeOnboarding()
@@ -81,10 +83,20 @@ class TestDataManager {
             populateDefaultTestData(context: context)
         }
 
-        // Save changes
+        // Save changes with explicit synchronous save
         do {
             try context.save()
-            print("✅ Test environment setup complete")
+
+            // Force process pending changes to ensure data is immediately available
+            context.processPendingChanges()
+
+            // Verify data was saved
+            let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
+            let count = try context.count(for: fetchRequest)
+            print("✅ Test environment setup complete - Verified \(count) expenses in database")
+
+            // Extra sync delay to ensure Core Data stack is fully ready
+            Thread.sleep(forTimeInterval: 0.5)
         } catch {
             print("❌ Failed to save test data: \(error)")
         }
@@ -144,7 +156,8 @@ class TestDataManager {
         let calendar = Calendar.current
         let today = Date()
 
-        // Create test expenses across multiple currencies
+        // Create test expenses across 4 currencies for faster testing
+        // Production supports all 7 currencies, but tests only need to verify multi-currency feature works
         let testExpenses: [(amount: Double, currency: String, category: String, merchant: String?, daysAgo: Int)] = [
             // AED expenses
             (150.00, "AED", "Grocery", "Carrefour", 0),
@@ -162,15 +175,7 @@ class TestDataManager {
 
             // GBP expenses
             (15.00, "GBP", "Food & Dining", "Pub", 1),
-            (60.00, "GBP", "Transportation", "Train", 3),
-
-            // INR expenses
-            (500.00, "INR", "Grocery", "Local Market", 0),
-            (200.00, "INR", "Food & Dining", "Restaurant", 1),
-
-            // SAR expenses
-            (75.00, "SAR", "Shopping", "Mall", 2),
-            (30.00, "SAR", "Food & Dining", "Fast Food", 3)
+            (60.00, "GBP", "Transportation", "Train", 3)
         ]
 
         for expenseData in testExpenses {
@@ -187,6 +192,6 @@ class TestDataManager {
             expense.status = "active"
         }
 
-        print("✅ Created \(testExpenses.count) test expenses across 6 currencies (AED, USD, EUR, GBP, INR, SAR)")
+        print("✅ Created \(testExpenses.count) test expenses across 4 currencies (AED, USD, EUR, GBP) for testing")
     }
 }

@@ -455,13 +455,18 @@ grant_ios_simulator_permissions() {
   if [ "$sim_state" != "Booted" ]; then
     info "Booting simulator..."
     xcrun simctl boot "$simulator_id" 2>/dev/null || true
-    sleep 5  # Wait for simulator to boot
+
+    # Wait for simulator to fully boot (matching GitHub Actions 10s wait)
+    info "Waiting for simulator to fully boot..."
+    sleep 10
   fi
 
   # Grant microphone permission
+  info "Granting microphone permission..."
   xcrun simctl privacy "$simulator_id" grant microphone "$bundle_id" 2>/dev/null || true
 
   # Grant speech recognition permission
+  info "Granting speech recognition permission..."
   xcrun simctl privacy "$simulator_id" grant speech-recognition "$bundle_id" 2>/dev/null || true
 
   success "iOS simulator permissions granted (microphone + speech recognition)"
@@ -481,7 +486,7 @@ run_ios_pipeline() {
   if xcodebuild clean build \
     -project JustSpent.xcodeproj \
     -scheme JustSpent \
-    -destination 'platform=iOS Simulator,name=iPhone 16' \
+    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
     -configuration Debug \
     CODE_SIGN_IDENTITY="" \
     CODE_SIGNING_REQUIRED=NO \
@@ -510,7 +515,7 @@ run_ios_pipeline() {
   if xcodebuild test \
     -project JustSpent.xcodeproj \
     -scheme JustSpent \
-    -destination 'platform=iOS Simulator,name=iPhone 16' \
+    -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
     -only-testing:JustSpentTests \
     -enableCodeCoverage YES \
     -resultBundlePath "$RESULTS_DIR/ios_unit_$TIMESTAMP.xcresult" \
@@ -586,6 +591,27 @@ run_ios_pipeline() {
   fi
 
   # iOS UI Tests
+  # Reset simulator for clean state (matches GitHub Actions behavior)
+  # This ensures no stale UserDefaults, Core Data, or app state from previous runs
+  info "Resetting iOS simulator for clean test environment..."
+  SIMULATOR_ID=$(xcrun simctl list devices | grep "iPhone 16" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+
+  if [ -n "$SIMULATOR_ID" ]; then
+    # Erase simulator data
+    xcrun simctl erase "$SIMULATOR_ID" 2>/dev/null || true
+
+    # Boot simulator
+    xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
+
+    # Wait for simulator to fully boot (matching GitHub Actions)
+    info "Waiting for simulator to fully boot..."
+    sleep 10
+
+    success "Simulator reset complete - clean state ready"
+  else
+    warning "Could not find iPhone 16 simulator ID - continuing without reset"
+  fi
+
   # Grant permissions before UI tests (microphone access required)
   grant_ios_simulator_permissions "iPhone 16"
 
@@ -595,7 +621,7 @@ run_ios_pipeline() {
     if xcodebuild test \
       -project JustSpent.xcodeproj \
       -scheme JustSpent \
-      -destination 'platform=iOS Simulator,name=iPhone 16' \
+      -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
       -only-testing:JustSpentUITests \
       -parallel-testing-enabled NO \
       -enableCodeCoverage YES \

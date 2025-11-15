@@ -12,6 +12,8 @@ struct CurrencyOnboardingView: View {
 
     @StateObject private var userPreferences = UserPreferences.shared
     @State private var selectedCurrency: Currency = Currency.default
+    // Load currencies immediately (not in .onAppear) for UI test reliability
+    @State private var currencies: [Currency] = Currency.all.sorted(by: { $0.displayName < $1.displayName })
     @Binding var isOnboardingComplete: Bool
 
     var body: some View {
@@ -87,6 +89,9 @@ struct CurrencyOnboardingView: View {
             }
             .navigationBarHidden(true)
         }
+        .onAppear {
+            print("📱 CurrencyOnboardingView appeared")
+        }
     }
 
     private func completeOnboarding() {
@@ -155,7 +160,7 @@ struct CurrencyOnboardingRow: View {
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(currency.displayName) (\(currency.code))")
-        .accessibilityIdentifier(currency.code)
+        .accessibilityIdentifier("currency_option_\(currency.code)")
         .accessibilityAddTraits(.isButton)
     }
 }

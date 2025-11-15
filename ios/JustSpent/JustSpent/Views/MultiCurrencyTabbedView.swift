@@ -139,7 +139,10 @@ struct CurrencyTabBar: View {
                             selectedCurrency = currency
                         }
                     }
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("currency_tab_\(currency.code)")
+                    .accessibilityLabel("\(currency.displayName) tab")
+                    .accessibilityAddTraits(.isButton)
                 }
             }
             .padding(.horizontal, 16)
