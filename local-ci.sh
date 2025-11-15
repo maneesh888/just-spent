@@ -1045,13 +1045,15 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
   info "Running iOS and Android pipelines in parallel..."
   echo ""
 
-  # Create temp files to store exit codes
+  # Create temp files to store exit codes and results
   IOS_EXIT_FILE=$(mktemp)
   ANDROID_EXIT_FILE=$(mktemp)
+  IOS_OUTPUT_FILE=$(mktemp)
+  ANDROID_OUTPUT_FILE=$(mktemp)
 
-  # Run iOS in background
+  # Run iOS in background (redirect output to temp file)
   (
-    if run_ios_pipeline; then
+    if run_ios_pipeline > "$IOS_OUTPUT_FILE" 2>&1; then
       echo "0" > "$IOS_EXIT_FILE"
     else
       echo "1" > "$IOS_EXIT_FILE"
@@ -1059,9 +1061,9 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
   ) &
   IOS_PID=$!
 
-  # Run Android in background
+  # Run Android in background (redirect output to temp file)
   (
-    if run_android_pipeline; then
+    if run_android_pipeline > "$ANDROID_OUTPUT_FILE" 2>&1; then
       echo "0" > "$ANDROID_EXIT_FILE"
     else
       echo "1" > "$ANDROID_EXIT_FILE"
@@ -1069,25 +1071,143 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
   ) &
   ANDROID_PID=$!
 
+  # Show progress while waiting
+  if [ "$SHOW_PROGRESS" = true ]; then
+    local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local elapsed=0
+    while kill -0 $IOS_PID 2>/dev/null || kill -0 $ANDROID_PID 2>/dev/null; do
+      for i in $(seq 0 9); do
+        if ! kill -0 $IOS_PID 2>/dev/null && ! kill -0 $ANDROID_PID 2>/dev/null; then
+          break 2
+        fi
+        local spinner_char="${spinner:$i:1}"
+        echo -ne "\r${spinner_char} Running both platforms in parallel... [$(format_duration $elapsed)]"
+        sleep 0.1
+        elapsed=$((elapsed + 1))
+      done
+      elapsed=$((elapsed / 10))
+    done
+    echo -ne "\r$(printf ' %.0s' {1..100})\r"
+  fi
+
   # Wait for both to complete
-  info "Waiting for iOS pipeline (PID: $IOS_PID)..."
-  wait $IOS_PID
+  wait $IOS_PID 2>/dev/null
   IOS_RESULT=$(cat "$IOS_EXIT_FILE" 2>/dev/null || echo "1")
 
-  info "Waiting for Android pipeline (PID: $ANDROID_PID)..."
-  wait $ANDROID_PID
+  wait $ANDROID_PID 2>/dev/null
   ANDROID_RESULT=$(cat "$ANDROID_EXIT_FILE" 2>/dev/null || echo "1")
 
+  info "Both pipelines completed"
+  echo ""
+
+  # Display captured output
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${PURPLE}${BOLD}  iOS Pipeline Results${NC}"
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  cat "$IOS_OUTPUT_FILE"
+  echo ""
+
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${PURPLE}${BOLD}  Android Pipeline Results${NC}"
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  cat "$ANDROID_OUTPUT_FILE"
+  echo ""
+
+  # Parse iOS results from logs
+  if [ -f "$RESULTS_DIR/ios_build_$TIMESTAMP.log" ]; then
+    if grep -q "BUILD SUCCEEDED" "$RESULTS_DIR/ios_build_$TIMESTAMP.log" 2>/dev/null; then
+      IOS_BUILD_STATUS="pass"
+    else
+      IOS_BUILD_STATUS="fail"
+    fi
+    IOS_BUILD_DURATION=0  # Duration tracking happens in the pipeline functions
+  fi
+
+  if [ -f "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" ]; then
+    local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_unit_$TIMESTAMP.log")
+    IOS_UNIT_COUNT=$(echo "$test_results" | cut -d':' -f1)
+    IOS_UNIT_PASSED=$(echo "$test_results" | cut -d':' -f2)
+    IOS_UNIT_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    if [ "$IOS_UNIT_FAILED" -eq 0 ] && [ "$IOS_UNIT_COUNT" -ge "$EXPECTED_IOS_UNIT_TESTS" ]; then
+      IOS_UNIT_STATUS="pass"
+    else
+      IOS_UNIT_STATUS="fail"
+    fi
+    IOS_UNIT_DURATION=0
+  fi
+
+  if [ "$SKIP_UI_TESTS" = true ]; then
+    IOS_UI_STATUS="skip"
+    IOS_UI_COUNT=0
+    IOS_UI_PASSED=0
+    IOS_UI_FAILED=0
+    IOS_UI_DURATION=0
+  elif [ -f "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" ]; then
+    local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_ui_$TIMESTAMP.log")
+    IOS_UI_COUNT=$(echo "$test_results" | cut -d':' -f1)
+    IOS_UI_PASSED=$(echo "$test_results" | cut -d':' -f2)
+    IOS_UI_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    if [ "$IOS_UI_FAILED" -eq 0 ] && [ "$IOS_UI_COUNT" -gt 0 ]; then
+      IOS_UI_STATUS="pass"
+    elif [ "$IOS_UI_COUNT" -eq 0 ]; then
+      IOS_UI_STATUS="no_tests"
+    else
+      IOS_UI_STATUS="fail"
+    fi
+    IOS_UI_DURATION=0
+  fi
+
+  # Parse Android results from logs
+  if [ -f "$RESULTS_DIR/android_build_$TIMESTAMP.log" ]; then
+    if grep -q "BUILD SUCCESSFUL" "$RESULTS_DIR/android_build_$TIMESTAMP.log" 2>/dev/null; then
+      ANDROID_BUILD_STATUS="pass"
+    else
+      ANDROID_BUILD_STATUS="fail"
+    fi
+    ANDROID_BUILD_DURATION=0
+  fi
+
+  if [ -f "$RESULTS_DIR/android_unit_$TIMESTAMP.log" ]; then
+    local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_unit_$TIMESTAMP.log")
+    ANDROID_UNIT_COUNT=$(echo "$test_results" | cut -d':' -f1)
+    ANDROID_UNIT_PASSED=$(echo "$test_results" | cut -d':' -f2)
+    ANDROID_UNIT_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    if [ "$ANDROID_UNIT_FAILED" -eq 0 ] && [ "$ANDROID_UNIT_COUNT" -ge "$EXPECTED_ANDROID_UNIT_TESTS" ]; then
+      ANDROID_UNIT_STATUS="pass"
+    else
+      ANDROID_UNIT_STATUS="fail"
+    fi
+    ANDROID_UNIT_DURATION=0
+  fi
+
+  if [ "$SKIP_UI_TESTS" = true ]; then
+    ANDROID_UI_STATUS="skip"
+    ANDROID_UI_COUNT=0
+    ANDROID_UI_PASSED=0
+    ANDROID_UI_FAILED=0
+    ANDROID_UI_DURATION=0
+  elif [ -f "$RESULTS_DIR/android_ui_$TIMESTAMP.log" ]; then
+    local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_ui_$TIMESTAMP.log" "ui")
+    ANDROID_UI_COUNT=$(echo "$test_results" | cut -d':' -f1)
+    ANDROID_UI_PASSED=$(echo "$test_results" | cut -d':' -f2)
+    ANDROID_UI_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    if [ "$ANDROID_UI_FAILED" -eq 0 ] && [ "$ANDROID_UI_COUNT" -gt 0 ]; then
+      ANDROID_UI_STATUS="pass"
+    elif [ "$ANDROID_UI_COUNT" -eq 0 ]; then
+      ANDROID_UI_STATUS="no_tests"
+    else
+      ANDROID_UI_STATUS="fail"
+    fi
+    ANDROID_UI_DURATION=0
+  fi
+
   # Clean up temp files
-  rm -f "$IOS_EXIT_FILE" "$ANDROID_EXIT_FILE"
+  rm -f "$IOS_EXIT_FILE" "$ANDROID_EXIT_FILE" "$IOS_OUTPUT_FILE" "$ANDROID_OUTPUT_FILE"
 
   # Check results
   if [ "$IOS_RESULT" -ne 0 ] || [ "$ANDROID_RESULT" -ne 0 ]; then
     OVERALL_SUCCESS=false
   fi
-
-  echo ""
-  info "Both pipelines completed"
 
 else
   # ========================================================================
