@@ -35,20 +35,25 @@ struct PersistenceController {
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "JustSpent")
-        
+
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
-        
+
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        
+
+        // Use semaphore to make store loading synchronous (critical for UI testing)
+        // This ensures test data can be saved immediately after app initialization
+        let semaphore = DispatchSemaphore(value: 0)
         container.loadPersistentStores { _, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
+            semaphore.signal()
         }
-        
+        semaphore.wait()
+
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
     

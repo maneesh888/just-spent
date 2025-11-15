@@ -84,6 +84,15 @@ class TestDataManager {
         // Save changes
         do {
             try context.save()
+            print("✅ Test data saved to Core Data")
+
+            // CRITICAL: Force context to refresh and merge changes
+            // This ensures @FetchRequest in ContentView sees the new data immediately
+            context.refreshAllObjects()
+            print("✅ Context refreshed - @FetchRequest should now see test data")
+
+            // Post notification to force SwiftUI views to update
+            NotificationCenter.default.post(name: .NSManagedObjectContextDidSave, object: context)
             print("✅ Test environment setup complete")
         } catch {
             print("❌ Failed to save test data: \(error)")
@@ -96,13 +105,18 @@ class TestDataManager {
     private func clearAllData(context: NSManagedObjectContext) {
         print("🧹 Clearing all existing expense data...")
 
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = Expense.fetchRequest()
-        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        // Use regular fetch and delete instead of NSBatchDeleteRequest
+        // This properly notifies @FetchRequest in SwiftUI to update
+        let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
 
         do {
-            try context.execute(deleteRequest)
+            let expenses = try context.fetch(fetchRequest)
+            for expense in expenses {
+                context.delete(expense)
+            }
             try context.save()
-            print("✅ All expense data cleared")
+
+            print("✅ All expense data cleared (\(expenses.count) expenses deleted)")
         } catch {
             print("❌ Failed to clear data: \(error)")
         }

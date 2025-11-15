@@ -146,16 +146,49 @@ private struct CurrenciesData: Codable {
 /// Utility object to load currencies from JSON resource file
 private struct CurrencyLoader {
     static func loadCurrencies() -> [Currency] {
-        print("📂 Currency: Searching for currencies.json in bundle...")
+        print("📂 Currency: Searching for currencies.json...")
 
-        guard let url = Bundle.main.url(forResource: "currencies", withExtension: "json") else {
-            print("❌ Currency: currencies.json NOT FOUND in bundle")
+        let fileManager = FileManager.default
+        var jsonURL: URL?
+
+        // 1. Try from current working directory and relative paths (works in tests and CI)
+        let currentDirPath = fileManager.currentDirectoryPath
+        let possiblePaths = [
+            "\(currentDirPath)/shared/currencies.json",        // From project root
+            "\(currentDirPath)/../shared/currencies.json",     // From ios/ directory
+            "\(currentDirPath)/../../shared/currencies.json"   // From ios/JustSpent/ directory
+        ]
+
+        for path in possiblePaths {
+            if fileManager.fileExists(atPath: path) {
+                jsonURL = URL(fileURLWithPath: path)
+                print("✅ Currency: Found currencies.json in shared folder (from current dir: \(path))")
+                break
+            }
+        }
+
+        // 2. Try searching up from bundle path to find project root (works in simulator)
+        if jsonURL == nil {
+            jsonURL = findCurrencyFileFromBundle(fileManager: fileManager)
+        }
+
+        // 3. Fallback: load from bundle (production build with file added to Xcode)
+        if jsonURL == nil {
+            jsonURL = Bundle.main.url(forResource: "currencies", withExtension: "json")
+            if jsonURL != nil {
+                print("✅ Currency: Found currencies.json in app bundle")
+            }
+        }
+
+        guard let url = jsonURL else {
+            print("❌ Currency: currencies.json NOT FOUND in any location")
+            print("   Searched: shared folder, bundle path, and app bundle")
             print("📂 Currency: Bundle path: \(Bundle.main.bundlePath)")
-            print("📂 Currency: Available resources: \(Bundle.main.paths(forResourcesOfType: "json", inDirectory: nil))")
+            print("📂 Currency: Current dir: \(currentDirPath)")
             return []
         }
 
-        print("✅ Currency: Found currencies.json at: \(url.path)")
+        print("✅ Currency: Loading from: \(url.path)")
 
         do {
             let data = try Data(contentsOf: url)
@@ -186,5 +219,30 @@ private struct CurrencyLoader {
             print("❌ Currency: Failed to load currencies from JSON: \(error)")
             return []
         }
+    }
+
+    /// Search for project root by looking for shared/currencies.json
+    private static func findCurrencyFileFromBundle(fileManager: FileManager) -> URL? {
+        let bundlePath = Bundle.main.bundlePath
+
+        var currentPath = (bundlePath as NSString).deletingLastPathComponent
+
+        // Search up to 10 levels to find project root
+        for _ in 0..<10 {
+            let sharedPath = (currentPath as NSString).appendingPathComponent("shared/currencies.json")
+            if fileManager.fileExists(atPath: sharedPath) {
+                print("✅ Currency: Found currencies.json in shared folder (from bundle path)")
+                return URL(fileURLWithPath: sharedPath)
+            }
+
+            // Go up one level
+            let parentPath = (currentPath as NSString).deletingLastPathComponent
+            if parentPath == currentPath {
+                break // Reached root
+            }
+            currentPath = parentPath
+        }
+
+        return nil
     }
 }

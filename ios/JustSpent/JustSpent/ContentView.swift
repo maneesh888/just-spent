@@ -59,7 +59,14 @@ struct ContentView: View {
 
     /// Determine if we should show tabs (multiple currencies) or single list
     private var shouldShowTabs: Bool {
-        return activeCurrencies.count > 1
+        let result = activeCurrencies.count > 1
+        #if DEBUG
+        if TestDataManager.isUITesting() {
+            print("🧪 [ContentView] shouldShowTabs = \(result), activeCurrencies.count = \(activeCurrencies.count), expenses.count = \(expenses.count)")
+            print("🧪 [ContentView] Active currencies: \(activeCurrencies.map { $0.code }.joined(separator: ", "))")
+        }
+        #endif
+        return result
     }
 
     // MARK: - View Components
@@ -70,14 +77,23 @@ struct ContentView: View {
         if expenses.isEmpty {
             // Empty state (without floating button)
             emptyStateView
+                // Test marker for empty state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_empty")
         } else if shouldShowTabs {
             // Multiple currencies → Tabbed interface
             MultiCurrencyTabbedView(currencies: activeCurrencies)
                 .environment(\.managedObjectContext, viewContext)
+                // Test marker for multi-currency state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_multi_currency")
         } else if let currency = activeCurrencies.first {
             // Single currency → Simple list view
             SingleCurrencyView(currency: currency)
                 .environment(\.managedObjectContext, viewContext)
+                // Test marker for single currency state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_single_currency")
         } else {
             // Fallback to empty state (shouldn't happen, but safety)
             emptyStateView

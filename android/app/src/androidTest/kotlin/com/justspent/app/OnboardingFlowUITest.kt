@@ -69,11 +69,10 @@ class OnboardingFlowUITest {
         // Verify all 7 common currency options are present using test tags
         val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY")
 
+        // Scroll to each currency to ensure it's composed (screen-size independent)
         currencies.forEach { code ->
-            // Scroll to make item visible if needed - scroll the list first, then assert
             composeTestRule.onNodeWithTag("currency_list")
-                .performTouchInput { swipeUp() }
-            composeTestRule.waitForIdle()
+                .performScrollToNode(hasTestTag("currency_option_$code"))
             composeTestRule.onNodeWithTag("currency_option_$code")
                 .assertExists()
         }
@@ -111,6 +110,10 @@ class OnboardingFlowUITest {
     fun onboarding_displaysEUROption() {
         composeTestRule.waitForIdle()
 
+        // Scroll to EUR to ensure it's composed (screen-size independent)
+        composeTestRule.onNodeWithTag("currency_list")
+            .performScrollToNode(hasTestTag("currency_option_EUR"))
+
         composeTestRule.onNodeWithTag("currency_option_EUR")
             .assertExists()
             .assertHasClickAction()
@@ -119,6 +122,10 @@ class OnboardingFlowUITest {
     @Test
     fun onboarding_displaysGBPOption() {
         composeTestRule.waitForIdle()
+
+        // Scroll to GBP to ensure it's composed (screen-size independent)
+        composeTestRule.onNodeWithTag("currency_list")
+            .performScrollToNode(hasTestTag("currency_option_GBP"))
 
         composeTestRule.onNodeWithTag("currency_option_GBP")
             .assertExists()
@@ -129,6 +136,10 @@ class OnboardingFlowUITest {
     fun onboarding_displaysINROption() {
         composeTestRule.waitForIdle()
 
+        // Scroll to INR to ensure it's composed (screen-size independent)
+        composeTestRule.onNodeWithTag("currency_list")
+            .performScrollToNode(hasTestTag("currency_option_INR"))
+
         composeTestRule.onNodeWithTag("currency_option_INR")
             .assertExists()
             .assertHasClickAction()
@@ -138,10 +149,9 @@ class OnboardingFlowUITest {
     fun onboarding_displaysSAROption() {
         composeTestRule.waitForIdle()
 
-        // SAR is last - need to scroll to see it
+        // Scroll to SAR to ensure it's composed (screen-size independent)
         composeTestRule.onNodeWithTag("currency_list")
-            .performTouchInput { swipeUp() }
-        composeTestRule.waitForIdle()
+            .performScrollToNode(hasTestTag("currency_option_SAR"))
 
         composeTestRule.onNodeWithTag("currency_option_SAR")
             .assertExists()
@@ -204,18 +214,41 @@ class OnboardingFlowUITest {
     fun onboarding_displaysCurrencySymbols() {
         composeTestRule.waitForIdle()
 
-        // Check that currency symbols are present (they're in separate Text elements)
-        val symbols = listOf("د.إ", "$", "€", "£", "₹", "﷼", "¥")
+        // Check that currency symbols are present by scrolling to each currency and checking its symbol
+        // This is screen-size independent as we scroll to each currency individually
+        val currenciesWithSymbols = mapOf(
+            "AED" to "د.إ",
+            "USD" to "$",
+            "EUR" to "€",
+            "GBP" to "£",
+            "INR" to "₹",
+            "SAR" to "﷼",
+            "JPY" to "¥"
+        )
 
         var foundSymbols = 0
-        symbols.forEach { symbol ->
+        currenciesWithSymbols.forEach { (code, symbol) ->
             try {
-                composeTestRule.onAllNodesWithText(symbol, substring = true, useUnmergedTree = true)
-                    .onFirst()
+                // Scroll to this currency to ensure it's composed
+                composeTestRule.onNodeWithTag("currency_list")
+                    .performScrollToNode(hasTestTag("currency_option_$code"))
+
+                // Now check if the symbol exists (within the currency option)
+                composeTestRule.onNodeWithTag("currency_option_$code")
                     .assertExists()
-                foundSymbols++
+
+                // Check if symbol text exists within the currency option
+                try {
+                    composeTestRule.onNode(
+                        hasText(symbol, substring = true) and hasAnyAncestor(hasTestTag("currency_option_$code")),
+                        useUnmergedTree = true
+                    ).assertExists()
+                    foundSymbols++
+                } catch (e: AssertionError) {
+                    // Symbol not found within this currency option
+                }
             } catch (e: AssertionError) {
-                // Symbol not found, continue
+                // Currency option not found, continue
             }
         }
 
@@ -247,12 +280,10 @@ class OnboardingFlowUITest {
         // Verify all currency options are accessible via test tags
         val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR")
 
+        // Scroll to each currency to ensure it's composed (screen-size independent)
         currencies.forEach { code ->
-            // Scroll list to make items visible
             composeTestRule.onNodeWithTag("currency_list")
-                .performTouchInput { swipeUp() }
-            composeTestRule.waitForIdle()
-
+                .performScrollToNode(hasTestTag("currency_option_$code"))
             composeTestRule.onNodeWithTag("currency_option_$code")
                 .assertExists()
                 .assertHasClickAction()
@@ -308,14 +339,12 @@ class OnboardingFlowUITest {
         // Verify all 7 common currencies are visible
         val currencies = listOf("AED", "USD", "EUR", "GBP", "INR", "SAR", "JPY")
 
+        // Scroll to each currency to ensure it's composed (screen-size independent)
         var foundCurrencies = 0
         currencies.forEach { code ->
             try {
-                // Scroll list to make items visible
                 composeTestRule.onNodeWithTag("currency_list")
-                    .performTouchInput { swipeUp() }
-                composeTestRule.waitForIdle()
-
+                    .performScrollToNode(hasTestTag("currency_option_$code"))
                 composeTestRule.onNodeWithTag("currency_option_$code")
                     .assertExists()
                 foundCurrencies++
@@ -481,7 +510,7 @@ class OnboardingFlowUITest {
 
         // Verify localized helper text is displayed
         composeTestRule.onNode(
-            hasText("You can choose a different currency below", substring = true, ignoreCase = true),
+            hasText("You can choose a different currency for expense tracking below", substring = true, ignoreCase = true),
             useUnmergedTree = true
         ).assertExists()
     }

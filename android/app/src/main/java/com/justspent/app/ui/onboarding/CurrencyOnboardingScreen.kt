@@ -207,7 +207,8 @@ private fun HelperText() {
         text = localization.get("onboarding.helperText"),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        modifier = Modifier.testTag("onboarding_helper_text")
     )
 }
 

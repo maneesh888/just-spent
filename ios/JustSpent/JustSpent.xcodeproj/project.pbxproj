@@ -49,6 +49,27 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9F1B65992EC843A100BAB2E5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"test-data/README.md",
+			);
+			target = 3D8A9E152C9F4B2E00123456 /* JustSpent */;
+		};
+		9F1B659A2EC843A100BAB2E5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"test-data/README.md",
+			);
+			target = 9F7363322EAC94A300D50166 /* JustSpentTests */;
+		};
+		9F1B659B2EC843A100BAB2E5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"test-data/README.md",
+			);
+			target = 9F73634B2EAC951B00D50166 /* JustSpentUITests */;
+		};
 		9F73635B2EAC955D00D50166 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -79,7 +100,8 @@
 		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 		9F7363342EAC94A300D50166 /* JustSpentTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentTests; sourceTree = "<group>"; };
 		9F73634D2EAC951B00D50166 /* JustSpentUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentUITests; sourceTree = "<group>"; };
-		9FBC18832EC0291000ECDB75 /* shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); name = shared; path = "/Users/maneesh/Documents/Hobby/just-spent/shared"; sourceTree = "<absolute>"; };
+		9FBC18832EC0291000ECDB75 /* shared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9F1B65992EC843A100BAB2E5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F1B659A2EC843A100BAB2E5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F1B659B2EC843A100BAB2E5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = shared; path = "/Users/maneesh/Documents/Hobby/just-spent/shared"; sourceTree = "<absolute>"; };
+		9FBC21922EC26B9F00ECDB75 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +172,7 @@
 				9FC1297F2EBA293D000999C2 /* MainContent.swift */,
 				9FC129812EBA2941000999C2 /* Footer.swift */,
 				9FBC18832EC0291000ECDB75 /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			path = JustSpent;
 			sourceTree = "<group>";
@@ -190,6 +213,7 @@
 				9F73627C2EA5841400D50166 /* Siri */,
 				9F7362822EA5841400D50166 /* Views */,
 				9FBC18832EC0291000ECDB75 /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			name = JustSpent;
 			productName = JustSpent;
@@ -212,6 +236,7 @@
 			fileSystemSynchronizedGroups = (
 				9F7363342EAC94A300D50166 /* JustSpentTests */,
 				9FBC18832EC0291000ECDB75 /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			name = JustSpentTests;
 			packageProductDependencies = (
@@ -236,6 +261,7 @@
 			fileSystemSynchronizedGroups = (
 				9F73634D2EAC951B00D50166 /* JustSpentUITests */,
 				9FBC18832EC0291000ECDB75 /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			name = JustSpentUITests;
 			packageProductDependencies = (
