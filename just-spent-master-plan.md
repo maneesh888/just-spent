@@ -211,14 +211,19 @@ For detailed progress visualization, see [README.md](README.md#-project-progress
 
 ### ⏳ Phase 6: Deployment (Week 11-12) - 0% PLANNED
 - [ ] App Store preparation and submission
-- [ ] Google Play preparation and submission
+- [ ] Google Play preparation and submission (filter tablets in Console)
 - [ ] Beta testing program
 - [ ] Production deployment
 - [ ] Post-launch monitoring
 
 **Status**: Not started
 **Prerequisites**: Complete Phase 3 (voice) and Phase 4 (AI)
-**Related Issues**: #38 (cloud backup), #41 (tablet optimization)
+**Related Issues**: #38 (cloud backup)
+
+**Phone-Only Deployment Notes**:
+- iOS: App Store will automatically filter for iPhone only (TARGETED_DEVICE_FAMILY = 1)
+- Android: Use Google Play Console → "Device catalog" → Exclude tablets during app submission
+- Both platforms locked to portrait orientation
 
 ## File Organization
 
@@ -336,7 +341,6 @@ These will be tracked after deployment:
 
 6. **Future Features**
    - Cloud backup integration ([Issue #38](https://github.com/maneesh888/just-spent/issues/38))
-   - Tablet optimization ([Issue #41](https://github.com/maneesh888/just-spent/issues/41))
 
 ### 📱 Long Term (Next 9-12 Weeks)
 7. **Phase 6: Deployment**
