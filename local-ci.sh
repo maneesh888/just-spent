@@ -1073,19 +1073,19 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
 
   # Show progress while waiting
   if [ "$SHOW_PROGRESS" = true ]; then
-    local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    local elapsed=0
+    SPINNER='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    ELAPSED=0
     while kill -0 $IOS_PID 2>/dev/null || kill -0 $ANDROID_PID 2>/dev/null; do
       for i in $(seq 0 9); do
         if ! kill -0 $IOS_PID 2>/dev/null && ! kill -0 $ANDROID_PID 2>/dev/null; then
           break 2
         fi
-        local spinner_char="${spinner:$i:1}"
-        echo -ne "\r${spinner_char} Running both platforms in parallel... [$(format_duration $elapsed)]"
+        SPINNER_CHAR="${SPINNER:$i:1}"
+        echo -ne "\r${SPINNER_CHAR} Running both platforms in parallel... [$(format_duration $ELAPSED)]"
         sleep 0.1
-        elapsed=$((elapsed + 1))
+        ELAPSED=$((ELAPSED + 1))
       done
-      elapsed=$((elapsed / 10))
+      ELAPSED=$((ELAPSED / 10))
     done
     echo -ne "\r$(printf ' %.0s' {1..100})\r"
   fi
@@ -1124,10 +1124,10 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
   fi
 
   if [ -f "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" ]; then
-    local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_unit_$TIMESTAMP.log")
-    IOS_UNIT_COUNT=$(echo "$test_results" | cut -d':' -f1)
-    IOS_UNIT_PASSED=$(echo "$test_results" | cut -d':' -f2)
-    IOS_UNIT_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    TEST_RESULTS=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_unit_$TIMESTAMP.log")
+    IOS_UNIT_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    IOS_UNIT_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    IOS_UNIT_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
     if [ "$IOS_UNIT_FAILED" -eq 0 ] && [ "$IOS_UNIT_COUNT" -ge "$EXPECTED_IOS_UNIT_TESTS" ]; then
       IOS_UNIT_STATUS="pass"
     else
@@ -1143,10 +1143,10 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
     IOS_UI_FAILED=0
     IOS_UI_DURATION=0
   elif [ -f "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" ]; then
-    local test_results=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_ui_$TIMESTAMP.log")
-    IOS_UI_COUNT=$(echo "$test_results" | cut -d':' -f1)
-    IOS_UI_PASSED=$(echo "$test_results" | cut -d':' -f2)
-    IOS_UI_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    TEST_RESULTS=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_ui_$TIMESTAMP.log")
+    IOS_UI_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    IOS_UI_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    IOS_UI_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
     if [ "$IOS_UI_FAILED" -eq 0 ] && [ "$IOS_UI_COUNT" -gt 0 ]; then
       IOS_UI_STATUS="pass"
     elif [ "$IOS_UI_COUNT" -eq 0 ]; then
@@ -1168,10 +1168,10 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
   fi
 
   if [ -f "$RESULTS_DIR/android_unit_$TIMESTAMP.log" ]; then
-    local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_unit_$TIMESTAMP.log")
-    ANDROID_UNIT_COUNT=$(echo "$test_results" | cut -d':' -f1)
-    ANDROID_UNIT_PASSED=$(echo "$test_results" | cut -d':' -f2)
-    ANDROID_UNIT_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    TEST_RESULTS=$(parse_gradle_test_output "$RESULTS_DIR/android_unit_$TIMESTAMP.log")
+    ANDROID_UNIT_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    ANDROID_UNIT_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    ANDROID_UNIT_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
     if [ "$ANDROID_UNIT_FAILED" -eq 0 ] && [ "$ANDROID_UNIT_COUNT" -ge "$EXPECTED_ANDROID_UNIT_TESTS" ]; then
       ANDROID_UNIT_STATUS="pass"
     else
@@ -1187,10 +1187,10 @@ if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = tr
     ANDROID_UI_FAILED=0
     ANDROID_UI_DURATION=0
   elif [ -f "$RESULTS_DIR/android_ui_$TIMESTAMP.log" ]; then
-    local test_results=$(parse_gradle_test_output "$RESULTS_DIR/android_ui_$TIMESTAMP.log" "ui")
-    ANDROID_UI_COUNT=$(echo "$test_results" | cut -d':' -f1)
-    ANDROID_UI_PASSED=$(echo "$test_results" | cut -d':' -f2)
-    ANDROID_UI_FAILED=$(echo "$test_results" | cut -d':' -f3)
+    TEST_RESULTS=$(parse_gradle_test_output "$RESULTS_DIR/android_ui_$TIMESTAMP.log" "ui")
+    ANDROID_UI_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    ANDROID_UI_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    ANDROID_UI_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
     if [ "$ANDROID_UI_FAILED" -eq 0 ] && [ "$ANDROID_UI_COUNT" -gt 0 ]; then
       ANDROID_UI_STATUS="pass"
     elif [ "$ANDROID_UI_COUNT" -eq 0 ]; then
