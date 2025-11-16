@@ -100,13 +100,14 @@ class VoiceDeepLinkActivity : ComponentActivity() {
     
     private fun parseDeepLinkIntent(intent: Intent): DeepLinkData? {
         val uri = intent.data ?: return null
-        
+
         return try {
             DeepLinkData(
-                rawCommand = uri.getQueryParameter("command")?.let { 
-                    URLDecoder.decode(it, "UTF-8") 
+                rawCommand = uri.getQueryParameter("command")?.let {
+                    URLDecoder.decode(it, "UTF-8")
                 },
                 amount = uri.getQueryParameter("amount"),
+                currency = uri.getQueryParameter("currency"),
                 category = uri.getQueryParameter("category"),
                 merchant = uri.getQueryParameter("merchant"),
                 note = uri.getQueryParameter("note")
@@ -117,15 +118,26 @@ class VoiceDeepLinkActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Data class representing parsed deep link parameters from Google Assistant
+ *
+ * @param rawCommand - Natural language command (e.g., "I spent 50 dirhams on groceries")
+ * @param amount - Extracted amount (e.g., "50")
+ * @param currency - Currency code (e.g., "AED", "USD") or null for default
+ * @param category - Expense category (e.g., "Grocery", "Food & Dining")
+ * @param merchant - Merchant/store name (e.g., "Carrefour")
+ * @param note - Additional notes
+ */
 data class DeepLinkData(
     val rawCommand: String? = null,
     val amount: String? = null,
+    val currency: String? = null,
     val category: String? = null,
     val merchant: String? = null,
     val note: String? = null
 ) {
     fun hasStructuredData(): Boolean {
-        return !amount.isNullOrBlank() || !category.isNullOrBlank() || 
+        return !amount.isNullOrBlank() || !category.isNullOrBlank() ||
                !merchant.isNullOrBlank() || !note.isNullOrBlank()
     }
 }

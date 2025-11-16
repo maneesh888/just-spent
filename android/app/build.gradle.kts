@@ -156,9 +156,9 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.50")
     ksp("com.google.dagger:hilt-compiler:2.50")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    
-    // Google Assistant & App Actions - commented out for now to fix build
-    // implementation("com.google.assistant:app-actions:1.0.0")
+
+    // Note: Google Assistant App Actions work through actions.xml configuration
+    // No separate library dependency is required - integration uses deep links
 
     // Speech Recognition
     implementation("androidx.core:core-ktx:1.12.0")
