@@ -34,12 +34,28 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		9F20BD552EC9451A0090A86D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		3D8A9E162C9F4B2E00123456 /* JustSpent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JustSpent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D8A9E192C9F4B2E00123456 /* JustSpentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JustSpentApp.swift; sourceTree = "<group>"; };
 		3D8A9E1B2C9F4B2E00123456 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		3D8A9E1D2C9F4B3000123456 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3D8A9E202C9F4B3000123456 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		9F20BD4C2EC9451A0090A86D /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
+		9F20BD632EC947ED0090A86D /* JustSpent.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = JustSpent.intentdefinition; sourceTree = "<group>"; };
+		9F20BD662EC948250090A86D /* JustSpent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JustSpent.entitlements; sourceTree = "<group>"; };
 		9F7362082E99665C00D50166 /* JustSpent.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = JustSpent.xcdatamodel; sourceTree = "<group>"; };
 		9F73620C2E99668800D50166 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 		9F7363332EAC94A300D50166 /* JustSpentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JustSpentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,6 +103,9 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		9F20BD4E2EC9451A0090A86D /* JustSpentIntents */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentIntents; sourceTree = "<group>"; };
+		9F20BD602EC947420090A86D /* SiriKit */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SiriKit; sourceTree = "<group>"; };
+		9F4D18262ECA9A6200370A0E /* AppIntents */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AppIntents; sourceTree = "<group>"; };
 		9F7362492EA581ED00D50166 /* SiriKit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9F73635B2EAC955D00D50166 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F73635C2EAC955D00D50166 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SiriKit; sourceTree = "<group>"; };
 		9F73624F2EA583B200D50166 /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
 		9F7362532EA583D100D50166 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
@@ -96,7 +115,6 @@
 		9F73626F2EA5841400D50166 /* Data */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Data; sourceTree = "<group>"; };
 		9F7362732EA5841400D50166 /* Domain */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Domain; sourceTree = "<group>"; };
 		9F7362792EA5841400D50166 /* Presentation */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Presentation; sourceTree = "<group>"; };
-		9F73627C2EA5841400D50166 /* Siri */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Siri; sourceTree = "<group>"; };
 		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 		9F7363342EAC94A300D50166 /* JustSpentTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentTests; sourceTree = "<group>"; };
 		9F73634D2EAC951B00D50166 /* JustSpentUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentUITests; sourceTree = "<group>"; };
@@ -132,9 +150,13 @@
 		3D8A9E0D2C9F4B2E00123456 = {
 			isa = PBXGroup;
 			children = (
+				9F20BD632EC947ED0090A86D /* JustSpent.intentdefinition */,
+				9F20BD602EC947420090A86D /* SiriKit */,
 				3D8A9E182C9F4B2E00123456 /* JustSpent */,
 				9F7363342EAC94A300D50166 /* JustSpentTests */,
 				9F73634D2EAC951B00D50166 /* JustSpentUITests */,
+				9F20BD4E2EC9451A0090A86D /* JustSpentIntents */,
+				9F20BD4B2EC9451A0090A86D /* Frameworks */,
 				3D8A9E172C9F4B2E00123456 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -152,6 +174,7 @@
 		3D8A9E182C9F4B2E00123456 /* JustSpent */ = {
 			isa = PBXGroup;
 			children = (
+				9F20BD662EC948250090A86D /* JustSpent.entitlements */,
 				9F7362492EA581ED00D50166 /* SiriKit */,
 				3D8A9E192C9F4B2E00123456 /* JustSpentApp.swift */,
 				3D8A9E1B2C9F4B2E00123456 /* ContentView.swift */,
@@ -167,12 +190,12 @@
 				9F73626F2EA5841400D50166 /* Data */,
 				9F7362732EA5841400D50166 /* Domain */,
 				9F7362792EA5841400D50166 /* Presentation */,
-				9F73627C2EA5841400D50166 /* Siri */,
 				9F7362822EA5841400D50166 /* Views */,
 				9FC1297F2EBA293D000999C2 /* MainContent.swift */,
 				9FC129812EBA2941000999C2 /* Footer.swift */,
 				9FBC18832EC0291000ECDB75 /* shared */,
 				9FBC21922EC26B9F00ECDB75 /* Utils */,
+				9F4D18262ECA9A6200370A0E /* AppIntents */,
 			);
 			path = JustSpent;
 			sourceTree = "<group>";
@@ -185,6 +208,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		9F20BD4B2EC9451A0090A86D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9F20BD4C2EC9451A0090A86D /* Intents.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -195,12 +226,14 @@
 				3D8A9E122C9F4B2E00123456 /* Sources */,
 				3D8A9E132C9F4B2E00123456 /* Frameworks */,
 				3D8A9E142C9F4B2E00123456 /* Resources */,
+				9F20BD552EC9451A0090A86D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				9F4D18262ECA9A6200370A0E /* AppIntents */,
 				9F7362492EA581ED00D50166 /* SiriKit */,
 				9F73624F2EA583B200D50166 /* Models */,
 				9F7362532EA583D100D50166 /* Resources */,
@@ -210,7 +243,6 @@
 				9F73626F2EA5841400D50166 /* Data */,
 				9F7362732EA5841400D50166 /* Domain */,
 				9F7362792EA5841400D50166 /* Presentation */,
-				9F73627C2EA5841400D50166 /* Siri */,
 				9F7362822EA5841400D50166 /* Views */,
 				9FBC18832EC0291000ECDB75 /* shared */,
 				9FBC21922EC26B9F00ECDB75 /* Utils */,
@@ -507,6 +539,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JustSpent/JustSpent.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"JustSpent/Preview Content\"";
@@ -521,7 +554,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -540,6 +573,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JustSpent/JustSpent.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"JustSpent/Preview Content\"";
@@ -554,7 +588,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -576,7 +610,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3VSNLS7N3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.justspent.JustSpentTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -598,7 +632,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3VSNLS7N3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.justspent.JustSpentTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -619,7 +653,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3VSNLS7N3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.justspent.JustSpentUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -640,7 +674,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3VSNLS7N3U;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.justspent.JustSpentUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

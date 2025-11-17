@@ -9,6 +9,8 @@
 			<string>ExpenseCategory</string>
 			<key>INEnumDisplayNameID</key>
 			<string>ExpenseCategory</string>
+			<key>INEnumGeneratesHeader</key>
+			<true/>
 			<key>INEnumName</key>
 			<string>ExpenseCategory</string>
 			<key>INEnumType</key>
@@ -17,227 +19,101 @@
 			<array>
 				<dict>
 					<key>INEnumValueDisplayName</key>
+					<string>unknown</string>
+					<key>INEnumValueDisplayNameID</key>
+					<string>unknown</string>
+					<key>INEnumValueName</key>
+					<string>unknown</string>
+				</dict>
+				<dict>
+					<key>INEnumValueDisplayName</key>
 					<string>Food &amp; Dining</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>food_dining</string>
+					<key>INEnumValueIndex</key>
+					<integer>1</integer>
 					<key>INEnumValueName</key>
 					<string>foodDining</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>food</string>
-									<string>dining</string>
-									<string>restaurant</string>
-									<string>meal</string>
-									<string>lunch</string>
-									<string>dinner</string>
-									<string>breakfast</string>
-									<string>coffee</string>
-									<string>tea</string>
-									<string>drink</string>
-									<string>beverage</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Grocery</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>grocery</string>
+					<key>INEnumValueIndex</key>
+					<integer>2</integer>
 					<key>INEnumValueName</key>
 					<string>grocery</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>groceries</string>
-									<string>supermarket</string>
-									<string>market</string>
-									<string>food shopping</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Transportation</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>transportation</string>
+					<key>INEnumValueIndex</key>
+					<integer>3</integer>
 					<key>INEnumValueName</key>
 					<string>transportation</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>transport</string>
-									<string>taxi</string>
-									<string>uber</string>
-									<string>gas</string>
-									<string>fuel</string>
-									<string>petrol</string>
-									<string>parking</string>
-									<string>toll</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Shopping</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>shopping</string>
+					<key>INEnumValueIndex</key>
+					<integer>4</integer>
 					<key>INEnumValueName</key>
 					<string>shopping</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>clothes</string>
-									<string>clothing</string>
-									<string>mall</string>
-									<string>store</string>
-									<string>purchase</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Entertainment</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>entertainment</string>
+					<key>INEnumValueIndex</key>
+					<integer>5</integer>
 					<key>INEnumValueName</key>
 					<string>entertainment</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>movie</string>
-									<string>cinema</string>
-									<string>concert</string>
-									<string>fun</string>
-									<string>games</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Bills &amp; Utilities</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>bills_utilities</string>
+					<key>INEnumValueIndex</key>
+					<integer>6</integer>
 					<key>INEnumValueName</key>
 					<string>billsUtilities</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>bill</string>
-									<string>utility</string>
-									<string>electricity</string>
-									<string>water</string>
-									<string>internet</string>
-									<string>phone</string>
-									<string>rent</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Healthcare</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>healthcare</string>
+					<key>INEnumValueIndex</key>
+					<integer>7</integer>
 					<key>INEnumValueName</key>
 					<string>healthcare</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>doctor</string>
-									<string>hospital</string>
-									<string>medicine</string>
-									<string>pharmacy</string>
-									<string>health</string>
-									<string>medical</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Education</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>education</string>
+					<key>INEnumValueIndex</key>
+					<integer>8</integer>
 					<key>INEnumValueName</key>
 					<string>education</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>school</string>
-									<string>course</string>
-									<string>training</string>
-									<string>books</string>
-									<string>learning</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 				<dict>
 					<key>INEnumValueDisplayName</key>
 					<string>Other</string>
 					<key>INEnumValueDisplayNameID</key>
 					<string>other</string>
+					<key>INEnumValueIndex</key>
+					<integer>9</integer>
 					<key>INEnumValueName</key>
 					<string>other</string>
-					<key>INEnumValueSynonyms</key>
-					<array>
-						<dict>
-							<key>INIntentDefinitionLocalization</key>
-							<dict>
-								<key>en</key>
-								<array>
-									<string>misc</string>
-									<string>miscellaneous</string>
-								</array>
-							</dict>
-						</dict>
-					</array>
 				</dict>
 			</array>
 		</dict>
@@ -247,20 +123,38 @@
 	<key>INIntentDefinitionNamespace</key>
 	<string>88xZPY</string>
 	<key>INIntentDefinitionSystemVersion</key>
-	<string>21A559</string>
+	<string>25B78</string>
+	<key>INIntentDefinitionToolsBuildVersion</key>
+	<string>17A324</string>
+	<key>INIntentDefinitionToolsVersion</key>
+	<string>26.0</string>
 	<key>INIntents</key>
 	<array>
 		<dict>
 			<key>INIntentCategory</key>
-			<string>information</string>
+			<string>generic</string>
 			<key>INIntentDescriptionID</key>
-			<string>LogExpenseIntent_description</string>
+			<string>LogExpense_description</string>
 			<key>INIntentEligibleForWidgets</key>
 			<true/>
-			<key>INIntentIneligibleForSuggestions</key>
-			<false/>
 			<key>INIntentName</key>
-			<string>LogExpenseIntent</string>
+			<string>LogExpense</string>
+			<key>INIntentParameterCombinations</key>
+			<dict>
+				<key>amount,category,merchant,note,currency</key>
+				<dict>
+					<key>INIntentParameterCombinationSubtitle</key>
+					<string>Quickly log expenses using Siri with amount, category, and optional details</string>
+					<key>INIntentParameterCombinationSubtitleID</key>
+					<string>d4wW7P</string>
+					<key>INIntentParameterCombinationSupportsBackgroundExecution</key>
+					<true/>
+					<key>INIntentParameterCombinationTitle</key>
+					<string>Log an expense with amount and category</string>
+					<key>INIntentParameterCombinationTitleID</key>
+					<string>9eVuL1</string>
+				</dict>
+			</dict>
 			<key>INIntentParameters</key>
 			<array>
 				<dict>
@@ -272,10 +166,13 @@
 					<string>amount</string>
 					<key>INIntentParameterDisplayPriority</key>
 					<integer>1</integer>
+					<key>INIntentParameterMetadata</key>
+					<dict>
+						<key>INIntentParameterMetadataType</key>
+						<string>Field</string>
+					</dict>
 					<key>INIntentParameterName</key>
 					<string>amount</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>2</integer>
 					<key>INIntentParameterType</key>
@@ -296,8 +193,6 @@
 					<string>88xZPY</string>
 					<key>INIntentParameterName</key>
 					<string>category</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>3</integer>
 					<key>INIntentParameterType</key>
@@ -312,10 +207,15 @@
 					<string>merchant</string>
 					<key>INIntentParameterDisplayPriority</key>
 					<integer>3</integer>
+					<key>INIntentParameterMetadata</key>
+					<dict>
+						<key>INIntentParameterMetadataCapitalization</key>
+						<string>Sentences</string>
+						<key>INIntentParameterMetadataDefaultValueID</key>
+						<string>gWSfwk</string>
+					</dict>
 					<key>INIntentParameterName</key>
 					<string>merchant</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>4</integer>
 					<key>INIntentParameterType</key>
@@ -330,10 +230,15 @@
 					<string>note</string>
 					<key>INIntentParameterDisplayPriority</key>
 					<integer>4</integer>
+					<key>INIntentParameterMetadata</key>
+					<dict>
+						<key>INIntentParameterMetadataCapitalization</key>
+						<string>Sentences</string>
+						<key>INIntentParameterMetadataDefaultValueID</key>
+						<string>JXlWhl</string>
+					</dict>
 					<key>INIntentParameterName</key>
 					<string>note</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>5</integer>
 					<key>INIntentParameterType</key>
@@ -348,14 +253,76 @@
 					<string>currency</string>
 					<key>INIntentParameterDisplayPriority</key>
 					<integer>5</integer>
+					<key>INIntentParameterMetadata</key>
+					<dict>
+						<key>INIntentParameterMetadataCapitalization</key>
+						<string>Sentences</string>
+						<key>INIntentParameterMetadataDefaultValueID</key>
+						<string>EmtL88</string>
+					</dict>
 					<key>INIntentParameterName</key>
 					<string>currency</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>6</integer>
 					<key>INIntentParameterType</key>
 					<string>String</string>
+				</dict>
+			</array>
+			<key>INIntentPhrases</key>
+			<array>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>I spent ${amount} on ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_1</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>I just spent ${amount} for ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_2</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>Record that I spent ${amount} for ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_3</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>Add an expense of ${amount} for ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_4</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>I spent ${amount} at ${merchant}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_5</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>I spent ${amount} at ${merchant} for ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_6</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>Log ${amount} for ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_7</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>Add ${amount} expense for ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_8</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>I spent ${amount} ${currency} on ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_9</string>
 				</dict>
 			</array>
 			<key>INIntentResponse</key>
@@ -371,37 +338,77 @@
 					<dict>
 						<key>INIntentResponseCodeName</key>
 						<string>failure</string>
-						<key>INIntentResponseCodeSuccess</key>
-						<false/>
-					</dict>
-					<dict>
-						<key>INIntentResponseCodeName</key>
-						<string>failureRequiringAppLaunch</string>
-						<key>INIntentResponseCodeSuccess</key>
-						<false/>
 					</dict>
 				</array>
+				<key>INIntentResponseLastParameterTag</key>
+				<integer>1</integer>
 			</dict>
+			<key>INIntentShortcutSuggestions</key>
+			<array>
+				<dict>
+					<key>INIntentShortcutSuggestionParameterCombination</key>
+					<string>amount,category,merchant,note,currency</string>
+					<key>INIntentShortcutSuggestionPhrases</key>
+					<array>
+						<dict>
+							<key>INIntentShortcutSuggestionPhrase</key>
+							<string>Log expense</string>
+							<key>INIntentShortcutSuggestionPhraseID</key>
+							<string>suggestion_phrase_1</string>
+						</dict>
+						<dict>
+							<key>INIntentShortcutSuggestionPhrase</key>
+							<string>Add spending</string>
+							<key>INIntentShortcutSuggestionPhraseID</key>
+							<string>suggestion_phrase_2</string>
+						</dict>
+						<dict>
+							<key>INIntentShortcutSuggestionPhrase</key>
+							<string>Track expense</string>
+							<key>INIntentShortcutSuggestionPhraseID</key>
+							<string>suggestion_phrase_3</string>
+						</dict>
+					</array>
+					<key>INIntentShortcutSuggestionSummary</key>
+					<string>Log an expense with amount and category</string>
+				</dict>
+			</array>
 			<key>INIntentTitle</key>
 			<string>Log Expense</string>
 			<key>INIntentTitleID</key>
-			<string>LogExpenseIntent_title</string>
+			<string>LogExpense_title</string>
 			<key>INIntentType</key>
 			<string>Custom</string>
 			<key>INIntentVerb</key>
-			<string>Log</string>
+			<string>Do</string>
 		</dict>
 		<dict>
 			<key>INIntentCategory</key>
-			<string>information</string>
+			<string>generic</string>
 			<key>INIntentDescriptionID</key>
-			<string>ViewExpensesIntent_description</string>
+			<string>ViewExpenses_description</string>
 			<key>INIntentEligibleForWidgets</key>
 			<true/>
-			<key>INIntentIneligibleForSuggestions</key>
-			<false/>
 			<key>INIntentName</key>
-			<string>ViewExpensesIntent</string>
+			<string>ViewExpenses</string>
+			<key>INIntentParameterCombinations</key>
+			<dict>
+				<key></key>
+				<dict>
+					<key>INIntentParameterCombinationIsPrimary</key>
+					<true/>
+					<key>INIntentParameterCombinationSubtitle</key>
+					<string>View and review your recent expenses by category or time period</string>
+					<key>INIntentParameterCombinationSubtitleID</key>
+					<string>tWwb9T</string>
+					<key>INIntentParameterCombinationSupportsBackgroundExecution</key>
+					<true/>
+					<key>INIntentParameterCombinationTitle</key>
+					<string>View your expense history</string>
+					<key>INIntentParameterCombinationTitleID</key>
+					<string>3KbKJK</string>
+				</dict>
+			</dict>
 			<key>INIntentParameters</key>
 			<array>
 				<dict>
@@ -419,8 +426,6 @@
 					<string>88xZPY</string>
 					<key>INIntentParameterName</key>
 					<string>category</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>2</integer>
 					<key>INIntentParameterType</key>
@@ -435,14 +440,46 @@
 					<string>timePeriod</string>
 					<key>INIntentParameterDisplayPriority</key>
 					<integer>2</integer>
+					<key>INIntentParameterMetadata</key>
+					<dict>
+						<key>INIntentParameterMetadataCapitalization</key>
+						<string>Sentences</string>
+						<key>INIntentParameterMetadataDefaultValueID</key>
+						<string>qxP343</string>
+					</dict>
 					<key>INIntentParameterName</key>
 					<string>timePeriod</string>
-					<key>INIntentParameterSupportsResolution</key>
-					<true/>
 					<key>INIntentParameterTag</key>
 					<integer>3</integer>
 					<key>INIntentParameterType</key>
 					<string>String</string>
+				</dict>
+			</array>
+			<key>INIntentPhrases</key>
+			<array>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>Show my ${category} expenses</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_view_1</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>View my ${category} spending</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_view_2</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>What did I spend on ${category}</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_view_3</string>
+				</dict>
+				<dict>
+					<key>INIntentPhrase</key>
+					<string>Show my expenses</string>
+					<key>INIntentPhraseID</key>
+					<string>phrase_view_4</string>
 				</dict>
 			</array>
 			<key>INIntentResponse</key>
@@ -458,25 +495,47 @@
 					<dict>
 						<key>INIntentResponseCodeName</key>
 						<string>failure</string>
-						<key>INIntentResponseCodeSuccess</key>
-						<false/>
-					</dict>
-					<dict>
-						<key>INIntentResponseCodeName</key>
-						<string>failureRequiringAppLaunch</string>
-						<key>INIntentResponseCodeSuccess</key>
-						<false/>
 					</dict>
 				</array>
 			</dict>
+			<key>INIntentShortcutSuggestions</key>
+			<array>
+				<dict>
+					<key>INIntentShortcutSuggestionParameterCombination</key>
+					<string></string>
+					<key>INIntentShortcutSuggestionPhrases</key>
+					<array>
+						<dict>
+							<key>INIntentShortcutSuggestionPhrase</key>
+							<string>Show expenses</string>
+							<key>INIntentShortcutSuggestionPhraseID</key>
+							<string>suggestion_view_phrase_1</string>
+						</dict>
+						<dict>
+							<key>INIntentShortcutSuggestionPhrase</key>
+							<string>View spending</string>
+							<key>INIntentShortcutSuggestionPhraseID</key>
+							<string>suggestion_view_phrase_2</string>
+						</dict>
+						<dict>
+							<key>INIntentShortcutSuggestionPhrase</key>
+							<string>Check expenses</string>
+							<key>INIntentShortcutSuggestionPhraseID</key>
+							<string>suggestion_view_phrase_3</string>
+						</dict>
+					</array>
+					<key>INIntentShortcutSuggestionSummary</key>
+					<string>View your expense history</string>
+				</dict>
+			</array>
 			<key>INIntentTitle</key>
 			<string>View Expenses</string>
 			<key>INIntentTitleID</key>
-			<string>ViewExpensesIntent_title</string>
+			<string>ViewExpenses_title</string>
 			<key>INIntentType</key>
 			<string>Custom</string>
 			<key>INIntentVerb</key>
-			<string>View</string>
+			<string>Do</string>
 		</dict>
 	</array>
 	<key>INTypes</key>

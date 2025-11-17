@@ -62,11 +62,23 @@
 	<string>Just Spent uses Siri to quickly log your expenses using voice commands like "Hey Siri, I just spent 50 dollars on groceries"</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Just Spent uses speech recognition to convert your voice commands into text for adding expenses quickly and accurately.</string>
+	<key>NSAppIntentsUsageDescription</key>
+	<string>Just Spent uses App Intents to provide Siri shortcuts for logging and viewing your expenses</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>AppIntentsMetadata</key>
+	<dict>
+		<key>AppIntentsEnabled</key>
+		<true/>
+		<key>NSAppIntentsSupportedEntityTypes</key>
+		<array>
+			<string>Expense</string>
+		</array>
+	</dict>
 	<key>NSUserActivityTypes</key>
 	<array>
-		<string>com.justspent.logExpense</string>
-		<string>com.justspent.viewExpenses</string>
-		<string>com.justspent.processVoiceCommand</string>
+		<string>LogExpenseIntent</string>
+		<string>ViewExpensesIntent</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
