@@ -158,30 +158,30 @@ jobs:
 
       - name: Deploy to Play Store (Internal Testing)
         if: github.event.inputs.track == 'internal' || github.event.inputs.track == ''
+        working-directory: android
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-store-key.json
           SKIP_GIT_CHECK: "true"
         run: |
-          cd android
           bundle exec fastlane deploy_internal
 
       - name: Deploy to Play Store (Beta)
         if: github.event.inputs.track == 'beta'
+        working-directory: android
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-store-key.json
           SKIP_GIT_CHECK: "true"
         run: |
-          cd android
           bundle exec fastlane deploy_beta
 
       - name: Deploy to Play Store (Production)
         if: github.event.inputs.track == 'production'
+        working-directory: android
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-store-key.json
           SKIP_GIT_CHECK: "true"
           ROLLOUT_PERCENTAGE: ${{ github.event.inputs.rollout_percentage || '0.1' }}
         run: |
-          cd android
           bundle exec fastlane deploy_production rollout_percentage:$ROLLOUT_PERCENTAGE
 
       # ============================================
