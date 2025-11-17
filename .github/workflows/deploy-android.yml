@@ -160,6 +160,7 @@ jobs:
         if: github.event.inputs.track == 'internal' || github.event.inputs.track == ''
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-store-key.json
+          SKIP_GIT_CHECK: "true"
         run: |
           cd android
           bundle exec fastlane deploy_internal
@@ -168,6 +169,7 @@ jobs:
         if: github.event.inputs.track == 'beta'
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-store-key.json
+          SKIP_GIT_CHECK: "true"
         run: |
           cd android
           bundle exec fastlane deploy_beta
@@ -176,6 +178,7 @@ jobs:
         if: github.event.inputs.track == 'production'
         env:
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-store-key.json
+          SKIP_GIT_CHECK: "true"
           ROLLOUT_PERCENTAGE: ${{ github.event.inputs.rollout_percentage || '0.1' }}
         run: |
           cd android
