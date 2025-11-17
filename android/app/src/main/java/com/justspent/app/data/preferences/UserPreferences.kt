@@ -91,12 +91,14 @@ class UserPreferences @Inject constructor(
 
     /**
      * Reset onboarding state (for testing)
+     * Uses commit() instead of apply() to ensure synchronous write,
+     * preventing race conditions when activity recreates immediately after.
      */
     fun resetOnboarding() {
         prefs.edit()
             .putBoolean(KEY_HAS_COMPLETED_ONBOARDING, false)
             .remove(KEY_DEFAULT_CURRENCY)
-            .apply()
+            .commit()  // Synchronous write - ensures prefs are saved before function returns
 
         _hasCompletedOnboarding.value = false
         _defaultCurrency.value = Currency.default

@@ -13,25 +13,87 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
     // MARK: - Currency Tab Bar Tests (4 tests)
 
     func testCurrencyTabsDisplayWithMultipleCurrencies() throws {
-        // Wait for app to fully initialize with multi-currency data
-        // Give extra time for data population and tab generation
-        Thread.sleep(forTimeInterval: 3.0)
+        // CRITICAL FIX: The multi-currency tabbed view requires:
+        // 1. Test data saved to Core Data (happens in JustSpentApp.init)
+        // 2. @FetchRequest to propagate data to ContentView
+        // 3. SwiftUI to re-render and show MultiCurrencyTabbedView
 
-        // When - Check if currency tabs are visible using accessibility identifiers
-        // Use currencies that have test data (not all 36)
+        // Strategy: Give SwiftUI time to render after test data is populated
+        // The BaseUITestCase already waits for "Just Spent" title to appear
+        // But we need additional time for @FetchRequest to complete and SwiftUI to render
+
+        print("⏳ Waiting for SwiftUI to render multi-currency view after Core Data propagation...")
+
+        // IMPROVED STRATEGY: Wait for the specific test state marker to appear
+        // This reliably tells us which view ContentView has chosen to display
+        let multiCurrencyMarker = app.otherElements["test_state_multi_currency"]
+        let singleCurrencyMarker = app.otherElements["test_state_single_currency"]
+        let emptyStateMarker = app.otherElements["test_state_empty"]
+
+        // Wait up to 20 seconds for one of the state markers to appear
+        var stateDetected = false
+        let maxWait: TimeInterval = 20.0
+        let startTime = Date()
+
+        while !stateDetected && Date().timeIntervalSince(startTime) < maxWait {
+            if multiCurrencyMarker.exists {
+                print("✅ DETECTED: Multi-currency state is active")
+                stateDetected = true
+                break
+            } else if singleCurrencyMarker.exists {
+                print("❌ DETECTED: Single currency state - test data issue")
+                XCTFail("Single currency view is showing instead of multi-currency. This means activeCurrencies.count <= 1. Check TestDataManager.populateMultiCurrencyData()")
+                return
+            } else if emptyStateMarker.exists {
+                print("❌ DETECTED: Empty state - no test data")
+                XCTFail("Empty state is showing - test data was not populated. Check TestDataManager.populateMultiCurrencyData()")
+                return
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+
+        guard stateDetected else {
+            print("❌ NO STATE DETECTED: None of the state markers appeared within \(maxWait) seconds")
+            print("🔍 This suggests SwiftUI hasn't rendered any known state")
+            XCTFail("ContentView failed to render any known state (empty, single, or multi-currency) within \(maxWait) seconds")
+            return
+        }
+
+        // Now that we know multi-currency state is active, look for currency tabs
+        // Skip checking for tab bar container - go directly to individual tabs
+        print("✅ Multi-currency state detected - looking for individual currency tabs...")
+
+        // Query for tabs using accessibility identifiers
+        // Try multiple element types since SwiftUI may expose tabs differently
         let testCurrencies = TestDataHelper.multiCurrencyTestDataCodes
-
         var foundTabs = 0
+        var missingTabs: [String] = []
+
         for code in testCurrencies {
             let tabIdentifier = "currency_tab_\(code)"
-            let tabElement = app.otherElements.matching(identifier: tabIdentifier).firstMatch
-            if tabElement.waitForExistence(timeout: 2.0) {
+
+            // Try different query strategies:
+            // 1. As otherElement
+            // 2. As button (since it has .onTapGesture)
+            // 3. As any descendant
+            let tabElement = app.otherElements[tabIdentifier].exists ? app.otherElements[tabIdentifier] :
+                             app.buttons[tabIdentifier].exists ? app.buttons[tabIdentifier] :
+                             app.descendants(matching: .any)[tabIdentifier]
+
+            if tabElement.waitForExistence(timeout: 3.0) {
                 foundTabs += 1
+                print("✅ Found tab: \(code) as \(tabElement.elementType)")
+            } else {
+                missingTabs.append(code)
+                print("❌ Missing tab: \(code)")
             }
         }
 
+        print("📊 Found \(foundTabs) tabs, missing: \(missingTabs.joined(separator: ", "))")
+
         // Should find at least 6 tabs (AED, USD, EUR, GBP, INR, SAR)
-        XCTAssertGreaterThanOrEqual(foundTabs, 6, "Should show all 6 currency tabs with test data, found \(foundTabs)")
+        XCTAssertGreaterThanOrEqual(foundTabs, 6,
+            "Should show all 6 currency tabs (AED, USD, EUR, GBP, INR, SAR), found \(foundTabs), missing: \(missingTabs.joined(separator: ", "))")
     }
 
     func testCurrencyTabShowsCurrencySymbolAndCode() throws {
