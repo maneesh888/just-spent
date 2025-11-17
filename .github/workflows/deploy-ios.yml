@@ -161,7 +161,7 @@ jobs:
       # STEP 8: Upload Build Artifacts
       # ============================================
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ios-ipa-${{ github.ref_name }}
@@ -169,7 +169,7 @@ jobs:
           retention-days: 30
 
       - name: Upload build logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ios-build-logs-${{ github.ref_name }}

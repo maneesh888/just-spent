@@ -115,7 +115,7 @@ jobs:
           ./gradlew testDebugUnitTest --stacktrace
 
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: android-test-results
@@ -185,7 +185,7 @@ jobs:
       # STEP 9: Upload Build Artifacts
       # ============================================
       - name: Upload AAB artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: android-aab-${{ github.ref_name }}
@@ -193,7 +193,7 @@ jobs:
           retention-days: 30
 
       - name: Upload APK artifact (for testing)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: android-apk-${{ github.ref_name }}
@@ -201,7 +201,7 @@ jobs:
           retention-days: 30
 
       - name: Upload build logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: android-build-logs-${{ github.ref_name }}
