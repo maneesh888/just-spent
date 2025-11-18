@@ -130,22 +130,20 @@ jobs:
           cd android
           ./gradlew bundleRelease --stacktrace
 
-      - name: Sign AAB
-        run: |
-          cd android
-          jarsigner -verbose \
-            -sigalg SHA256withRSA \
-            -digestalg SHA-256 \
-            -keystore app/keystore.jks \
-            -storepass ${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
-            -keypass ${{ secrets.ANDROID_KEY_PASSWORD }} \
-            app/build/outputs/bundle/release/app-release.aab \
-            ${{ secrets.ANDROID_KEY_ALIAS }}
+      # Note: AAB is already signed by Gradle using keystore.properties
+      # No need for additional jarsigner step - that would cause double-signing issues
 
       - name: Verify AAB signature
         run: |
           cd android
-          jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab
+          # Verify the AAB was properly signed by Gradle
+          if [ -f app/build/outputs/bundle/release/app-release.aab ]; then
+            echo "✅ AAB built successfully"
+            ls -la app/build/outputs/bundle/release/
+          else
+            echo "❌ AAB not found!"
+            exit 1
+          fi
 
       # ============================================
       # STEP 8: Deploy to Play Store

@@ -28,24 +28,24 @@ platform :android do
   desc "Run all tests"
   lane :test do
     gradle(
-      task: "test",
-      project_dir: "android/"
+      task: "test"
+      # No project_dir needed - Fastfile is already in android/fastlane/
     )
   end
 
   desc "Run unit tests only"
   lane :test_unit do
     gradle(
-      task: "testDebugUnitTest",
-      project_dir: "android/"
+      task: "testDebugUnitTest"
+      # No project_dir needed - Fastfile is already in android/fastlane/
     )
   end
 
   desc "Run instrumentation tests (requires emulator)"
   lane :test_instrumentation do
     gradle(
-      task: "connectedAndroidTest",
-      project_dir: "android/"
+      task: "connectedAndroidTest"
+      # No project_dir needed - Fastfile is already in android/fastlane/
     )
   end
 
@@ -56,8 +56,8 @@ platform :android do
   desc "Build debug APK"
   lane :build_debug do
     gradle(
-      task: "assembleDebug",
-      project_dir: "android/"
+      task: "assembleDebug"
+      # No project_dir needed - Fastfile is already in android/fastlane/
     )
   end
 
@@ -65,13 +65,13 @@ platform :android do
   lane :build_apk do
     gradle(
       task: "assembleRelease",
-      project_dir: "android/",
       properties: {
         "android.injected.signing.store.file" => ENV["KEYSTORE_FILE"],
         "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
         "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
         "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
       }
+      # No project_dir needed - Fastfile is already in android/fastlane/
     )
   end
 
@@ -354,8 +354,8 @@ platform :android do
   desc "Clean build artifacts"
   lane :clean do
     gradle(
-      task: "clean",
-      project_dir: "android/"
+      task: "clean"
+      # No project_dir needed - Fastfile is already in android/fastlane/
     )
 
     UI.success("Build artifacts cleaned!")
