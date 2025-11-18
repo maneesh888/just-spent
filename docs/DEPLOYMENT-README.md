@@ -468,15 +468,16 @@ You now have:
 
 ## ⚠️ Current Status & Known Issues (November 2025)
 
-### iOS Deployment - On Hold
+### iOS Deployment - Active
 
-**Issue:** Project uses **Xcode 26.0** (beta) which is not available on GitHub Actions runners.
+**Status:** Using **macOS 26** runner with **Xcode 26.0** (public preview).
 
-**GitHub Actions Xcode Support:**
-- Maximum available: Xcode 16.2 (iOS 18.2 SDK)
-- Required: Xcode 26.0 (iOS 19+ SDK)
+**Configuration:**
+- Runner: `macos-26` (arm64 only)
+- Xcode: 26.0
+- Reference: https://github.blog/changelog/2025-09-11-actions-macos-26-image-now-in-public-preview/
 
-**Workaround:** Local CD system on developer machine until GitHub Actions supports Xcode 26.
+**Note:** macOS 26 image is in public preview. If issues arise, fallback to local CD system.
 
 **Fixes Applied to Workflow:**
 1. ✅ Added `SKIP_GIT_CHECK: "true"` - Bypasses git dirty check during CI
