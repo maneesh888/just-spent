@@ -21,8 +21,8 @@ platform :ios do
     # Ensure we're on the latest code
     ensure_git_status_clean unless ENV['SKIP_GIT_CHECK']
 
-    # Set Xcode version
-    xcversion(version: "15.0")
+    # Xcode version is set by GitHub Actions setup-xcode action
+    # No need to use xcversion here
   end
 
   # ============================================
