@@ -81,10 +81,13 @@ platform :ios do
       output_directory: "./build",
       output_name: "JustSpent.ipa",
       clean: true,
+      xcargs: "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='Just Spent Provisioning Profile' DEVELOPMENT_TEAM='#{TEAM_ID}'",
       export_options: {
         provisioningProfiles: {
-          APP_IDENTIFIER => "match AppStore #{APP_IDENTIFIER}"
-        }
+          "com.justspent.app" => "Just Spent Provisioning Profile"
+        },
+        signingStyle: "manual",
+        teamID: TEAM_ID
       }
     )
   end

@@ -483,6 +483,8 @@ You now have:
 1. ✅ Added `SKIP_GIT_CHECK: "true"` - Bypasses git dirty check during CI
 2. ✅ Removed deprecated `xcversion` - Uses `setup-xcode` action instead
 3. ✅ Removed `latest_testflight_build_number` from `build_ipa` lane - Avoids needing Apple credentials during build phase (build number set by workflow using PlistBuddy)
+4. ✅ Added manual signing override via `xcargs` - Forces `CODE_SIGN_STYLE=Manual` to resolve profile detection issues
+5. ✅ Correct provisioning profile name in `export_options` - Uses `Just Spent Provisioning Profile`
 
 ### Android Deployment - Configured
 
@@ -494,15 +496,21 @@ You now have:
    - Email: `play-store-publisher@just-spent-478016.iam.gserviceaccount.com`
    - Permissions: Releases (View and manage), App information (View)
 
+**Fixes Applied to Workflow:**
+1. ✅ Removed redundant `jarsigner` step - AAB is already signed by Gradle via `keystore.properties`
+2. ✅ Fixed Fastfile `project_dir` paths - Removed unnecessary paths that caused build failures
+3. ✅ Improved AAB verification - Now checks file existence instead of double-signing
+
 **Common Errors Fixed:**
 - "The caller does not have permission" → Add service account in Play Console (not just Cloud Console)
 - Base64 with line breaks → Use `base64 | tr -d '\n' | pbcopy`
+- Double-signing issues → Removed jarsigner (Gradle handles signing)
 
 ### Next Steps
 
 1. **Android:** Verify Play Console permissions, then test deployment
-2. **iOS:** Set up local CD system using Fastlane on developer Mac
-3. **Future:** Migrate iOS back to GitHub Actions when Xcode 26 is supported
+2. **iOS:** Monitor current deployment with manual signing fix
+3. **Future:** Migrate iOS back to GitHub Actions when Xcode 26 is fully supported
 
 ---
 
