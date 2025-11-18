@@ -466,6 +466,126 @@ You now have:
 
 ---
 
-**Last Updated:** 2025-01-29
+## ⚠️ Current Status & Known Issues (November 2025)
+
+### iOS Deployment - On Hold
+
+**Issue:** Project uses **Xcode 26.0** (beta) which is not available on GitHub Actions runners.
+
+**GitHub Actions Xcode Support:**
+- Maximum available: Xcode 16.2 (iOS 18.2 SDK)
+- Required: Xcode 26.0 (iOS 19+ SDK)
+
+**Workaround:** Local CD system on developer machine until GitHub Actions supports Xcode 26.
+
+**Fixes Applied to Workflow:**
+1. ✅ Added `SKIP_GIT_CHECK: "true"` - Bypasses git dirty check during CI
+2. ✅ Removed deprecated `xcversion` - Uses `setup-xcode` action instead
+3. ✅ Removed `latest_testflight_build_number` from `build_ipa` lane - Avoids needing Apple credentials during build phase (build number set by workflow using PlistBuddy)
+
+### Android Deployment - Configured
+
+**Status:** GitHub Actions workflow configured and ready.
+
+**Requirements:**
+1. ✅ Service account JSON key in `PLAY_STORE_JSON_KEY` secret
+2. ⚠️ Service account must be invited in **Play Console** (Users and permissions)
+   - Email: `play-store-publisher@just-spent-478016.iam.gserviceaccount.com`
+   - Permissions: Releases (View and manage), App information (View)
+
+**Common Errors Fixed:**
+- "The caller does not have permission" → Add service account in Play Console (not just Cloud Console)
+- Base64 with line breaks → Use `base64 | tr -d '\n' | pbcopy`
+
+### Next Steps
+
+1. **Android:** Verify Play Console permissions, then test deployment
+2. **iOS:** Set up local CD system using Fastlane on developer Mac
+3. **Future:** Migrate iOS back to GitHub Actions when Xcode 26 is supported
+
+---
+
+## 🏠 Local CD System (iOS)
+
+Until GitHub Actions supports Xcode 26, use local Fastlane deployment.
+
+### Setup
+
+```bash
+# Navigate to iOS directory
+cd ios
+
+# Install dependencies
+bundle install
+
+# Configure environment variables
+export APPLE_ID="your-apple-id@email.com"
+export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+export APPLE_TEAM_ID="XXXXXXXXXX"
+
+# Or add to ~/.zshrc or ~/.bash_profile
+```
+
+### Deployment Commands
+
+```bash
+# Build IPA for distribution
+cd ios
+bundle exec fastlane build_ipa
+
+# Upload to TestFlight
+bundle exec fastlane upload_testflight
+
+# Complete beta workflow (test + build + upload)
+bundle exec fastlane beta
+
+# Full release workflow
+bundle exec fastlane release
+```
+
+### Local CD Script (Recommended)
+
+Create `scripts/deploy-ios-local.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "🚀 Starting iOS Local Deployment..."
+
+# Ensure we're in the right directory
+cd "$(dirname "$0")/../ios"
+
+# Run tests first
+echo "🧪 Running tests..."
+xcodebuild test -project JustSpent/JustSpent.xcodeproj -scheme JustSpent \
+  -destination 'platform=iOS Simulator,name=iPhone 16'
+
+# Build and upload
+echo "📦 Building IPA..."
+bundle exec fastlane build_ipa
+
+echo "☁️ Uploading to TestFlight..."
+bundle exec fastlane upload_testflight
+
+echo "✅ iOS deployment complete!"
+```
+
+### Advantages of Local CD
+
+- ✅ Uses your Xcode 26 installation
+- ✅ Faster builds (no VM overhead)
+- ✅ Direct access to signing certificates
+- ✅ Immediate feedback
+
+### When to Migrate Back to GitHub Actions
+
+Monitor GitHub Actions runner updates:
+- https://github.com/actions/runner-images/releases
+- Look for Xcode 26 in `macos-latest` or `macos-15` images
+
+---
+
+**Last Updated:** 2025-11-18
 **Maintained By:** Development Team
-**Version:** 1.0.0
+**Version:** 1.1.0
