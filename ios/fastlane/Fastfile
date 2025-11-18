@@ -70,11 +70,8 @@ platform :ios do
 
   desc "Build IPA for distribution"
   lane :build_ipa do
-    # Increment build number
-    increment_build_number(
-      xcodeproj: PROJECT_PATH,
-      build_number: latest_testflight_build_number + 1
-    )
+    # Build number is set by GitHub Actions workflow using PlistBuddy
+    # This avoids needing Apple credentials for latest_testflight_build_number
 
     # Build the app
     build_app(
