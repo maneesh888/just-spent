@@ -21,6 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.justspent.app.data.model.Currency
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.justspent.app.utils.CurrencyFormatter
+import com.justspent.app.utils.DateFilter
+import com.justspent.app.utils.DateFilterUtils
 import java.math.BigDecimal
 
 /**
@@ -65,11 +67,24 @@ fun MultiCurrencyTabbedScreen(
 
     var selectedCurrency by remember { mutableStateOf(initialCurrency) }
 
-    // Calculate total for selected currency
-    val selectedCurrencyTotal = remember(expenses, selectedCurrency) {
-        expenses
-            .filter { it.currency == selectedCurrency.code }
-            .fold(BigDecimal.ZERO) { acc, expense -> acc.add(expense.amount) }
+    // Date filter state
+    var dateFilter by remember { mutableStateOf<DateFilter>(DateFilter.All) }
+
+    // Filter expenses by selected currency
+    val currencyExpenses = remember(expenses, selectedCurrency) {
+        expenses.filter { it.currency == selectedCurrency.code }
+    }
+
+    // Apply date filter
+    val filteredExpenses = remember(currencyExpenses, dateFilter) {
+        currencyExpenses.filter { expense ->
+            DateFilterUtils.isDateInFilter(expense.transactionDate, dateFilter)
+        }
+    }
+
+    // Calculate total for filtered expenses
+    val selectedCurrencyTotal = remember(filteredExpenses) {
+        filteredExpenses.fold(BigDecimal.ZERO) { acc, expense -> acc.add(expense.amount) }
     }
 
     val formattedTotal = remember(selectedCurrencyTotal, selectedCurrency) {
@@ -262,7 +277,11 @@ fun MultiCurrencyTabbedScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                CurrencyExpenseListScreen(currency = selectedCurrency)
+                CurrencyExpenseListScreen(
+                    currency = selectedCurrency,
+                    dateFilter = dateFilter,
+                    onDateFilterChanged = { dateFilter = it }
+                )
             }
         }
     }

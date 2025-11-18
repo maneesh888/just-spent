@@ -17,6 +17,7 @@ struct MultiCurrencyTabbedView: View {
     @StateObject private var userPreferences = UserPreferences.shared
     @State private var selectedCurrency: Currency
     @State private var calculatedTotal: Double = 0
+    @State private var dateFilter: DateFilter = .all
 
     init(currencies: [Currency]) {
         self.currencies = currencies.sorted { $0.displayName < $1.displayName }
@@ -33,13 +34,20 @@ struct MultiCurrencyTabbedView: View {
     }
 
     /// Calculate total spending for the selected currency by fetching from Core Data
+    /// Applies both currency and date filters
     private func calculateTotal() -> Double {
         let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "currency == %@", selectedCurrency.code)
 
         do {
             let expenses = try viewContext.fetch(fetchRequest)
-            return expenses.reduce(0) { total, expense in
+            // Apply date filter
+            let dateFilterUtils = DateFilterUtils.shared
+            let filteredExpenses = expenses.filter { expense in
+                guard let transactionDate = expense.transactionDate else { return true }
+                return dateFilterUtils.isDate(transactionDate, inFilter: dateFilter)
+            }
+            return filteredExpenses.reduce(0) { total, expense in
                 total + (expense.amount?.doubleValue ?? 0)
             }
         } catch {
@@ -100,7 +108,7 @@ struct MultiCurrencyTabbedView: View {
                 .padding(.top, 8)
 
                 // Selected currency expense list
-                CurrencyExpenseListView(currency: selectedCurrency)
+                CurrencyExpenseListView(currency: selectedCurrency, dateFilter: $dateFilter)
             }
             .navigationBarHidden(true)
             .onAppear {
@@ -109,6 +117,10 @@ struct MultiCurrencyTabbedView: View {
             }
             .onChange(of: selectedCurrency) { _ in
                 // Recalculate total when currency tab changes
+                calculatedTotal = calculateTotal()
+            }
+            .onChange(of: dateFilter) { _ in
+                // Recalculate total when date filter changes
                 calculatedTotal = calculateTotal()
             }
             .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave, object: viewContext)) { _ in
