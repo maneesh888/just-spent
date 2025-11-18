@@ -95,6 +95,7 @@ platform :android do
 
     # Upload to Play Store
     upload_to_play_store(
+      package_name: APP_PACKAGE_NAME,
       track: 'internal',
       aab: 'app/build/outputs/bundle/release/app-release.aab',
       json_key: JSON_KEY_FILE,
@@ -114,6 +115,7 @@ platform :android do
 
     # Upload to Play Store
     upload_to_play_store(
+      package_name: APP_PACKAGE_NAME,
       track: 'beta',
       aab: 'app/build/outputs/bundle/release/app-release.aab',
       json_key: JSON_KEY_FILE,
@@ -136,6 +138,7 @@ platform :android do
 
     # Upload to Play Store
     upload_to_play_store(
+      package_name: APP_PACKAGE_NAME,
       track: 'production',
       aab: 'app/build/outputs/bundle/release/app-release.aab',
       json_key: JSON_KEY_FILE,
