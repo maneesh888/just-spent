@@ -48,10 +48,11 @@ jobs:
       # ============================================
       # STEP 3: Install Dependencies
       # ============================================
-      - name: Install Fastlane
+      - name: Install Fastlane and xcpretty
         run: |
           cd ios
           gem install bundler
+          gem install xcpretty
           bundle install
 
       # ============================================
@@ -110,7 +111,7 @@ jobs:
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             -only-testing:JustSpentTests \
             | xcpretty --color --simple
 
