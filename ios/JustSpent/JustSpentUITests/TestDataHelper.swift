@@ -10,6 +10,26 @@ class TestDataHelper {
         self.app = app
     }
 
+    // MARK: - Simulator Detection
+
+    /// Check if running in simulator at runtime (not compile-time)
+    /// Use this instead of #if targetEnvironment(simulator) to ensure tests are counted
+    static var isRunningInSimulator: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    /// Skip test if running in simulator (use instead of compile-time #if)
+    /// This ensures the test is still counted even when skipped
+    static func skipIfSimulator(_ reason: String = "This test requires hardware features not available in iOS Simulator") throws {
+        if isRunningInSimulator {
+            throw XCTSkip(reason)
+        }
+    }
+
     // MARK: - Launch Argument Helpers
 
     /// Configure app to skip onboarding for tests
