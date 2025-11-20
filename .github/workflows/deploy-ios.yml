@@ -143,6 +143,7 @@ jobs:
           FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
+          SKIP_GIT_CHECK: "true"
         run: |
           cd ios
           bundle exec fastlane upload_testflight
