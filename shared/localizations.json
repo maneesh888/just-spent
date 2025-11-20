@@ -16,6 +16,7 @@
     "trySaying": "Try saying:",
     "exampleCommand": "• \"I just spent 20 dollars on coffee\"",
     "googleAssistantPrompt": {
+      "ios": null,
       "android": "Say \"Hey Google, I just spent...\" to get started"
     },
     "permissionsNeeded": "Voice features need permissions",
@@ -96,6 +97,7 @@
     "shopping": "Shopping",
     "entertainment": "Entertainment",
     "bills": "Bills & Utilities",
+    "billsUtilities": "Bills & Utilities",
     "healthcare": "Healthcare",
     "education": "Education",
     "other": "Other",
@@ -131,8 +133,39 @@
   },
   "onboarding": {
     "welcomeTitle": "Welcome to Just Spent!",
-    "welcomeSubtitle": "We've pre-selected your currency based on your location",
-    "helperText": "You can choose a different currency below.\nThis will be used when no currency is specified.",
-    "continueButton": "Continue"
+    "welcomeMessage": "Track your expenses effortlessly with voice commands",
+    "welcomeSubtitle": "We've pre-selected your currency based on your location. You can change it below.",
+    "helperText": "You can choose a different currency for expense tracking below",
+    "permissionsTitle": "Permissions Required",
+    "permissionsMessage": "We need microphone and speech recognition access to enable voice expense logging",
+    "currencyTitle": "Select Your Currency",
+    "currencyMessage": "Choose your default currency for expense tracking",
+    "continueButton": "Continue",
+    "skipButton": "Skip",
+    "getStarted": "Get Started"
+  },
+  "errors": {
+    "noMicrophonePermission": "Microphone permission is required. Please enable it in Settings.",
+    "noSpeechPermission": "Speech recognition permission is required. Please enable it in Settings.",
+    "speechRecognitionFailed": "Could not understand speech. Please try again.",
+    "couldNotParseExpense": "Could not parse expense from speech. Please try again.",
+    "invalidAmount": "Invalid amount detected. Please try again.",
+    "categoryNotRecognized": "Category not recognized. Using 'Other' as default.",
+    "tryAgain": "Please try again",
+    "goToSettingsToEnable": "Go to Settings to enable",
+    "recognitionNotAvailable": "Speech recognition is not available on this device"
+  },
+  "permissions": {
+    "microphoneTitle": "Microphone Access",
+    "microphoneMessage": "Just Spent needs access to your microphone to record voice expenses",
+    "speechRecognitionTitle": "Speech Recognition",
+    "speechRecognitionMessage": "Just Spent needs speech recognition to convert your voice to text",
+    "bothPermissionsTitle": "Microphone and Speech Recognition",
+    "bothPermissionsMessage": "Just Spent needs both microphone and speech recognition access to enable voice expense logging"
+  },
+  "currency": {
+    "selectCurrency": "Select Currency",
+    "searchCurrencies": "Search Currencies",
+    "noCurrenciesFound": "No currencies found"
   }
 }

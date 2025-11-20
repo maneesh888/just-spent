@@ -519,8 +519,14 @@ Continue to onboarding check
 - Consistent currency formatting: 1,234.56 (all currencies)
 - Dynamic total in header (updates with tab changes)
 - Gradient background (blue → purple, subtle)
+- **Landscape mode**: Portrait only for mobile phones, portrait + landscape for tablets
 
 **Design Reference:** See @ui-design-spec.md for complete specifications
+
+**Testing Policy** (Updated 2025-11-11):
+- ✅ Mobile phones: Portrait orientation only
+- ✅ Tablets: Portrait and landscape orientations
+- See @TESTING-GUIDE.md and @ios/TEST_STATUS_FINAL.md for details
 
 ## 🎯 Success Metrics
 
