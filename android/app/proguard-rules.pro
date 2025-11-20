@@ -3,9 +3,9 @@
 # proguardFiles setting in build.gradle.
 
 # Keep all classes for Room database
--keep class com.justspent.app.data.model.** { *; }
--keep class com.justspent.app.data.dao.** { *; }
--keep class com.justspent.app.data.database.** { *; }
+-keep class com.justspent.expense.data.model.** { *; }
+-keep class com.justspent.expense.data.dao.** { *; }
+-keep class com.justspent.expense.data.database.** { *; }
 
 # Keep Hilt generated classes
 -keep class dagger.hilt.** { *; }

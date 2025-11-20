@@ -5,6 +5,7 @@
 @TESTING-GUIDE.md
 @docs/GIT-WORKFLOW-RULES.md
 @docs/REUSABLE-COMPONENTS.md
+@docs/DEPLOYMENT-README.md
 
 ## 🎯 Current Context
 

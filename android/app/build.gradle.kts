@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,18 +11,25 @@ plugins {
     jacoco
 }
 
+// Load keystore properties from keystore.properties file
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.justspent.app"
-    compileSdk = 34
+    namespace = "com.justspent.expense"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.justspent.app"
+        applicationId = "com.justspent.expense"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35
+        versionCode = 4
+        versionName = "1.0.0-beta.3"
 
-        testInstrumentationRunner = "com.justspent.app.HiltTestRunner"
+        testInstrumentationRunner = "com.justspent.expense.HiltTestRunner"
         // Temporarily disable clearPackageData to fix test discovery issue
         // testInstrumentationRunnerArguments["clearPackageData"] = "true"
 
@@ -45,8 +55,24 @@ android {
         }
     }
 
+    // Signing configurations for release builds
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = file(keystoreProperties.getProperty("RELEASE_STORE_FILE") ?: "")
+                storePassword = keystoreProperties.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = keystoreProperties.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = keystoreProperties.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // Use release signing configuration if keystore properties exist
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
