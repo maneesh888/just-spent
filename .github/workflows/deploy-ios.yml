@@ -122,7 +122,7 @@ jobs:
       - name: Increment build number
         run: |
           cd ios/JustSpent
-          BUILD_NUMBER=$(date +%Y%m%d%H%M)
+          BUILD_NUMBER=${{ github.run_number }}
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" JustSpent/Info.plist
           echo "Build number set to: $BUILD_NUMBER"
 
