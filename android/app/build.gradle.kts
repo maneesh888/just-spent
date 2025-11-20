@@ -19,17 +19,17 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.justspent.app"
-    compileSdk = 34
+    namespace = "com.justspent.expense"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.justspent.app"
+        applicationId = "com.justspent.expense"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 2
         versionName = "1.0.0-beta.1"
 
-        testInstrumentationRunner = "com.justspent.app.HiltTestRunner"
+        testInstrumentationRunner = "com.justspent.expense.HiltTestRunner"
         // Temporarily disable clearPackageData to fix test discovery issue
         // testInstrumentationRunnerArguments["clearPackageData"] = "true"
 

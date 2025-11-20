@@ -8,7 +8,7 @@ platform :android do
   # Configuration
   # ============================================
 
-  APP_PACKAGE_NAME = "com.justspent.app"
+  APP_PACKAGE_NAME = "com.justspent.expense"
   GRADLE_FILE = "app/build.gradle"
   JSON_KEY_FILE = ENV["SUPPLY_JSON_KEY"] || "play-store-key.json"
 
