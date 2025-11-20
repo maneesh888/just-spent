@@ -36,6 +36,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Pre-download Gradle wrapper with retry
+        working-directory: android
+        run: |
+          # Download Gradle wrapper with retry logic to handle 503 errors
+          for i in {1..5}; do
+            echo "Attempt $i: Downloading Gradle wrapper..."
+            ./gradlew --version && echo "Gradle download successful" && break || {
+              echo "⚠️  Gradle download attempt $i failed, retrying in $((i*2)) seconds..."
+              sleep $((i*2))
+            }
+          done
+
       - name: Build Debug APK
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
@@ -98,6 +110,18 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Pre-download Gradle wrapper with retry
+        working-directory: android
+        run: |
+          # Download Gradle wrapper with retry logic to handle 503 errors
+          for i in {1..5}; do
+            echo "Attempt $i: Downloading Gradle wrapper..."
+            ./gradlew --version && echo "Gradle download successful" && break || {
+              echo "⚠️  Gradle download attempt $i failed, retrying in $((i*2)) seconds..."
+              sleep $((i*2))
+            }
+          done
 
       - name: Enable KVM
         run: |
