@@ -113,9 +113,14 @@ platform :ios do
       api_key: api_key,
       ipa: "./build/JustSpent.ipa",
       skip_waiting_for_build_processing: true,
-      skip_submission: true,  # Skip submission to avoid permission issues
+      skip_submission: false,
       distribute_external: false,
-      notify_external_testers: false
+      notify_external_testers: false,
+      changelog: changelog_from_git_commits(
+        pretty: "- %s",
+        merge_commit_filtering: "exclude_merges"
+      ),
+      groups: ["Internal Testers"]
     )
   end
 
