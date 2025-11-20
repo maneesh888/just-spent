@@ -26,8 +26,8 @@ android {
         applicationId = "com.justspent.expense"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.0.0-beta.1"
+        versionCode = 3
+        versionName = "1.0.0-beta.2"
 
         testInstrumentationRunner = "com.justspent.expense.HiltTestRunner"
         // Temporarily disable clearPackageData to fix test discovery issue
