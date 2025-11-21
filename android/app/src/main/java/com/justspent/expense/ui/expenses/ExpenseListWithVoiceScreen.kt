@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.justspent.expense.voice.RecordingState
 import com.justspent.expense.ui.voice.VoiceExpenseViewModel
+import com.justspent.expense.ui.voice.ExtractedVoiceData
 import com.justspent.expense.lifecycle.AppLifecycleManager
 import com.justspent.expense.lifecycle.AppState
 import com.justspent.expense.voice.AutoRecordingCoordinator
@@ -327,17 +328,19 @@ private fun EmptyStateContent(
     hasAudioPermission: Boolean,
     onRequestPermission: () -> Unit
 ) {
-    // Constrained column that will be centered by parent Box
+    // Full-width column with centered, constrained content
     Column(
         modifier = Modifier
-            .widthIn(max = 600.dp) // Max width for tablet layout
-            .padding(32.dp)
+            .fillMaxWidth() // Fill parent width
             .testTag("empty_state"),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .widthIn(max = 600.dp) // Max width constraint on the Card itself
+                .fillMaxWidth(0.9f) // Use 90% of available width up to max
+                .padding(horizontal = 24.dp), // Horizontal padding
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
@@ -547,7 +550,7 @@ private fun VoiceResultDialog(
 
 @Composable
 private fun VoiceConfirmationDialog(
-    extractedData: com.justspent.app.ui.voice.ExtractedVoiceData,
+    extractedData: ExtractedVoiceData,
     confidenceScore: Double?,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
