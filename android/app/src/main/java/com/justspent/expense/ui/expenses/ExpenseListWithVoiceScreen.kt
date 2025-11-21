@@ -256,9 +256,10 @@ private fun HeaderCard(
             .fillMaxWidth()
             .padding(16.dp)
             .testTag("header_card"),
+        shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -299,7 +300,7 @@ private fun HeaderCard(
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
                 ),
-                modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -341,9 +342,10 @@ private fun EmptyStateContent(
                 .widthIn(max = 600.dp) // Max width constraint on the Card itself
                 .fillMaxWidth(0.9f) // Use 90% of available width up to max
                 .padding(horizontal = 24.dp), // Horizontal padding
+            shape = RoundedCornerShape(24.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
