@@ -6,10 +6,15 @@
         This file defines how Google Assistant/Gemini recognizes and processes
         voice commands for expense tracking.
 
-        Supported phrases:
+        Recommended voice commands (grammatically correct):
         - "Hey Google, log 50 dirhams for groceries in Just Spent"
-        - "Ok Google, I spent 100 dollars on shopping"
+        - "Hey Google, record 100 dollars for shopping in Just Spent"
         - "Hey Google, add expense in Just Spent"
+        - "Hey Google, track 75 dirhams for food using Just Spent"
+
+        Note: Always include "in Just Spent", "using Just Spent", or "to Just Spent"
+        for reliable app invocation. Avoid phrases like "spent in Just Spent" as
+        they are grammatically incorrect (you spend money at a store, not in an app).
     -->
 
     <!-- Log Expense Action using CREATE_MONEY_TRANSFER Built-in Intent -->
