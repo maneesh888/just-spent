@@ -35,6 +35,11 @@
         <meta-data
             android:name="com.google.assistant.app.ACTIONS"
             android:resource="@xml/actions" />
+
+        <!-- Shortcuts metadata for Google Assistant discovery -->
+        <meta-data
+            android:name="android.app.shortcuts"
+            android:resource="@xml/shortcuts" />
         
         <!-- Main Activity -->
         <activity

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">Just Spent</string>
+
+    <!-- Shortcut labels for Google Assistant integration -->
+    <string name="shortcut_add_expense_short">Add Expense</string>
+    <string name="shortcut_add_expense_long">Log new expense with voice</string>
+
+    <string name="shortcut_view_expenses_short">View Expenses</string>
+    <string name="shortcut_view_expenses_long">View all expenses</string>
+
+    <string name="shortcut_coffee_short">Coffee</string>
+    <string name="shortcut_coffee_long">Log coffee expense</string>
+
+    <string name="shortcut_lunch_short">Lunch</string>
+    <string name="shortcut_lunch_long">Log lunch expense</string>
+
+    <!-- Voice command examples for training -->
+    <string name="voice_example_1">I spent 50 dirhams on groceries</string>
+    <string name="voice_example_2">Log 100 dollars for shopping</string>
+    <string name="voice_example_3">I paid 25 euros at the restaurant</string>
+
+    <!-- Voice processing messages -->
+    <string name="voice_processing">Processing your expense...</string>
+    <string name="voice_success">Expense logged successfully!</string>
+    <string name="voice_error">Could not process expense. Please try again.</string>
+    <string name="voice_confirmation_needed">Please confirm the expense details</string>
+
+    <!-- Permission messages -->
+    <string name="permission_microphone_rationale">Microphone permission is required for voice expense logging</string>
+    <string name="permission_assistant_rationale">Google Assistant permission allows you to log expenses using voice commands</string>
+</resources>

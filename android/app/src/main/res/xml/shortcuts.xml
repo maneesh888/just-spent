@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    App Shortcuts for Google Assistant Integration
+
+    These shortcuts help Google Assistant understand the app's capabilities
+    and provide better voice command recognition.
+
+    Supported commands:
+    - "Hey Google, open Just Spent" - Opens main app
+    - "Hey Google, add expense in Just Spent" - Opens voice expense dialog
+    - "Hey Google, log expense in Just Spent" - Opens voice expense dialog
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Quick Add Expense Shortcut -->
+    <shortcut
+        android:shortcutId="add_expense_voice"
+        android:enabled="true"
+        android:icon="@drawable/ic_mic"
+        android:shortcutShortLabel="@string/shortcut_add_expense_short"
+        android:shortcutLongLabel="@string/shortcut_add_expense_long">
+
+        <!-- Intent for voice expense logging -->
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.justspent.app"
+            android:targetClass="com.justspent.app.ui.voice.VoiceDeepLinkActivity"
+            android:data="https://justspent.app/expense">
+            <extra
+                android:name="autoStartRecording"
+                android:value="true" />
+        </intent>
+
+        <!-- Categories for Assistant discovery -->
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- View Expenses Shortcut -->
+    <shortcut
+        android:shortcutId="view_expenses"
+        android:enabled="true"
+        android:icon="@drawable/ic_list"
+        android:shortcutShortLabel="@string/shortcut_view_expenses_short"
+        android:shortcutLongLabel="@string/shortcut_view_expenses_long">
+
+        <!-- Intent to view expense list -->
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.justspent.app"
+            android:targetClass="com.justspent.app.MainActivity" />
+
+        <!-- Categories for Assistant discovery -->
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- Quick Coffee Expense (Common expense shortcut) -->
+    <shortcut
+        android:shortcutId="quick_coffee"
+        android:enabled="true"
+        android:icon="@drawable/ic_category_food"
+        android:shortcutShortLabel="@string/shortcut_coffee_short"
+        android:shortcutLongLabel="@string/shortcut_coffee_long">
+
+        <!-- Intent for quick coffee expense -->
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.justspent.app"
+            android:targetClass="com.justspent.app.ui.voice.VoiceDeepLinkActivity"
+            android:data="https://justspent.app/expense?amount=5&amp;category=Food%20%26%20Dining&amp;merchant=Coffee%20Shop" />
+
+        <!-- Categories for Assistant discovery -->
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- Quick Lunch Expense -->
+    <shortcut
+        android:shortcutId="quick_lunch"
+        android:enabled="true"
+        android:icon="@drawable/ic_category_food"
+        android:shortcutShortLabel="@string/shortcut_lunch_short"
+        android:shortcutLongLabel="@string/shortcut_lunch_long">
+
+        <!-- Intent for quick lunch expense -->
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.justspent.app"
+            android:targetClass="com.justspent.app.ui.voice.VoiceDeepLinkActivity"
+            android:data="https://justspent.app/expense?amount=15&amp;category=Food%20%26%20Dining&amp;merchant=Restaurant" />
+
+        <!-- Categories for Assistant discovery -->
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+</shortcuts>
