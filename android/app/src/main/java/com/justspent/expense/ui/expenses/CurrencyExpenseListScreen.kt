@@ -11,6 +11,8 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -104,6 +106,7 @@ private fun EmptyCurrencyState(currency: Currency) {
 
 /**
  * Expense row view without currency badge (currency is known from context)
+ * Shows confirmation dialog before deleting (both swipe and button tap)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,16 +115,30 @@ private fun CurrencyExpenseRow(
     currency: Currency,
     onDelete: (Expense) -> Unit
 ) {
+    // State for delete confirmation dialog
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var pendingSwipeDelete by remember { mutableStateOf(false) }
+
     val dismissState = rememberDismissState(
         confirmValueChange = { dismissValue ->
             if (dismissValue == DismissValue.DismissedToStart || dismissValue == DismissValue.DismissedToEnd) {
-                onDelete(expense)
-                true
+                // Don't delete immediately - show confirmation dialog
+                pendingSwipeDelete = true
+                showDeleteConfirmation = true
+                false // Return false to prevent auto-dismiss, we'll handle it after confirmation
             } else {
                 false
             }
         }
     )
+
+    // Reset dismiss state when dialog is dismissed without deleting
+    LaunchedEffect(showDeleteConfirmation) {
+        if (!showDeleteConfirmation && pendingSwipeDelete) {
+            pendingSwipeDelete = false
+            dismissState.reset()
+        }
+    }
 
     SwipeToDismiss(
         state = dismissState,
@@ -147,8 +164,50 @@ private fun CurrencyExpenseRow(
         dismissContent = {
             ExpenseRow(
                 expense = expense,
-                onDelete = { onDelete(expense) }
+                onDelete = {
+                    // Button tap delete - also show confirmation
+                    showDeleteConfirmation = true
+                },
+                modifier = Modifier.semantics { testTag = "expense_row" }
             )
         }
     )
+
+    // Delete Confirmation Dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteConfirmation = false
+                pendingSwipeDelete = false
+            },
+            modifier = Modifier.semantics { testTag = "delete_confirmation_dialog" },
+            title = {
+                Text("Delete Expense")
+            },
+            text = {
+                Text("Are you sure you want to delete this expense?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete(expense)
+                        showDeleteConfirmation = false
+                        pendingSwipeDelete = false
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        pendingSwipeDelete = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
