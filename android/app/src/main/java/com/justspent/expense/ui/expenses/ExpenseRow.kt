@@ -5,7 +5,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,6 +17,15 @@ import com.justspent.expense.utils.CurrencyFormatter
 import kotlinx.datetime.LocalDateTime
 import java.math.BigDecimal
 
+/**
+ * Expense row component that displays a single expense.
+ * Note: Delete confirmation is handled by the parent component (CurrencyExpenseRow)
+ * to provide consistent confirmation behavior for both swipe-to-delete and button tap.
+ *
+ * @param expense The expense to display
+ * @param onDelete Callback when delete is requested (parent handles confirmation)
+ * @param modifier Optional modifier for the Card
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseRow(
@@ -24,8 +33,6 @@ fun ExpenseRow(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -57,7 +64,7 @@ fun ExpenseRow(
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    
+
                     Text(
                         text = formatAmount(expense.amount, expense.currency),
                         style = MaterialTheme.typography.titleMedium,
@@ -65,7 +72,7 @@ fun ExpenseRow(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                
+
                 // Merchant (if available)
                 expense.merchant?.let { merchant ->
                     Text(
@@ -75,7 +82,7 @@ fun ExpenseRow(
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-                
+
                 // Date and Voice Indicator Row
                 Row(
                     modifier = Modifier
@@ -92,7 +99,7 @@ fun ExpenseRow(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
-                        
+
                         // Voice indicator
                         if (expense.source == "voice_assistant" || expense.source == "voice_siri") {
                             Spacer(modifier = Modifier.width(8.dp))
@@ -104,10 +111,10 @@ fun ExpenseRow(
                             )
                         }
                     }
-                    
-                    // Delete button
+
+                    // Delete button - calls onDelete which triggers parent's confirmation dialog
                     TextButton(
-                        onClick = { showDeleteDialog = true },
+                        onClick = onDelete,
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         )
@@ -120,36 +127,6 @@ fun ExpenseRow(
                 }
             }
         }
-    }
-    
-    // Delete Confirmation Dialog
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = {
-                Text("Delete Expense")
-            },
-            text = {
-                Text("Are you sure you want to delete this expense?")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteDialog = false
-                    }
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteDialog = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }
 

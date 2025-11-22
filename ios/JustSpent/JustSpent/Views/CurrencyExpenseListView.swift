@@ -24,6 +24,10 @@ struct CurrencyExpenseListView: View {
     // Date filter state
     @Binding var dateFilter: DateFilter
 
+    // Delete confirmation state
+    @State private var showDeleteConfirmation = false
+    @State private var expenseToDelete: Expense?
+
     // Filtered expenses based on date filter
     private var filteredExpenses: [Expense] {
         let dateFilterUtils = DateFilterUtils.shared
@@ -126,10 +130,23 @@ struct CurrencyExpenseListView: View {
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
-                    .onDelete(perform: deleteFilteredExpenses)
+                    .onDelete(perform: requestDelete)
                 }
                 .listStyle(.plain)
             }
+        }
+        .alert("Delete Expense", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {
+                expenseToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let expense = expenseToDelete {
+                    performDelete(expense)
+                }
+                expenseToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this expense?")
         }
     }
 
@@ -138,11 +155,19 @@ struct CurrencyExpenseListView: View {
         formattedTotal
     }
 
-    private func deleteFilteredExpenses(offsets: IndexSet) {
+    /// Request delete confirmation for the selected expense (using filtered expenses)
+    private func requestDelete(offsets: IndexSet) {
+        // Get the expense to delete from filtered results
+        if let index = offsets.first {
+            expenseToDelete = filteredExpenses[index]
+            showDeleteConfirmation = true
+        }
+    }
+
+    /// Perform the actual delete after confirmation
+    private func performDelete(_ expense: Expense) {
         withAnimation {
-            offsets.map { filteredExpenses[$0] }.forEach { expense in
-                viewContext.delete(expense)
-            }
+            viewContext.delete(expense)
 
             do {
                 try viewContext.save()

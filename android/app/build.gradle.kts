@@ -68,6 +68,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Enable code coverage for both unit tests and instrumentation tests
+            enableAndroidTestCoverage = true
+            enableUnitTestCoverage = true
+        }
         release {
             // Use release signing configuration if keystore properties exist
             if (keystorePropertiesFile.exists()) {
@@ -118,36 +123,80 @@ android {
 }
 
 // Jacoco configuration for code coverage
-tasks.register<JacocoReport>("jacocoTestReport") {
+// This task combines coverage from BOTH unit tests and instrumentation (UI) tests
+// Run: ./gradlew jacocoFullReport (after running both test types)
+// Or:  ./gradlew jacocoUnitTestReport (unit tests only - faster)
+
+val fileFilter = listOf(
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/*Test*.*",
+    "android/**/*.*",
+    "**/di/**"  // Exclude DI modules (Hilt generated code)
+)
+
+// Unit test coverage only (fast, no emulator needed)
+tasks.register<JacocoReport>("jacocoUnitTestReport") {
     dependsOn("testDebugUnitTest")
+    group = "verification"
+    description = "Generate Jacoco coverage report for unit tests only"
 
     reports {
         xml.required.set(true)
         html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/unitTests/html"))
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/unitTests/jacocoUnitTestReport.xml"))
     }
 
-    val fileFilter = listOf(
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        "**/data/models/**",
-        "**/di/**"
-    )
-
-    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+    val debugTree = fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
         exclude(fileFilter)
     }
 
-    val mainSrc = "${project.projectDir}/src/main/java"
-
-    sourceDirectories.setFrom(files(mainSrc))
+    sourceDirectories.setFrom(files("${project.projectDir}/src/main/java"))
     classDirectories.setFrom(files(debugTree))
-    executionData.setFrom(fileTree(project.buildDir) {
+    executionData.setFrom(fileTree(layout.buildDirectory) {
         include("jacoco/testDebugUnitTest.exec")
     })
+}
+
+// Full coverage: Unit tests + Instrumentation (UI) tests
+// Requires: ./gradlew testDebugUnitTest connectedDebugAndroidTest
+tasks.register<JacocoReport>("jacocoFullReport") {
+    dependsOn("testDebugUnitTest")
+    // Note: connectedDebugAndroidTest must be run separately (requires emulator)
+    group = "verification"
+    description = "Generate Jacoco coverage report combining unit and UI tests"
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/fullCoverage/html"))
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/fullCoverage/jacocoFullReport.xml"))
+    }
+
+    val debugTree = fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+        exclude(fileFilter)
+    }
+
+    sourceDirectories.setFrom(files("${project.projectDir}/src/main/java"))
+    classDirectories.setFrom(files(debugTree))
+
+    // Combine execution data from both unit tests and instrumentation tests
+    executionData.setFrom(fileTree(layout.buildDirectory) {
+        include(
+            "jacoco/testDebugUnitTest.exec",                           // Unit test coverage
+            "outputs/code_coverage/debugAndroidTest/connected/**/*.ec" // UI test coverage
+        )
+    })
+}
+
+// Legacy task name for backward compatibility with CI
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("jacocoUnitTestReport")
+    group = "verification"
+    description = "Alias for jacocoUnitTestReport (backward compatibility)"
 }
 
 dependencies {
