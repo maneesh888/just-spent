@@ -245,13 +245,7 @@ fun DatePickerDialog(
     maxDate: LocalDate = LocalDate.now()
 ) {
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000,
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                val date = LocalDate.ofEpochDay(utcTimeMillis / (24 * 60 * 60 * 1000))
-                return !date.isAfter(maxDate)
-            }
-        }
+        initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
     )
 
     DatePickerDialog(
@@ -261,7 +255,13 @@ fun DatePickerDialog(
                 onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
                         val date = LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                        onDateSelected(date)
+                        // Validate that date is not in the future
+                        if (!date.isAfter(maxDate)) {
+                            onDateSelected(date)
+                        } else {
+                            // If future date selected, use maxDate instead
+                            onDateSelected(maxDate)
+                        }
                     }
                 }
             ) {
