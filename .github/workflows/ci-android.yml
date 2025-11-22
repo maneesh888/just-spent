@@ -56,9 +56,9 @@ jobs:
         working-directory: android
         run: ./gradlew testDebugUnitTest --stacktrace
 
-      - name: Generate Code Coverage Report
+      - name: Generate Unit Test Coverage Report
         working-directory: android
-        run: ./gradlew jacocoTestReport
+        run: ./gradlew jacocoUnitTestReport
 
       - name: Upload Unit Test Results
         if: always()
@@ -67,14 +67,12 @@ jobs:
           name: android-unit-test-results
           path: android/app/build/reports/tests/testDebugUnitTest/
 
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Upload Unit Test Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          files: android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-          flags: android-unit
-          name: android-coverage
-          fail_ci_if_error: false
-          verbose: true
+          name: android-unit-coverage-report
+          path: android/app/build/reports/jacoco/unitTests/
 
   ui-tests:
     name: Android UI Tests
@@ -197,12 +195,35 @@ jobs:
 
             echo "=== UI tests completed successfully ==="
 
+      - name: Generate Full Coverage Report (Unit + UI tests)
+        if: always()
+        working-directory: android
+        run: |
+          # Run unit tests first to generate their coverage data
+          ./gradlew testDebugUnitTest --stacktrace || true
+          # Generate combined coverage report (unit + UI tests)
+          ./gradlew jacocoFullReport --stacktrace || true
+
       - name: Upload UI Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: android-ui-test-results
           path: android/app/build/reports/androidTests/connected/
+
+      - name: Upload Full Coverage Report (Unit + UI)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-full-coverage-report
+          path: android/app/build/reports/jacoco/fullCoverage/
+
+      - name: Upload UI Test Coverage Data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-ui-coverage-data
+          path: android/app/build/outputs/code_coverage/
 
       - name: Upload UI Test Screenshots
         if: failure()
