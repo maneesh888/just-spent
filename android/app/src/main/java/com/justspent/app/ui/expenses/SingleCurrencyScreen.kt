@@ -250,17 +250,11 @@ fun SingleCurrencyScreen(
             }
 
             // Expense List
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                CurrencyExpenseListScreen(
-                    currency = currency,
-                    dateFilter = dateFilter,
-                    onDateFilterChanged = { dateFilter = it }
-                )
-            }
+            CurrencyExpenseListScreen(
+                currency = currency,
+                dateFilter = dateFilter,
+                onDateFilterChanged = { dateFilter = it }
+            )
         }
     }
 }

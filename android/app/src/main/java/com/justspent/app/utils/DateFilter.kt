@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
+import kotlinx.datetime.LocalDateTime as KotlinxLocalDateTime
 
 /**
  * Represents the available date filter options for expense lists
@@ -141,7 +142,7 @@ object DateFilterUtils {
     /**
      * Checks if a date falls within the filter's range
      *
-     * @param dateTime The date/time to check
+     * @param dateTime The date/time to check (java.time.LocalDateTime)
      * @param filter The filter to check against
      * @param referenceDate The reference date (defaults to today)
      * @return True if the date is within the filter's range
@@ -154,6 +155,32 @@ object DateFilterUtils {
         val range = dateRange(filter, referenceDate) ?: return true // All filter includes all dates
 
         return !dateTime.isBefore(range.first) && !dateTime.isAfter(range.second)
+    }
+
+    /**
+     * Checks if a date falls within the filter's range (kotlinx.datetime version)
+     *
+     * @param dateTime The date/time to check (kotlinx.datetime.LocalDateTime)
+     * @param filter The filter to check against
+     * @param referenceDate The reference date (defaults to today)
+     * @return True if the date is within the filter's range
+     */
+    fun isDateInFilter(
+        dateTime: KotlinxLocalDateTime,
+        filter: DateFilter,
+        referenceDate: LocalDate = LocalDate.now()
+    ): Boolean {
+        // Convert kotlinx.datetime.LocalDateTime to java.time.LocalDateTime
+        val javaDateTime = LocalDateTime.of(
+            dateTime.year,
+            dateTime.monthNumber,
+            dateTime.dayOfMonth,
+            dateTime.hour,
+            dateTime.minute,
+            dateTime.second,
+            dateTime.nanosecond
+        )
+        return isDateInFilter(javaDateTime, filter, referenceDate)
     }
 }
 

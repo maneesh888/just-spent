@@ -272,17 +272,11 @@ fun MultiCurrencyTabbedScreen(
             )
 
             // Selected Currency Expense List
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                CurrencyExpenseListScreen(
-                    currency = selectedCurrency,
-                    dateFilter = dateFilter,
-                    onDateFilterChanged = { dateFilter = it }
-                )
-            }
+            CurrencyExpenseListScreen(
+                currency = selectedCurrency,
+                dateFilter = dateFilter,
+                onDateFilterChanged = { dateFilter = it }
+            )
         }
     }
 }
