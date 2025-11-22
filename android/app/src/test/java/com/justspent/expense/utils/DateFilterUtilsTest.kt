@@ -5,6 +5,7 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime as KotlinxLocalDateTime
 
 class DateFilterUtilsTest {
 
@@ -345,5 +346,117 @@ class DateFilterUtilsTest {
         assertEquals(2024, start.year)
         assertEquals(12, start.monthValue)
         assertEquals(28, start.dayOfMonth) // Dec 28, 2024
+    }
+
+    // MARK: - kotlinx.datetime.LocalDateTime Tests
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for All filter always returns true`() {
+        val pastDate = KotlinxLocalDateTime(2024, 1, 15, 0, 0, 0)
+        val futureDate = KotlinxLocalDateTime(2026, 1, 15, 0, 0, 0)
+        val currentDate = KotlinxLocalDateTime(2025, 1, 15, 12, 0, 0)
+
+        assertTrue(DateFilterUtils.isDateInFilter(pastDate, DateFilter.All, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(currentDate, DateFilter.All, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(futureDate, DateFilter.All, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Today filter returns true for today`() {
+        val todayMorning = KotlinxLocalDateTime(2025, 1, 15, 0, 0, 0)
+        val todayEvening = KotlinxLocalDateTime(2025, 1, 15, 23, 59, 0)
+
+        assertTrue(DateFilterUtils.isDateInFilter(todayMorning, DateFilter.Today, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(todayEvening, DateFilter.Today, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Today filter returns false for yesterday`() {
+        val yesterday = KotlinxLocalDateTime(2025, 1, 14, 12, 0, 0)
+
+        assertFalse(DateFilterUtils.isDateInFilter(yesterday, DateFilter.Today, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Week filter returns true for last 7 days`() {
+        val sixDaysAgo = KotlinxLocalDateTime(2025, 1, 9, 0, 0, 0)
+        val threeDaysAgo = KotlinxLocalDateTime(2025, 1, 12, 12, 0, 0)
+        val today = KotlinxLocalDateTime(2025, 1, 15, 18, 30, 0)
+
+        assertTrue(DateFilterUtils.isDateInFilter(sixDaysAgo, DateFilter.Week, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(threeDaysAgo, DateFilter.Week, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(today, DateFilter.Week, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Week filter returns false for older dates`() {
+        val eightDaysAgo = KotlinxLocalDateTime(2025, 1, 7, 12, 0, 0)
+
+        assertFalse(DateFilterUtils.isDateInFilter(eightDaysAgo, DateFilter.Week, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Month filter returns true for current month`() {
+        val firstOfMonth = KotlinxLocalDateTime(2025, 1, 1, 0, 0, 0)
+        val lastOfMonth = KotlinxLocalDateTime(2025, 1, 31, 23, 59, 59)
+        val midMonth = KotlinxLocalDateTime(2025, 1, 15, 12, 0, 0)
+
+        assertTrue(DateFilterUtils.isDateInFilter(firstOfMonth, DateFilter.Month, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(lastOfMonth, DateFilter.Month, referenceDate))
+        assertTrue(DateFilterUtils.isDateInFilter(midMonth, DateFilter.Month, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Month filter returns false for previous month`() {
+        val lastMonth = KotlinxLocalDateTime(2024, 12, 31, 12, 0, 0)
+
+        assertFalse(DateFilterUtils.isDateInFilter(lastMonth, DateFilter.Month, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Custom filter returns true for dates in range`() {
+        val startDate = referenceDate.minusDays(10) // Jan 5
+        val endDate = referenceDate.minusDays(5) // Jan 10
+        val filter = DateFilter.Custom(startDate, endDate)
+
+        val dateInRange = KotlinxLocalDateTime(2025, 1, 8, 12, 0, 0) // Jan 8
+
+        assertTrue(DateFilterUtils.isDateInFilter(dateInRange, filter, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime for Custom filter returns false for dates out of range`() {
+        val startDate = referenceDate.minusDays(10) // Jan 5
+        val endDate = referenceDate.minusDays(5) // Jan 10
+        val filter = DateFilter.Custom(startDate, endDate)
+
+        val beforeRange = KotlinxLocalDateTime(2024, 12, 31, 12, 0, 0) // Dec 31
+        val afterRange = KotlinxLocalDateTime(2025, 1, 15, 12, 0, 0) // Jan 15
+
+        assertFalse(DateFilterUtils.isDateInFilter(beforeRange, filter, referenceDate))
+        assertFalse(DateFilterUtils.isDateInFilter(afterRange, filter, referenceDate))
+    }
+
+    @Test
+    fun `isDateInFilter with kotlinx LocalDateTime preserves nanoseconds during conversion`() {
+        // Test that nanoseconds are properly converted
+        val dateWithNanos = KotlinxLocalDateTime(2025, 1, 15, 12, 30, 45, 123456789)
+
+        // Should not throw and should return true for Today filter
+        assertTrue(DateFilterUtils.isDateInFilter(dateWithNanos, DateFilter.Today, referenceDate))
+    }
+
+    // MARK: - DateRangeValidationResult Tests
+
+    @Test
+    fun `DateRangeValidationResult firstError returns first error or null`() {
+        val validResult = DateRangeValidationResult(isValid = true, errors = emptyList())
+        assertNull(validResult.firstError)
+
+        val invalidResult = DateRangeValidationResult(
+            isValid = false,
+            errors = listOf("First error", "Second error")
+        )
+        assertEquals("First error", invalidResult.firstError)
     }
 }
