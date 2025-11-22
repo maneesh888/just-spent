@@ -459,4 +459,117 @@ class DateFilterUtilsTest {
         )
         assertEquals("First error", invalidResult.firstError)
     }
+
+    // MARK: - Default Parameter Tests (to increase coverage)
+
+    @Test
+    fun `dateRange with default referenceDate uses today`() {
+        // Test that calling dateRange without referenceDate parameter works
+        // This covers the default parameter branch
+        val todayFilter = DateFilter.Today
+        val result = DateFilterUtils.dateRange(todayFilter)
+
+        // The result should use today's date
+        assertNotNull(result)
+        val today = LocalDate.now()
+        assertEquals(today.atStartOfDay(), result?.first)
+    }
+
+    @Test
+    fun `dateRange with All filter and default referenceDate returns null`() {
+        val result = DateFilterUtils.dateRange(DateFilter.All)
+        assertNull(result)
+    }
+
+    @Test
+    fun `dateRange with Week filter and default referenceDate returns valid range`() {
+        val result = DateFilterUtils.dateRange(DateFilter.Week)
+
+        assertNotNull(result)
+        // Week should be 7 days including today
+        val today = LocalDate.now()
+        val expectedStart = today.minusDays(6).atStartOfDay()
+        assertEquals(expectedStart, result?.first)
+    }
+
+    @Test
+    fun `dateRange with Month filter and default referenceDate returns valid range`() {
+        val result = DateFilterUtils.dateRange(DateFilter.Month)
+
+        assertNotNull(result)
+        // Month should start at first day of current month
+        val today = LocalDate.now()
+        val expectedStart = today.withDayOfMonth(1).atStartOfDay()
+        assertEquals(expectedStart, result?.first)
+    }
+
+    @Test
+    fun `dateRange with Custom filter and default referenceDate returns custom range`() {
+        val startDate = LocalDate.now().minusDays(10)
+        val endDate = LocalDate.now().minusDays(5)
+        val customFilter = DateFilter.Custom(startDate, endDate)
+
+        val result = DateFilterUtils.dateRange(customFilter)
+
+        assertNotNull(result)
+        assertEquals(startDate.atStartOfDay(), result?.first)
+    }
+
+    @Test
+    fun `validateCustomRange with default referenceDate validates against today`() {
+        // Test with dates that are valid relative to today
+        val startDate = LocalDate.now().minusDays(5)
+        val endDate = LocalDate.now()
+
+        val result = DateFilterUtils.validateCustomRange(startDate, endDate)
+
+        assertTrue(result.isValid)
+        assertTrue(result.errors.isEmpty())
+    }
+
+    @Test
+    fun `validateCustomRange with future start date using default referenceDate fails`() {
+        // Test with future dates - should fail validation
+        val startDate = LocalDate.now().plusDays(1) // Tomorrow
+        val endDate = LocalDate.now().plusDays(2)
+
+        val result = DateFilterUtils.validateCustomRange(startDate, endDate)
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.contains("future") })
+    }
+
+    @Test
+    fun `isDateInFilter with default referenceDate uses today`() {
+        // Test with Today filter using default reference date
+        val now = LocalDateTime.now()
+        val result = DateFilterUtils.isDateInFilter(now, DateFilter.Today)
+
+        // Current time should be within today's filter
+        assertTrue(result)
+    }
+
+    @Test
+    fun `isDateInFilter with All filter and default referenceDate returns true`() {
+        val anyDate = LocalDateTime.of(2020, 1, 1, 12, 0)
+        val result = DateFilterUtils.isDateInFilter(anyDate, DateFilter.All)
+
+        assertTrue(result) // All filter includes everything
+    }
+
+    @Test
+    fun `isDateInFilter with Week filter and default referenceDate checks last 7 days`() {
+        val threeDaysAgo = LocalDateTime.now().minusDays(3)
+        val result = DateFilterUtils.isDateInFilter(threeDaysAgo, DateFilter.Week)
+
+        assertTrue(result) // 3 days ago is within the last 7 days
+    }
+
+    @Test
+    fun `isDateInFilter with Week filter excludes dates older than 7 days`() {
+        val tenDaysAgo = LocalDateTime.now().minusDays(10)
+        val result = DateFilterUtils.isDateInFilter(tenDaysAgo, DateFilter.Week)
+
+        assertFalse(result) // 10 days ago is outside the last 7 days
+    }
 }
