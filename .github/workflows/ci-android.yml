@@ -106,6 +106,44 @@ jobs:
             echo "android_coverage=0.0" >> $GITHUB_OUTPUT
           fi
 
+      - name: Extract Coverage Percentage
+        working-directory: android
+        id: android-coverage
+        run: |
+          # Extract coverage percentage from Jacoco XML report
+          COVERAGE_FILE="app/build/reports/jacoco/unitTests/jacocoUnitTestReport.xml"
+
+          if [ -f "$COVERAGE_FILE" ]; then
+            # Extract line coverage from Jacoco XML
+            COVERAGE_PCT=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          try:
+              tree = ET.parse('$COVERAGE_FILE')
+              root = tree.getroot()
+              # Find the LINE counter at root level
+              for counter in root.findall('counter'):
+                  if counter.get('type') == 'LINE':
+                      missed = int(counter.get('missed', 0))
+                      covered = int(counter.get('covered', 0))
+                      total = missed + covered
+                      if total > 0:
+                          pct = (covered / total) * 100
+                          print(f'{pct:.1f}')
+                      else:
+                          print('0.0')
+                      break
+              else:
+                  print('0.0')
+          except Exception as e:
+              print('0.0')
+          ")
+            echo "Android Coverage: ${COVERAGE_PCT}%"
+            echo "android_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
+          else
+            echo "Coverage file not found"
+            echo "android_coverage=0.0" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload Unit Test Results
         if: always()
         uses: actions/upload-artifact@v4
