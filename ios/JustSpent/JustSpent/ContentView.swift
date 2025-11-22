@@ -314,7 +314,9 @@ struct ContentView: View {
     }
 
     private func processVoiceTranscription(_ transcription: String) {
+        #if DEBUG
         print(LocalizedStrings.debugProcessingTranscription(transcription))
+        #endif
 
         // Validate input
         guard !transcription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

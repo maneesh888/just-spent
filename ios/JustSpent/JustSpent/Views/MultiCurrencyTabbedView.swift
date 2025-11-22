@@ -151,7 +151,6 @@ struct CurrencyTabBar: View {
                             selectedCurrency = currency
                         }
                     }
-                    .accessibilityIdentifier("currency_tab_\(currency.code)")
                 }
             }
             .padding(.horizontal, 16)
@@ -203,6 +202,7 @@ struct CurrencyTab: View {
         // Combine all child elements into a single accessibility element
         // This ensures XCUITest can find the tab by its identifier
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("currency_tab_\(currency.code)")
         .accessibilityLabel("\(currency.displayName) tab")
     }
 }

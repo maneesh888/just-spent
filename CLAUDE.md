@@ -5,24 +5,27 @@
 @TESTING-GUIDE.md
 @docs/GIT-WORKFLOW-RULES.md
 @docs/REUSABLE-COMPONENTS.md
+@docs/DEPLOYMENT-README.md
 
 ## 🎯 Current Context
 
-**Status**: Android Multi-Currency UI Complete → iOS Implementation
-**Phase**: Foundation (Week 1-2)
-**Priority**: iOS implementation matching Android design
+**Status**: Core UI Complete (iOS & Android) → Voice Integration Phase
+**Phase**: Phase 3 (Week 5-6) - Voice Integration & Testing (95% complete)
+**Priority**: Siri & Google Assistant integration for voice-activated expense logging
 **Developer**: Solo, iOS expertise, Android learning
+**Deployment**: Fully automated CI/CD pipeline ready (TestFlight & Play Store)
 
 **Recent Completion:**
+- ✅ **Complete CI/CD Pipeline** - Fully automated iOS and Android deployment
+- ✅ GitHub Actions workflows for TestFlight and Play Store
+- ✅ Fastlane automation for both platforms
+- ✅ Automated version management and build numbering
+- ✅ Comprehensive deployment documentation (98KB, 4 guides)
 - ✅ Android multi-currency tabbed UI fully implemented
+- ✅ iOS multi-currency UI with custom header
 - ✅ Dynamic total calculation per currency
 - ✅ Consistent currency formatting (. decimal, , grouping)
-- ✅ Header card design with gradient background
-- ✅ FAB with recording indicator
-- ✅ Comprehensive UI design documentation
-- ✅ Onboarding screen layout improvements (iOS & Android)
-- ✅ PrimaryButton component (reusable across all screens)
-- ✅ Reusable components documentation system
+- ✅ Reusable components library (PrimaryButton, Header, EmptyState)
 
 **Reference Documents:**
 - @ui-design-spec.md - Complete Android UI implementation details
@@ -318,6 +321,372 @@ git commit --amend --no-edit
 | Quick mode | 2-3 min | N/A |
 | Failure rate | ~5% | ~30% (network issues) |
 | Cost | Free | GitHub minutes |
+
+## 📦 Deployment (Continuous Deployment)
+
+Reference: @docs/DEPLOYMENT-README.md for complete deployment documentation
+
+### Overview
+
+Just Spent has a **fully automated continuous deployment (CD) pipeline** that deploys to App Store and Play Store with a single git tag.
+
+**Architecture:**
+```
+Git Tag → GitHub Actions → Build & Sign → Deploy to App Stores
+```
+
+### Quick Deployment Guide
+
+#### 1. Standard Release (Beta)
+
+```bash
+# Step 1: Bump version
+./scripts/bump-version.sh 1.2.0-beta.1
+
+# Step 2: Commit and tag
+git commit -am "chore: Beta release v1.2.0-beta.1"
+git tag v1.2.0-beta.1
+
+# Step 3: Push tag (triggers automated deployment)
+git push && git push --tags
+
+# Step 4: Monitor GitHub Actions
+# - iOS: Deploys to TestFlight automatically
+# - Android: Deploys to Play Console Internal Testing
+# Go to: https://github.com/YOUR_USERNAME/just-spent/actions
+
+# Step 5: Test beta builds
+# - iOS: TestFlight app (team members)
+# - Android: Play Console Internal Testing (up to 100 testers)
+```
+
+#### 2. Production Release
+
+```bash
+# Step 1: Bump to production version
+./scripts/bump-version.sh 1.2.0
+
+# Step 2: Commit and tag
+git commit -am "chore: Release v1.2.0"
+git tag v1.2.0
+
+# Step 3: Push tag
+git push && git push --tags
+
+# Step 4: Monitor deployment
+# - iOS: Builds → TestFlight → Manual submission to App Store
+# - Android: Builds → Internal → Manual promotion to Production
+
+# Step 5: Promote to production
+# - iOS: Via App Store Connect (24-48 hour review)
+# - Android: Via Play Console (phased rollout: 10% → 50% → 100%)
+```
+
+#### 3. Hotfix Release
+
+```bash
+# Step 1: Create hotfix branch
+git checkout -b hotfix/critical-bug
+
+# Step 2: Fix bug with tests (TDD required!)
+./local-ci.sh --all --quick
+
+# Step 3: Bump patch version
+./scripts/bump-version.sh 1.2.1
+
+# Step 4: Merge and deploy
+git checkout main
+git merge hotfix/critical-bug
+git tag v1.2.1
+git push && git push --tags
+
+# Timeline: 1-3 hours (emergency deployment)
+```
+
+### Deployment Workflows
+
+#### iOS Deployment (`.github/workflows/deploy-ios.yml`)
+
+**Triggers:**
+- Git tags matching `v*` (e.g., `v1.0.0`, `v1.0.0-beta.1`)
+- Manual workflow dispatch
+
+**Pipeline:**
+1. Setup Xcode 26.0 on macOS-26
+2. Install Ruby dependencies (Fastlane)
+3. Import distribution certificates
+4. Install provisioning profiles
+5. Run unit tests (XCTest)
+6. Build signed IPA
+7. Upload to TestFlight (automatic)
+
+**Duration:** ~10-15 minutes
+
+**Output:** IPA uploaded to TestFlight
+
+#### Android Deployment (`.github/workflows/deploy-android.yml`)
+
+**Triggers:**
+- Git tags matching `v*` (excluding `v*-ios`)
+- Manual workflow dispatch
+
+**Pipeline:**
+1. Setup Android SDK + Java 17
+2. Install Ruby dependencies (Fastlane)
+3. Decode keystore from GitHub Secrets
+4. Create keystore.properties
+5. Run unit tests (JUnit)
+6. Build signed AAB (App Bundle)
+7. Upload to Play Console Internal Testing
+
+**Duration:** ~8-12 minutes
+
+**Output:** AAB uploaded to Play Console Internal track
+
+### Fastlane Lanes
+
+#### iOS Lanes (`ios/fastlane/Fastfile`)
+
+**Deployment lanes:**
+- `build_ipa` - Build signed IPA with automatic code signing
+- `deploy_testflight` - Upload to TestFlight
+- `deploy_appstore` - Submit for App Store review
+- `beta` - Complete beta workflow (test + build + deploy)
+- `release` - Full production release workflow
+
+**Utility lanes:**
+- `screenshots` - Generate App Store screenshots
+- `upload_metadata` - Upload metadata to App Store Connect
+
+**Usage in GitHub Actions:**
+```yaml
+- name: Deploy to TestFlight
+  run: |
+    cd ios
+    bundle exec fastlane deploy_testflight
+```
+
+#### Android Lanes (`android/fastlane/Fastfile`)
+
+**Deployment lanes:**
+- `build_aab` - Build signed Android App Bundle
+- `deploy_internal` - Deploy to Internal Testing
+- `deploy_beta` - Deploy to Beta (Closed Testing)
+- `deploy_production` - Deploy with phased rollout
+- `promote_to_beta` - Promote Internal → Beta
+- `promote_to_production` - Promote Beta → Production
+- `increase_rollout` - Increase rollout percentage
+- `complete_rollout` - Complete rollout to 100%
+
+**Utility lanes:**
+- `screenshots` - Generate Play Store screenshots
+- `upload_metadata` - Upload metadata to Play Console
+
+**Usage in GitHub Actions:**
+```yaml
+- name: Deploy to Play Console
+  run: |
+    cd android
+    bundle exec fastlane deploy_internal
+```
+
+### Version Management
+
+#### Semantic Versioning (SemVer)
+
+Format: `MAJOR.MINOR.PATCH[-PRERELEASE]`
+
+**Examples:**
+- `1.0.0` - Initial release
+- `1.1.0` - New feature (minor version bump)
+- `1.1.1` - Bug fix (patch version bump)
+- `1.2.0-beta.1` - Beta release
+- `1.2.0-rc.1` - Release candidate
+
+#### Version Bump Script
+
+```bash
+# Usage
+./scripts/bump-version.sh <version>
+
+# What it does:
+# - Updates iOS Info.plist (CFBundleShortVersionString + build number)
+# - Updates Android build.gradle (versionName + versionCode)
+# - Generates timestamp-based build numbers (YYYYMMDDHHMM)
+# - Shows git workflow next steps
+
+# Examples
+./scripts/bump-version.sh 1.2.3          # Release
+./scripts/bump-version.sh 1.2.3-beta.1   # Beta
+./scripts/bump-version.sh 1.2.3-rc.1     # Release candidate
+```
+
+### Deployment Tracks
+
+#### iOS Distribution Tracks
+
+```
+TestFlight Internal → TestFlight External → App Store
+     (Instant)          (24-48h review)      (Full review)
+   Team members       Up to 10,000 testers   Public release
+```
+
+**Promotion:**
+1. Automatic deployment to TestFlight Internal
+2. Manual promotion to TestFlight External (via App Store Connect)
+3. Manual submission to App Store (via App Store Connect)
+
+#### Android Distribution Tracks
+
+```
+Internal Testing → Beta (Closed) → Production (Phased Rollout)
+    (Instant)         (Instant)        10% → 50% → 100%
+  100 testers      Unlimited testers   Day 1  Day 3  Day 5
+```
+
+**Promotion:**
+1. Automatic deployment to Internal Testing
+2. Manual promotion to Beta via Play Console or Fastlane:
+   ```bash
+   cd android
+   bundle exec fastlane promote_to_beta
+   ```
+3. Manual promotion to Production with phased rollout:
+   ```bash
+   cd android
+   bundle exec fastlane promote_to_production rollout_percentage:0.1
+   ```
+
+### Secrets Management
+
+**Required GitHub Secrets:**
+
+**iOS (7 secrets):**
+- `IOS_CERTIFICATES_P12` - Distribution certificate (base64 encoded)
+- `IOS_CERTIFICATES_PASSWORD` - Certificate password
+- `IOS_PROVISIONING_PROFILE` - Provisioning profile (base64 encoded)
+- `APPLE_ID` - Your Apple ID
+- `APPLE_APP_SPECIFIC_PASSWORD` - App-specific password
+- `APPLE_TEAM_ID` - Team ID (10 characters)
+- `KEYCHAIN_PASSWORD` - CI keychain password
+
+**Android (5 secrets):**
+- `ANDROID_KEYSTORE_BASE64` - Upload keystore (base64 encoded)
+- `ANDROID_KEYSTORE_PASSWORD` - Keystore password
+- `ANDROID_KEY_ALIAS` - Key alias
+- `ANDROID_KEY_PASSWORD` - Key password
+- `PLAY_STORE_JSON_KEY` - Service account JSON (base64 encoded)
+
+**Security:**
+- All secrets encrypted with libsodium sealed boxes
+- Masked in logs (appear as `***`)
+- Never exposed to code (only environment variables)
+
+### Monitoring & Rollback
+
+#### Post-Deployment Checklist
+
+**First 24 Hours:**
+- [ ] Monitor crash-free rate (target: ≥99.5%)
+- [ ] Check for 1-star reviews spike
+- [ ] Verify performance metrics stable
+- [ ] No critical bugs reported
+
+**Android Phased Rollout:**
+- Day 1: 10% rollout → Monitor closely
+- Day 3: 50% rollout → Check metrics
+- Day 5: 100% rollout → Full deployment
+
+#### Rollback Procedures
+
+**iOS:**
+```
+1. Remove from sale in App Store Connect
+2. Release emergency patch version
+3. Request expedited review
+Timeline: 24-48 hours
+```
+
+**Android:**
+```bash
+# Option 1: Halt rollout
+cd android
+bundle exec fastlane halt_rollout
+
+# Option 2: Rollback to previous version (automatic downgrade)
+# Via Play Console → Production → Manage releases → Rollback
+
+Timeline: Instant
+```
+
+### Deployment Documentation
+
+**Comprehensive guides:**
+- [DEPLOYMENT-GUIDE.md](docs/DEPLOYMENT-GUIDE.md) - Complete CD concepts (28KB)
+- [SECRETS-SETUP-GUIDE.md](docs/SECRETS-SETUP-GUIDE.md) - Credential setup (25KB)
+- [DEPLOYMENT-CHECKLIST.md](docs/DEPLOYMENT-CHECKLIST.md) - Operational runbooks (30KB)
+- [DEPLOYMENT-README.md](docs/DEPLOYMENT-README.md) - Quick reference (15KB)
+
+### Common Deployment Scenarios
+
+#### Scenario 1: Beta Testing
+
+```bash
+# Deploy to beta for testing
+./scripts/bump-version.sh 1.2.0-beta.1
+git commit -am "chore: Beta release v1.2.0-beta.1"
+git tag v1.2.0-beta.1
+git push --tags
+
+# Wait for GitHub Actions to complete (~10-15 min)
+# Test on TestFlight (iOS) and Play Console Internal (Android)
+```
+
+#### Scenario 2: Production Release
+
+```bash
+# After successful beta testing
+./scripts/bump-version.sh 1.2.0
+git commit -am "chore: Release v1.2.0"
+git tag v1.2.0
+git push --tags
+
+# iOS: Submit for review via App Store Connect
+# Android: Promote to production via Play Console
+```
+
+#### Scenario 3: Emergency Hotfix
+
+```bash
+# Critical bug in production
+git checkout -b hotfix/critical-bug
+# Fix bug, test with ./local-ci.sh --all --quick
+./scripts/bump-version.sh 1.2.1
+git checkout main && git merge hotfix/critical-bug
+git tag v1.2.1
+git push --tags
+
+# Monitor closely, be ready to rollback if needed
+```
+
+### Troubleshooting
+
+**Build Failed:**
+1. Check GitHub Actions logs
+2. Run `./local-ci.sh --all` locally to reproduce
+3. Review pre-deployment checklist in DEPLOYMENT-CHECKLIST.md
+
+**Certificate/Signing Issues:**
+1. Verify secrets are correctly set in GitHub
+2. Check certificate expiry dates
+3. Regenerate if needed (see SECRETS-SETUP-GUIDE.md)
+
+**App Review Rejected:**
+1. Read rejection reason carefully
+2. Fix issues mentioned
+3. Bump patch version and redeploy
+
+---
 
 ## 🚀 Current Sprint Tasks
 

@@ -106,7 +106,7 @@ dependencies {
 **Fix**: Add import
 
 ```kotlin
-import com.justspent.app.data.model.Currency
+import com.justspent.expense.data.model.Currency
 ```
 
 ### Error 8: NullPointerException when accessing Currency.AED
@@ -272,7 +272,7 @@ grep -o '"code"' android/app/src/main/assets/currencies.json | wc -l
 
 # 4. Verify tests can find it
 cd android
-./gradlew testDebugUnitTest --tests "com.justspent.app.data.model.CurrencyTest" -i
+./gradlew testDebugUnitTest --tests "com.justspent.expense.data.model.CurrencyTest" -i
 ```
 
 ---

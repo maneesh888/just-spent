@@ -248,7 +248,7 @@ Integration tests: 100% critical paths
 
 ### Direct Parsing
 ```kotlin
-import com.justspent.app.utils.NumberPhraseParser
+import com.justspent.expense.utils.NumberPhraseParser
 
 // Parse a number phrase
 val amount = NumberPhraseParser.parse("two thousand")

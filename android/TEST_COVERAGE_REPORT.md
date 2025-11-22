@@ -253,10 +253,10 @@ cd android
 ### Specific Test Classes
 ```bash
 # Voice currency detection tests
-./gradlew testDebugUnitTest --tests "com.justspent.app.utils.VoiceCurrencyDetectorTest"
+./gradlew testDebugUnitTest --tests "com.justspent.expense.utils.VoiceCurrencyDetectorTest"
 
 # Currency formatter tests
-./gradlew testDebugUnitTest --tests "com.justspent.app.utils.CurrencyFormatterTest"
+./gradlew testDebugUnitTest --tests "com.justspent.expense.utils.CurrencyFormatterTest"
 ```
 
 ### With Coverage Report

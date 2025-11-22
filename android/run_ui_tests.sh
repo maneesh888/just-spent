@@ -16,7 +16,7 @@ adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.
 echo ""
 echo "🧪 Running UI tests with HiltTestRunner..."
 adb shell am instrument -w -r -e debug false \
-  com.justspent.app.test/com.justspent.app.HiltTestRunner
+  com.justspent.expense.test/com.justspent.expense.HiltTestRunner
 
 echo ""
 echo "✅ Test execution complete!"
@@ -28,5 +28,5 @@ echo "   - Failing:  45 tests (assertion failures, not crashes)"
 echo ""
 echo "Note: Run individual test classes for detailed results:"
 echo "  adb shell am instrument -w -r -e debug false \\"
-echo "    -e class com.justspent.app.MultiCurrencyTabbedUITest \\"
-echo "    com.justspent.app.test/com.justspent.app.HiltTestRunner"
+echo "    -e class com.justspent.expense.MultiCurrencyTabbedUITest \\"
+echo "    com.justspent.expense.test/com.justspent.expense.HiltTestRunner"

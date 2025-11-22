@@ -1,22 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <actions>
-    <!-- Log Expense Action -->
+    <!--
+        Google Assistant App Actions Configuration for Just Spent
+
+        This file defines how Google Assistant/Gemini recognizes and processes
+        voice commands for expense tracking.
+
+        Recommended voice commands (grammatically correct):
+        - "Hey Google, log 50 dirhams for groceries in Just Spent"
+        - "Hey Google, record 100 dollars for shopping in Just Spent"
+        - "Hey Google, add expense in Just Spent"
+        - "Hey Google, track 75 dirhams for food using Just Spent"
+
+        Note: Always include "in Just Spent", "using Just Spent", or "to Just Spent"
+        for reliable app invocation. Avoid phrases like "spent in Just Spent" as
+        they are grammatically incorrect (you spend money at a store, not in an app).
+    -->
+
+    <!-- Log Expense Action using CREATE_MONEY_TRANSFER Built-in Intent -->
     <action intentName="actions.intent.CREATE_MONEY_TRANSFER">
-        <fulfillment urlTemplate="https://justspent.app/expense{?amount,category,merchant,note}">
+        <fulfillment urlTemplate="https://justspent.app/expense{?amount,currency,category,merchant,note}">
+            <!-- Amount mapping -->
             <parameter-mapping
                 intentParameter="moneyTransfer.amount.value"
                 urlParameter="amount" />
+            <!-- Currency mapping -->
+            <parameter-mapping
+                intentParameter="moneyTransfer.amount.currency"
+                urlParameter="currency" />
+            <!-- Category mapping -->
             <parameter-mapping
                 intentParameter="moneyTransfer.category"
                 urlParameter="category" />
+            <!-- Merchant mapping -->
             <parameter-mapping
                 intentParameter="merchant.name"
                 urlParameter="merchant" />
+            <!-- Description/note mapping -->
             <parameter-mapping
                 intentParameter="description"
                 urlParameter="note" />
         </fulfillment>
-        
+
         <!-- Inline inventory for categories -->
         <parameter name="moneyTransfer.category">
             <entity-set-reference entitySetId="ExpenseCategories" />
