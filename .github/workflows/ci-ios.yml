@@ -2,10 +2,16 @@ name: iOS CI
 
 on:
   workflow_call:
+    outputs:
+      coverage:
+        description: 'iOS coverage percentage'
+        value: ${{ jobs.build-and-test.outputs.coverage }}
   workflow_dispatch:
 
 jobs:
   build-and-test:
+    outputs:
+      coverage: ${{ steps.ios-coverage.outputs.ios_coverage }}
     name: iOS Build & Test
     runs-on: macos-15  # macOS with Xcode 16+
     timeout-minutes: 30
@@ -120,15 +126,58 @@ jobs:
           name: ios-ui-test-results
           path: ios/JustSpent/test-results-ui.xcresult
 
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Extract Coverage Report from xcresult
+        working-directory: ios/JustSpent
+        run: |
+          # Extract coverage data from unit test results
+          echo "=== Extracting iOS coverage from xcresult ==="
+
+          # Create coverage directory
+          mkdir -p coverage-report
+
+          # Extract coverage report as JSON
+          xcrun xccov view --report --json test-results-unit.xcresult > coverage-report/coverage.json || {
+            echo "⚠️  Failed to extract coverage from unit tests"
+          }
+
+          # Also extract from UI tests if available
+          if [ -d "test-results-ui.xcresult" ]; then
+            xcrun xccov view --report --json test-results-ui.xcresult > coverage-report/coverage-ui.json || true
+          fi
+
+          # Generate human-readable summary
+          echo "=== iOS Coverage Summary ==="
+          xcrun xccov view --report test-results-unit.xcresult 2>/dev/null | head -50 || echo "Coverage summary not available"
+
+          # Extract overall coverage percentage for PR comment
+          COVERAGE_PCT=$(xcrun xccov view --report --json test-results-unit.xcresult 2>/dev/null | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              # Get line coverage from targets
+              if 'targets' in data:
+                  for target in data['targets']:
+                      if target.get('name', '').endswith('.app'):
+                          pct = target.get('lineCoverage', 0) * 100
+                          print(f'{pct:.1f}')
+                          sys.exit(0)
+              # Fallback to overall
+              pct = data.get('lineCoverage', 0) * 100
+              print(f'{pct:.1f}')
+          except:
+              print('0.0')
+          " || echo "0.0")
+
+          echo "iOS Coverage: ${COVERAGE_PCT}%"
+          echo "ios_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
+        id: ios-coverage
+
+      - name: Upload iOS Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          flags: ios
-          name: ios-coverage
-          fail_ci_if_error: false
-          verbose: true
-          xcode: true
-          xcode_archive_path: ios/JustSpent/test-results-unit.xcresult
+          name: ios-coverage-report
+          path: ios/JustSpent/coverage-report/
 
       - name: Upload Test Logs
         if: failure()
