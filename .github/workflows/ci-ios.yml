@@ -163,7 +163,7 @@ jobs:
                           pct = target.get('lineCoverage', 0) * 100
                           print(f'{pct:.1f}')
                           sys.exit(0)
-              # Fallback to overall
+              # Fallback to overall lineCoverage
               pct = data.get('lineCoverage', 0) * 100
               print(f'{pct:.1f}')
           except:
