@@ -87,13 +87,16 @@ jobs:
       - name: Run Unit Tests
         working-directory: ios/JustSpent
         run: |
-          # Clean and rebuild with coverage instrumentation, then run tests
-          # The 'test' action includes build, and coverage requires the build to be instrumented
-          xcodebuild clean test \
+          # Run unit tests with coverage
+          # Important: Don't use -only-testing as it may skip coverage instrumentation for the main target
+          # Remove any existing result bundle first
+          rm -rf ./test-results-unit.xcresult
+          xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -only-testing:JustSpentTests \
+            -derivedDataPath ./DerivedData-Coverage \
             -enableCodeCoverage YES \
             -resultBundlePath ./test-results-unit.xcresult \
             CODE_SIGN_IDENTITY="" \
@@ -104,11 +107,13 @@ jobs:
       - name: Run UI Tests
         working-directory: ios/JustSpent
         run: |
+          rm -rf ./test-results-ui.xcresult
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -only-testing:JustSpentUITests \
+            -derivedDataPath ./DerivedData-Coverage \
             -enableCodeCoverage YES \
             -resultBundlePath ./test-results-ui.xcresult \
             CODE_SIGN_IDENTITY="" \
