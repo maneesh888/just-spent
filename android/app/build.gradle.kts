@@ -156,8 +156,12 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
 
     sourceDirectories.setFrom(files("${project.projectDir}/src/main/java"))
     classDirectories.setFrom(files(debugTree))
+    // AGP 8.x puts coverage data in outputs/unit_test_code_coverage/
     executionData.setFrom(fileTree(layout.buildDirectory) {
-        include("jacoco/testDebugUnitTest.exec")
+        include(
+            "jacoco/testDebugUnitTest.exec",                              // Legacy location
+            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec" // AGP 8.x location
+        )
     })
 }
 
@@ -184,10 +188,12 @@ tasks.register<JacocoReport>("jacocoFullReport") {
     classDirectories.setFrom(files(debugTree))
 
     // Combine execution data from both unit tests and instrumentation tests
+    // AGP 8.x changed unit test coverage data location
     executionData.setFrom(fileTree(layout.buildDirectory) {
         include(
-            "jacoco/testDebugUnitTest.exec",                           // Unit test coverage
-            "outputs/code_coverage/debugAndroidTest/connected/**/*.ec" // UI test coverage
+            "jacoco/testDebugUnitTest.exec",                                   // Legacy unit test location
+            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec", // AGP 8.x unit test location
+            "outputs/code_coverage/debugAndroidTest/connected/**/*.ec"         // UI test coverage
         )
     })
 }
