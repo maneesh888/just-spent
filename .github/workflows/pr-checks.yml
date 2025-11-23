@@ -37,3 +37,117 @@ jobs:
     steps:
       - name: All checks passed
         run: echo "✅ All platform checks passed successfully!"
+
+  # Post coverage comment on PRs
+  coverage-comment:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [android-checks, ios-checks]
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage data artifact (for baseline comparison)
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: pr-checks.yml
+          branch: main
+          name: coverage-baseline
+          path: baseline/
+        continue-on-error: true
+
+      - name: Post Coverage Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const iosCoverage = '${{ needs.ios-checks.outputs.coverage }}' || '0.0';
+            const androidCoverage = '${{ needs.android-checks.outputs.coverage }}' || '0.0';
+
+            // Try to read baseline from main branch
+            let baselineIos = '—';
+            let baselineAndroid = '—';
+            let iosDiff = '';
+            let androidDiff = '';
+
+            const fs = require('fs');
+            try {
+              if (fs.existsSync('baseline/coverage.json')) {
+                const baseline = JSON.parse(fs.readFileSync('baseline/coverage.json', 'utf8'));
+                baselineIos = baseline.ios || '—';
+                baselineAndroid = baseline.android || '—';
+
+                if (baselineIos !== '—' && iosCoverage !== '0.0') {
+                  const diff = parseFloat(iosCoverage) - parseFloat(baselineIos);
+                  iosDiff = diff >= 0 ? ` (+${diff.toFixed(1)}%)` : ` (${diff.toFixed(1)}%) ⚠️`;
+                }
+                if (baselineAndroid !== '—' && androidCoverage !== '0.0') {
+                  const diff = parseFloat(androidCoverage) - parseFloat(baselineAndroid);
+                  androidDiff = diff >= 0 ? ` (+${diff.toFixed(1)}%)` : ` (${diff.toFixed(1)}%) ⚠️`;
+                }
+              }
+            } catch (e) {
+              console.log('No baseline found, showing current coverage only');
+            }
+
+            const body = `## 📊 Code Coverage Report
+
+            | Platform | Coverage | vs Main |
+            |----------|----------|---------|
+            | 🍎 iOS | **${iosCoverage}%** | ${baselineIos !== '—' ? baselineIos + '%' + iosDiff : 'No baseline'} |
+            | 🤖 Android | **${androidCoverage}%** | ${baselineAndroid !== '—' ? baselineAndroid + '%' + androidDiff : 'No baseline'} |
+
+            <details>
+            <summary>📁 View detailed reports</summary>
+
+            Download the coverage artifacts from the workflow run:
+            - **iOS**: \`ios-coverage-report\`
+            - **Android**: \`android-unit-coverage-report\`
+
+            </details>
+
+            ---
+            <sub>⚠️ = Coverage decreased from main branch</sub>`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c => c.body.includes('📊 Code Coverage Report'));
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Save coverage as baseline (on main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p coverage-baseline
+          echo '{"ios": "${{ needs.ios-checks.outputs.coverage }}", "android": "${{ needs.android-checks.outputs.coverage }}"}' > coverage-baseline/coverage.json
+
+      - name: Upload coverage baseline
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-baseline
+          path: coverage-baseline/
+          retention-days: 90
