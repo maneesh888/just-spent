@@ -88,7 +88,7 @@ jobs:
         working-directory: ios/JustSpent
         run: |
           # Run unit tests with coverage
-          # Important: Don't use -only-testing as it may skip coverage instrumentation for the main target
+          # IMPORTANT: Do NOT use -only-testing flag - it prevents coverage instrumentation of the main app target
           # Remove any existing result bundle first
           rm -rf ./test-results-unit.xcresult
           xcodebuild test \
@@ -96,7 +96,6 @@ jobs:
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -only-testing:JustSpentTests \
-            -derivedDataPath ./DerivedData-Coverage \
             -enableCodeCoverage YES \
             -resultBundlePath ./test-results-unit.xcresult \
             CODE_SIGN_IDENTITY="" \
@@ -113,9 +112,25 @@ jobs:
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -only-testing:JustSpentUITests \
-            -derivedDataPath ./DerivedData-Coverage \
             -enableCodeCoverage YES \
             -resultBundlePath ./test-results-ui.xcresult \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || exit 1
+
+      - name: Run All Tests for Coverage
+        working-directory: ios/JustSpent
+        run: |
+          # Run ALL tests without -only-testing flag to properly instrument the app target for coverage
+          # This is the key to getting coverage data - the app must be built with coverage enabled
+          rm -rf ./test-results-coverage.xcresult
+          xcodebuild test \
+            -project JustSpent.xcodeproj \
+            -scheme JustSpent \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -enableCodeCoverage YES \
+            -resultBundlePath ./test-results-coverage.xcresult \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -138,28 +153,35 @@ jobs:
       - name: Extract Coverage Report from xcresult
         working-directory: ios/JustSpent
         run: |
-          # Extract coverage data from unit test results
+          # Extract coverage data from combined test results (NOT the -only-testing runs)
+          # The -only-testing runs don't have coverage data - only the full test run does
           echo "=== Extracting iOS coverage from xcresult ==="
 
           # Create coverage directory
           mkdir -p coverage-report
 
-          # Extract coverage report as JSON
-          xcrun xccov view --report --json test-results-unit.xcresult > coverage-report/coverage.json || {
-            echo "⚠️  Failed to extract coverage from unit tests"
-          }
+          # Use the coverage result bundle from the full test run (no -only-testing flag)
+          COVERAGE_BUNDLE="test-results-coverage.xcresult"
 
-          # Also extract from UI tests if available
-          if [ -d "test-results-ui.xcresult" ]; then
-            xcrun xccov view --report --json test-results-ui.xcresult > coverage-report/coverage-ui.json || true
+          # Debug: List available xcresults
+          echo "Available xcresult bundles:"
+          ls -la *.xcresult 2>/dev/null || echo "No xcresult bundles found"
+
+          # Extract coverage report as JSON from the proper bundle
+          if [ -d "$COVERAGE_BUNDLE" ]; then
+            xcrun xccov view --report --json "$COVERAGE_BUNDLE" > coverage-report/coverage.json || {
+              echo "⚠️  Failed to extract coverage from $COVERAGE_BUNDLE"
+            }
+          else
+            echo "⚠️  Coverage bundle $COVERAGE_BUNDLE not found"
           fi
 
           # Generate human-readable summary
           echo "=== iOS Coverage Summary ==="
-          xcrun xccov view --report test-results-unit.xcresult 2>/dev/null | head -50 || echo "Coverage summary not available"
+          xcrun xccov view --report "$COVERAGE_BUNDLE" 2>/dev/null | head -50 || echo "Coverage summary not available"
 
           # Extract overall coverage percentage for PR comment
-          COVERAGE_PCT=$(xcrun xccov view --report --json test-results-unit.xcresult 2>/dev/null | python3 -c "
+          COVERAGE_PCT=$(xcrun xccov view --report --json "$COVERAGE_BUNDLE" 2>/dev/null | python3 -c "
           import json, sys
           try:
               data = json.load(sys.stdin)
