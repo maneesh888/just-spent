@@ -58,13 +58,18 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests with Coverage
         working-directory: android
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: |
+          # Run tests and generate coverage report in one go
+          # The --no-build-cache ensures fresh test execution
+          ./gradlew clean testDebugUnitTest jacocoUnitTestReport --no-build-cache --stacktrace
 
-      - name: Generate Unit Test Coverage Report
-        working-directory: android
-        run: ./gradlew jacocoUnitTestReport
+          # Debug: show jacoco files
+          echo "=== Checking for coverage files ==="
+          find app/build -name "*.exec" -o -name "*.xml" 2>/dev/null | grep -i jacoco || echo "No jacoco files found"
+          ls -la app/build/jacoco/ 2>/dev/null || echo "No jacoco directory"
+          ls -la app/build/reports/jacoco/unitTests/ 2>/dev/null || echo "No unitTests report directory"
 
       - name: Extract Coverage Percentage
         working-directory: android
@@ -77,26 +82,21 @@ jobs:
             # Extract line coverage from Jacoco XML
             COVERAGE_PCT=$(python3 -c "
           import xml.etree.ElementTree as ET
-          try:
-              tree = ET.parse('$COVERAGE_FILE')
-              root = tree.getroot()
-              # Find the LINE counter at root level
-              for counter in root.findall('counter'):
-                  if counter.get('type') == 'LINE':
-                      missed = int(counter.get('missed', 0))
-                      covered = int(counter.get('covered', 0))
-                      total = missed + covered
-                      if total > 0:
-                          pct = (covered / total) * 100
-                          print(f'{pct:.1f}')
-                      else:
-                          print('0.0')
-                      break
-              else:
-                  print('0.0')
-          except Exception as e:
+          tree = ET.parse('app/build/reports/jacoco/unitTests/jacocoUnitTestReport.xml')
+          root = tree.getroot()
+          for counter in root.findall('counter'):
+              if counter.get('type') == 'LINE':
+                  missed = int(counter.get('missed', 0))
+                  covered = int(counter.get('covered', 0))
+                  total = missed + covered
+                  if total > 0:
+                      print(f'{(covered / total) * 100:.1f}')
+                  else:
+                      print('0.0')
+                  break
+          else:
               print('0.0')
-          ")
+          " 2>/dev/null || echo "0.0")
             echo "Android Coverage: ${COVERAGE_PCT}%"
             echo "android_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
           else
