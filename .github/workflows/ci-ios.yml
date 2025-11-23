@@ -87,7 +87,9 @@ jobs:
       - name: Run Unit Tests
         working-directory: ios/JustSpent
         run: |
-          xcodebuild test \
+          # Clean and rebuild with coverage instrumentation, then run tests
+          # The 'test' action includes build, and coverage requires the build to be instrumented
+          xcodebuild clean test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
