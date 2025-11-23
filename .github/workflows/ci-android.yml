@@ -61,14 +61,16 @@ jobs:
       - name: Run Unit Tests with Coverage
         working-directory: android
         run: |
-          # Run tests and generate coverage report in one go
-          # The --no-build-cache ensures fresh test execution
-          ./gradlew clean testDebugUnitTest jacocoUnitTestReport --no-build-cache --stacktrace
+          # Run tests and generate coverage report
+          # --rerun-tasks forces test execution even if cached (needed for coverage .exec file)
+          # --no-build-cache prevents using/storing in Gradle build cache
+          ./gradlew clean testDebugUnitTest jacocoUnitTestReport --rerun-tasks --no-build-cache --stacktrace
 
           # Debug: show jacoco files
           echo "=== Checking for coverage files ==="
           find app/build -name "*.exec" -o -name "*.xml" 2>/dev/null | grep -i jacoco || echo "No jacoco files found"
           ls -la app/build/jacoco/ 2>/dev/null || echo "No jacoco directory"
+          ls -la app/build/outputs/unit_test_code_coverage/ 2>/dev/null || echo "No unit_test_code_coverage directory"
           ls -la app/build/reports/jacoco/unitTests/ 2>/dev/null || echo "No unitTests report directory"
 
       - name: Extract Coverage Percentage
