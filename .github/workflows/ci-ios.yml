@@ -84,90 +84,48 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Run Unit Tests
-        working-directory: ios/JustSpent
-        run: |
-          # Run unit tests with coverage
-          # IMPORTANT: Do NOT use -only-testing flag - it prevents coverage instrumentation of the main app target
-          # Remove any existing result bundle first
-          rm -rf ./test-results-unit.xcresult
-          xcodebuild test \
-            -project JustSpent.xcodeproj \
-            -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -only-testing:JustSpentTests \
-            -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-unit.xcresult \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || exit 1
-
-      - name: Run UI Tests
-        working-directory: ios/JustSpent
-        run: |
-          rm -rf ./test-results-ui.xcresult
-          xcodebuild test \
-            -project JustSpent.xcodeproj \
-            -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -only-testing:JustSpentUITests \
-            -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-ui.xcresult \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || exit 1
-
-      - name: Run All Tests for Coverage
+      - name: Run All Tests with Coverage
         working-directory: ios/JustSpent
         run: |
           # Run ALL tests without -only-testing flag to properly instrument the app target for coverage
-          # This is the key to getting coverage data - the app must be built with coverage enabled
-          rm -rf ./test-results-coverage.xcresult
+          # IMPORTANT: This must be run FIRST before any -only-testing runs, as coverage data requires
+          # the app to be built with coverage instrumentation enabled for all targets
+          rm -rf ./test-results.xcresult
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-coverage.xcresult \
+            -resultBundlePath ./test-results.xcresult \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Upload Unit Test Results
+      - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-unit-test-results
-          path: ios/JustSpent/test-results-unit.xcresult
-
-      - name: Upload UI Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ui-test-results
-          path: ios/JustSpent/test-results-ui.xcresult
+          name: ios-test-results
+          path: ios/JustSpent/test-results.xcresult
 
       - name: Extract Coverage Report from xcresult
         working-directory: ios/JustSpent
         run: |
-          # Extract coverage data from combined test results (NOT the -only-testing runs)
-          # The -only-testing runs don't have coverage data - only the full test run does
+          # Extract coverage data from the combined test results bundle
           echo "=== Extracting iOS coverage from xcresult ==="
 
           # Create coverage directory
           mkdir -p coverage-report
 
-          # Use the coverage result bundle from the full test run (no -only-testing flag)
-          COVERAGE_BUNDLE="test-results-coverage.xcresult"
+          # Use the result bundle from the full test run (no -only-testing flag)
+          COVERAGE_BUNDLE="test-results.xcresult"
 
           # Debug: List available xcresults
           echo "Available xcresult bundles:"
           ls -la *.xcresult 2>/dev/null || echo "No xcresult bundles found"
 
-          # Extract coverage report as JSON from the proper bundle
+          # Extract coverage report as JSON from the bundle
           if [ -d "$COVERAGE_BUNDLE" ]; then
             xcrun xccov view --report --json "$COVERAGE_BUNDLE" > coverage-report/coverage.json || {
               echo "⚠️  Failed to extract coverage from $COVERAGE_BUNDLE"
