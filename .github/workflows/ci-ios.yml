@@ -30,34 +30,13 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Boot Simulator and Grant Permissions
+      - name: List Available Simulators
         run: |
-          # Get simulator ID (any available iPhone 16, let Xcode choose iOS version)
-          SIMULATOR_ID=$(xcrun simctl list devices | grep "iPhone 16" | grep -v "unavailable" | head -n 1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
-
-          if [ -z "$SIMULATOR_ID" ]; then
-            echo "⚠️  Could not find iPhone 16 simulator"
-            exit 1
-          fi
-
-          echo "Found simulator: $SIMULATOR_ID"
-
-          # Boot simulator
-          echo "Booting simulator..."
-          xcrun simctl boot "$SIMULATOR_ID" || true
-
-          # Wait for simulator to fully boot
-          echo "Waiting for simulator to boot..."
-          sleep 10
-
-          # Grant permissions
-          echo "Granting microphone permission..."
-          xcrun simctl privacy "$SIMULATOR_ID" grant microphone com.justspent.app || true
-
-          echo "Granting speech recognition permission..."
-          xcrun simctl privacy "$SIMULATOR_ID" grant speech-recognition com.justspent.app || true
-
-          echo "✅ Permissions granted to iOS simulator"
+          echo "=== Available iOS Simulators ==="
+          xcrun simctl list devices available | head -50
+          echo ""
+          echo "=== Looking for iPhone simulators ==="
+          xcrun simctl list devices available | grep -E "iPhone (15|16)" | head -10 || echo "No iPhone 15/16 simulators found"
 
       - name: Cache Xcode DerivedData
         uses: actions/cache@v4
@@ -72,85 +51,86 @@ jobs:
       - name: Build iOS app
         working-directory: ios/JustSpent
         run: |
+          # Use iPhone 15 Pro which is widely available on macOS-15 runners
+          # Using specific iOS version instead of 'latest' to avoid version mismatch
           xcodebuild clean build \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Run Unit Tests
+      - name: Run All Tests with Coverage
         working-directory: ios/JustSpent
         run: |
+          # Run ALL tests without -only-testing flag to properly instrument the app target for coverage
+          # IMPORTANT: This must be run FIRST before any -only-testing runs, as coverage data requires
+          # the app to be built with coverage instrumentation enabled for all targets
+          rm -rf ./test-results.xcresult
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -only-testing:JustSpentTests \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
             -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-unit.xcresult \
+            -resultBundlePath ./test-results.xcresult \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Run UI Tests
-        working-directory: ios/JustSpent
-        run: |
-          xcodebuild test \
-            -project JustSpent.xcodeproj \
-            -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -only-testing:JustSpentUITests \
-            -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-ui.xcresult \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || exit 1
-
-      - name: Upload Unit Test Results
+      - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-unit-test-results
-          path: ios/JustSpent/test-results-unit.xcresult
-
-      - name: Upload UI Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ui-test-results
-          path: ios/JustSpent/test-results-ui.xcresult
+          name: ios-test-results
+          path: ios/JustSpent/test-results.xcresult
 
       - name: Extract Coverage Report from xcresult
+        if: always()
         working-directory: ios/JustSpent
         run: |
-          # Extract coverage data from unit test results
+          # Extract coverage data from the combined test results bundle
           echo "=== Extracting iOS coverage from xcresult ==="
 
           # Create coverage directory
           mkdir -p coverage-report
 
-          # Extract coverage report as JSON
-          xcrun xccov view --report --json test-results-unit.xcresult > coverage-report/coverage.json || {
-            echo "⚠️  Failed to extract coverage from unit tests"
-          }
+          # Use the result bundle from the full test run (no -only-testing flag)
+          COVERAGE_BUNDLE="test-results.xcresult"
 
-          # Also extract from UI tests if available
-          if [ -d "test-results-ui.xcresult" ]; then
-            xcrun xccov view --report --json test-results-ui.xcresult > coverage-report/coverage-ui.json || true
-          fi
+          # Debug: List all xcresult bundles (including in temp directories)
+          echo "Looking for xcresult bundles..."
+          ls -la *.xcresult 2>/dev/null || echo "No xcresult bundles found in current directory"
 
-          # Generate human-readable summary
-          echo "=== iOS Coverage Summary ==="
-          xcrun xccov view --report test-results-unit.xcresult 2>/dev/null | head -50 || echo "Coverage summary not available"
+          # Check if the coverage bundle exists
+          if [ ! -d "$COVERAGE_BUNDLE" ]; then
+            echo "⚠️  Coverage bundle $COVERAGE_BUNDLE not found"
+            echo "Looking for any xcresult bundles..."
+            find . -name "*.xcresult" -type d 2>/dev/null | head -5
+            COVERAGE_PCT="0.0"
+          else
+            echo "Found coverage bundle: $COVERAGE_BUNDLE"
+            ls -la "$COVERAGE_BUNDLE"
 
-          # Extract overall coverage percentage for PR comment
-          COVERAGE_PCT=$(xcrun xccov view --report --json test-results-unit.xcresult 2>/dev/null | python3 -c "
+            # Check what's inside the bundle
+            echo "Bundle contents:"
+            ls -la "$COVERAGE_BUNDLE/" 2>/dev/null || true
+
+            # Extract coverage report as JSON from the bundle
+            xcrun xccov view --report --json "$COVERAGE_BUNDLE" > coverage-report/coverage.json 2>&1 || {
+              echo "⚠️  Failed to extract coverage from $COVERAGE_BUNDLE"
+              cat coverage-report/coverage.json 2>/dev/null || true
+            }
+
+            # Generate human-readable summary
+            echo "=== iOS Coverage Summary ==="
+            xcrun xccov view --report "$COVERAGE_BUNDLE" 2>&1 | head -50 || echo "Coverage summary not available"
+
+            # Extract overall coverage percentage for PR comment
+            COVERAGE_PCT=$(xcrun xccov view --report --json "$COVERAGE_BUNDLE" 2>/dev/null | python3 -c "
           import json, sys
           try:
               data = json.load(sys.stdin)
@@ -161,12 +141,13 @@ jobs:
                           pct = target.get('lineCoverage', 0) * 100
                           print(f'{pct:.1f}')
                           sys.exit(0)
-              # Fallback to overall
+              # Fallback to overall lineCoverage
               pct = data.get('lineCoverage', 0) * 100
               print(f'{pct:.1f}')
           except:
               print('0.0')
           " || echo "0.0")
+          fi
 
           echo "iOS Coverage: ${COVERAGE_PCT}%"
           echo "ios_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
