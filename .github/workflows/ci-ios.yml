@@ -61,10 +61,11 @@ jobs:
 
       - name: Cache Xcode DerivedData
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-${{ hashFiles('**/project.pbxproj') }}
+          key: ${{ runner.os }}-xcode-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-xcode-
 
