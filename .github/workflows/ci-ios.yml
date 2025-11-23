@@ -59,15 +59,14 @@ jobs:
 
           echo "✅ Permissions granted to iOS simulator"
 
-      - name: Cache Swift Package Manager dependencies
+      - name: Cache Xcode DerivedData
         uses: actions/cache@v4
         with:
           path: |
-            ios/JustSpent/.build
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-xcode-${{ hashFiles('ios/JustSpent/JustSpent.xcodeproj/project.pbxproj') }}
           restore-keys: |
-            ${{ runner.os }}-spm-
+            ${{ runner.os }}-xcode-
 
       - name: Build iOS app
         working-directory: ios/JustSpent

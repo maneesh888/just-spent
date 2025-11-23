@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.justspent.expense.data.model.Currency
 import com.justspent.expense.utils.CurrencyFormatter
+import com.justspent.expense.utils.DateFilter
+import com.justspent.expense.utils.DateFilterUtils
 import java.math.BigDecimal
 
 /**
@@ -50,11 +52,24 @@ fun SingleCurrencyScreen(
     val uiState by viewModel.uiState.collectAsState()
     val expenses = uiState.expenses
 
-    // Calculate total for this specific currency
-    val currencyTotal = remember(expenses, currency) {
-        expenses
-            .filter { it.currency == currency.code }
-            .fold(BigDecimal.ZERO) { acc, expense -> acc.add(expense.amount) }
+    // Date filter state
+    var dateFilter by remember { mutableStateOf<DateFilter>(DateFilter.All) }
+
+    // Filter expenses by currency
+    val currencyExpenses = remember(expenses, currency) {
+        expenses.filter { it.currency == currency.code }
+    }
+
+    // Apply date filter
+    val filteredExpenses = remember(currencyExpenses, dateFilter) {
+        currencyExpenses.filter { expense ->
+            DateFilterUtils.isDateInFilter(expense.transactionDate, dateFilter)
+        }
+    }
+
+    // Calculate total for filtered expenses
+    val currencyTotal = remember(filteredExpenses) {
+        filteredExpenses.fold(BigDecimal.ZERO) { acc, expense -> acc.add(expense.amount) }
     }
 
     val formattedTotal = remember(currencyTotal, currency) {
@@ -235,13 +250,11 @@ fun SingleCurrencyScreen(
             }
 
             // Expense List
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                CurrencyExpenseListScreen(currency = currency)
-            }
+            CurrencyExpenseListScreen(
+                currency = currency,
+                dateFilter = dateFilter,
+                onDateFilterChanged = { dateFilter = it }
+            )
         }
     }
 }

@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.justspent.expense.voice.RecordingState
 import com.justspent.expense.ui.voice.VoiceExpenseViewModel
+import com.justspent.expense.ui.voice.ExtractedVoiceData
 import com.justspent.expense.lifecycle.AppLifecycleManager
 import com.justspent.expense.lifecycle.AppState
 import com.justspent.expense.voice.AutoRecordingCoordinator
@@ -157,190 +158,28 @@ fun ExpenseListWithVoiceScreen(
                 )
         ) {
             // Header Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .testTag("header_card"),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "Just Spent",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Voice-enabled expense tracker",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                            if (!hasAudioPermission) {
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = "No permission",
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
-                        ),
-                        modifier = Modifier.clip(RoundedCornerShape(12.dp))
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            Text(
-                                text = "Total",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                text = expenseUiState.formattedTotalSpending,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
+            HeaderCard(
+                hasAudioPermission = hasAudioPermission,
+                formattedTotal = expenseUiState.formattedTotalSpending
+            )
 
             // Content
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
                 if (expenseUiState.expenses.isEmpty()) {
-                    // Empty State
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp)
-                            .testTag("empty_state"),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                // Permission-aware icon similar to iOS
-                                // With permission: Mic icon (blue)
-                                // Without permission: Mic off icon (orange/error)
-                                Icon(
-                                    imageVector = if (hasAudioPermission) {
-                                        Icons.Default.Mic
-                                    } else {
-                                        Icons.Default.MicOff
-                                    },
-                                    contentDescription = if (hasAudioPermission) {
-                                        "Voice Input"
-                                    } else {
-                                        "Permission Needed"
-                                    },
-                                    modifier = Modifier
-                                        .size(60.dp)
-                                        .testTag("empty_state_icon"),
-                                    tint = if (hasAudioPermission)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        Color(0xFFFF9800) // Orange color like iOS warning
-                                )
-
-                                Spacer(modifier = Modifier.height(20.dp))
-
-                                Text(
-                                    text = "No Expenses Yet",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.testTag("empty_state_title")
-                                )
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Text(
-                                    text = if (hasAudioPermission) {
-                                        "Tap the microphone button below to record an expense"
-                                    } else {
-                                        "Grant microphone permission to use voice features"
-                                    },
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.testTag("empty_state_help_text")
-                                )
-
-                                // Show "Grant Permission" button when permission is needed (iOS-like)
-                                if (!hasAudioPermission) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    Button(
-                                        onClick = onRequestPermission,
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        Text("Grant Permission")
-                                    }
-                                }
-
-                                if (hasAudioPermission) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    Text(
-                                        text = "Try saying:",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-
-                                    Spacer(modifier = Modifier.height(8.dp))
-
-                                    Text(
-                                        text = "• \"I just spent 20 dollars on coffee\"\n" +
-                                               "• \"I spent 50 dirhams on groceries\"\n" +
-                                               "• \"I paid 100 AED for gas\"",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                        textAlign = TextAlign.Start
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    // Empty State - properly centered for tablet
+                    EmptyStateContent(
+                        hasAudioPermission = hasAudioPermission,
+                        onRequestPermission = onRequestPermission
+                    )
                 } else {
                     // Expense List
                     LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                     ) {
@@ -376,170 +215,228 @@ fun ExpenseListWithVoiceScreen(
 
         // Voice Result Dialog
         if (showVoiceResultDialog) {
-            AlertDialog(
-                onDismissRequest = {
+            VoiceResultDialog(
+                voiceResult = voiceResult,
+                onDismiss = {
                     showVoiceResultDialog = false
                     voiceViewModel.resetState()
-                },
-                title = { Text("Voice Expense Added") },
-                text = { Text(voiceResult) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showVoiceResultDialog = false
-                            voiceViewModel.resetState()
-                        }
-                    ) {
-                        Text("OK")
-                    }
                 }
             )
         }
 
         // Voice Confirmation Dialog
         if (voiceUiState.requiresConfirmation && voiceUiState.extractedData != null) {
-            val data = voiceUiState.extractedData!!
-            AlertDialog(
-                onDismissRequest = { voiceViewModel.resetState() },
-                title = { Text("Confirm Expense") },
-                text = {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Please confirm this expense:",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Amount
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Amount:",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${data.currency} ${data.amount}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-
-                        // Category
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Category:",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = data.category ?: "Other",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        // Merchant (if available)
-                        data.merchant?.let { merchant ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Merchant:",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = merchant,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-
-                        // Notes (if available)
-                        data.notes?.let { notes ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Notes:",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = notes,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-
-                        // Confidence score
-                        voiceUiState.confidenceScore?.let { confidence ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Confidence: ${(confidence * 100).toInt()}%",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            voiceViewModel.confirmExpense()
-                        }
-                    ) {
-                        Text("Confirm")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { voiceViewModel.resetState() }) {
-                        Text("Cancel")
-                    }
-                }
+            VoiceConfirmationDialog(
+                extractedData = voiceUiState.extractedData!!,
+                confidenceScore = voiceUiState.confidenceScore,
+                onConfirm = { voiceViewModel.confirmExpense() },
+                onDismiss = { voiceViewModel.resetState() }
             )
         }
 
         // Voice Error Dialog
         voiceUiState.errorMessage?.let { error ->
-            AlertDialog(
-                onDismissRequest = { voiceViewModel.resetState() },
-                title = { Text("Voice Recognition Error") },
-                text = {
-                    Column {
-                        Text(error)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Try saying: 'I just spent 20 dollars on coffee'",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { voiceViewModel.resetState() }) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { voiceViewModel.retry() }) {
-                        Text("Retry")
-                    }
-                }
+            VoiceErrorDialog(
+                error = error,
+                onDismiss = { voiceViewModel.resetState() },
+                onRetry = { voiceViewModel.retry() }
             )
         }
     }
 }
 
+// MARK: - Header Card
+@Composable
+private fun HeaderCard(
+    hasAudioPermission: Boolean,
+    formattedTotal: String
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .testTag("header_card"),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Just Spent",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Voice-enabled expense tracker",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    if (!hasAudioPermission) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "No permission",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "Total",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = formattedTotal,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Empty State Content
+@Composable
+private fun EmptyStateContent(
+    hasAudioPermission: Boolean,
+    onRequestPermission: () -> Unit
+) {
+    // Full-width column with centered, constrained content
+    Column(
+        modifier = Modifier
+            .fillMaxWidth() // Fill parent width
+            .testTag("empty_state"),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            modifier = Modifier
+                .widthIn(max = 600.dp) // Max width constraint on the Card itself
+                .fillMaxWidth(0.9f) // Use 90% of available width up to max
+                .padding(horizontal = 24.dp), // Horizontal padding
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Permission-aware icon similar to iOS
+                Icon(
+                    imageVector = if (hasAudioPermission) {
+                        Icons.Default.Mic
+                    } else {
+                        Icons.Default.MicOff
+                    },
+                    contentDescription = if (hasAudioPermission) {
+                        "Voice Input"
+                    } else {
+                        "Permission Needed"
+                    },
+                    modifier = Modifier
+                        .size(60.dp)
+                        .testTag("empty_state_icon"),
+                    tint = if (hasAudioPermission)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        Color(0xFFFF9800) // Orange color like iOS warning
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "No Expenses Yet",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.testTag("empty_state_title")
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = if (hasAudioPermission) {
+                        "Tap the microphone button below to record an expense"
+                    } else {
+                        "Grant microphone permission to use voice features"
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.testTag("empty_state_help_text")
+                )
+
+                // Show "Grant Permission" button when permission is needed (iOS-like)
+                if (!hasAudioPermission) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = onRequestPermission,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Grant Permission")
+                    }
+                }
+
+                if (hasAudioPermission) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Try saying:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "• \"I just spent 20 dollars on coffee\"\n" +
+                               "• \"I spent 50 dirhams on groceries\"\n" +
+                               "• \"I paid 100 AED for gas\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Start
+                    )
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Voice Recording FAB
 @Composable
 private fun VoiceRecordingFAB(
     hasAudioPermission: Boolean,
@@ -571,8 +468,7 @@ private fun VoiceRecordingFAB(
         // Recording indicator
         if (isRecording) {
             Card(
-                modifier = Modifier
-                    .padding(8.dp),
+                modifier = Modifier.padding(8.dp),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
@@ -633,4 +529,169 @@ private fun VoiceRecordingFAB(
             )
         }
     }
+}
+
+// MARK: - Dialogs
+
+@Composable
+private fun VoiceResultDialog(
+    voiceResult: String,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Voice Expense Added") },
+        text = { Text(voiceResult) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
+private fun VoiceConfirmationDialog(
+    extractedData: ExtractedVoiceData,
+    confidenceScore: Double?,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirm Expense") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Please confirm this expense:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Amount
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Amount:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${extractedData.currency} ${extractedData.amount}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                // Category
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Category:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = extractedData.category ?: "Other",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // Merchant (if available)
+                extractedData.merchant?.let { merchant ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Merchant:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = merchant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                // Notes (if available)
+                extractedData.notes?.let { notes ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Notes:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = notes,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                // Confidence score
+                confidenceScore?.let { confidence ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Confidence: ${(confidence * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun VoiceErrorDialog(
+    error: String,
+    onDismiss: () -> Unit,
+    onRetry: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Voice Recognition Error") },
+        text = {
+            Column {
+                Text(error)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Try saying: 'I just spent 20 dollars on coffee'",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onRetry) {
+                Text("Retry")
+            }
+        }
+    )
 }

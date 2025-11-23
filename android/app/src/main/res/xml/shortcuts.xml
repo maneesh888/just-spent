@@ -23,8 +23,8 @@
         <!-- Intent for voice expense logging -->
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.justspent.app"
-            android:targetClass="com.justspent.app.ui.voice.VoiceDeepLinkActivity"
+            android:targetPackage="com.justspent.expense"
+            android:targetClass="com.justspent.expense.ui.voice.VoiceDeepLinkActivity"
             android:data="https://justspent.app/expense">
             <extra
                 android:name="autoStartRecording"
@@ -46,8 +46,8 @@
         <!-- Intent to view expense list -->
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.justspent.app"
-            android:targetClass="com.justspent.app.MainActivity" />
+            android:targetPackage="com.justspent.expense"
+            android:targetClass="com.justspent.expense.MainActivity" />
 
         <!-- Categories for Assistant discovery -->
         <categories android:name="android.shortcut.conversation" />
@@ -64,8 +64,8 @@
         <!-- Intent for quick coffee expense -->
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.justspent.app"
-            android:targetClass="com.justspent.app.ui.voice.VoiceDeepLinkActivity"
+            android:targetPackage="com.justspent.expense"
+            android:targetClass="com.justspent.expense.ui.voice.VoiceDeepLinkActivity"
             android:data="https://justspent.app/expense?amount=5&amp;category=Food%20%26%20Dining&amp;merchant=Coffee%20Shop" />
 
         <!-- Categories for Assistant discovery -->
@@ -83,8 +83,8 @@
         <!-- Intent for quick lunch expense -->
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.justspent.app"
-            android:targetClass="com.justspent.app.ui.voice.VoiceDeepLinkActivity"
+            android:targetPackage="com.justspent.expense"
+            android:targetClass="com.justspent.expense.ui.voice.VoiceDeepLinkActivity"
             android:data="https://justspent.app/expense?amount=15&amp;category=Food%20%26%20Dining&amp;merchant=Restaurant" />
 
         <!-- Categories for Assistant discovery -->
