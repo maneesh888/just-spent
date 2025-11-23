@@ -64,7 +64,7 @@ jobs:
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-${{ hashFiles('ios/JustSpent/JustSpent.xcodeproj/project.pbxproj') }}
+          key: ${{ runner.os }}-xcode-${{ hashFiles('**/project.pbxproj') }}
           restore-keys: |
             ${{ runner.os }}-xcode-
 
