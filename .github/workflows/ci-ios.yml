@@ -66,15 +66,19 @@ jobs:
 
           echo "✅ Permissions granted to iOS simulator"
 
-      - name: Cache Xcode DerivedData
-        uses: actions/cache@v4
-        continue-on-error: true
-        with:
-          path: |
-            ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-
+      # NOTE: DerivedData caching is disabled to avoid simulator runtime version mismatches
+      # The cache was causing errors like:
+      # "No simulator runtime version from [DVTBuildVersion] available to use with iphonesimulator SDK"
+      # This happens when cached data from one Xcode version is restored in a different Xcode environment
+      # - name: Cache Xcode DerivedData
+      #   uses: actions/cache@v4
+      #   continue-on-error: true
+      #   with:
+      #     path: |
+      #       ~/Library/Developer/Xcode/DerivedData
+      #     key: ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-${{ github.sha }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-
 
       - name: Build iOS app
         working-directory: ios/JustSpent
