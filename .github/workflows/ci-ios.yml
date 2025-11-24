@@ -28,7 +28,12 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        id: xcode-version
+        run: |
+          xcodebuild -version
+          XCODE_BUILD=$(xcodebuild -version | tail -1 | awk '{print $3}')
+          echo "xcode_build=$XCODE_BUILD" >> $GITHUB_OUTPUT
+          echo "Xcode Build Version: $XCODE_BUILD"
 
       - name: Boot Simulator and Grant Permissions
         run: |
@@ -67,9 +72,9 @@ jobs:
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-${{ github.sha }}
+          key: ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-xcode-
+            ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-
 
       - name: Build iOS app
         working-directory: ios/JustSpent
