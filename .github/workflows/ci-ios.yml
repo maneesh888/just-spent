@@ -22,8 +22,8 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          # Use Xcode 16+ which supports iOS 17.0+
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || \
+          # Use Xcode 16.1 which has compatible simulator runtimes on macos-15
+          # Note: Xcode 16.2's SDK version (22C146) is incompatible with available simulator runtimes
           sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || \
           sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer
 
