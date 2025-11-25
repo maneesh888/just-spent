@@ -51,9 +51,12 @@ jobs:
           echo "Booting simulator..."
           xcrun simctl boot "$SIMULATOR_ID" || true
 
-          # Wait for simulator to fully boot
+          # Wait for simulator to fully boot (wait for bootstatus to complete)
           echo "Waiting for simulator to boot..."
-          sleep 10
+          xcrun simctl bootstatus "$SIMULATOR_ID" || true
+
+          # Additional short wait to ensure xcodebuild can recognize it
+          sleep 5
 
           # Grant permissions
           echo "Granting microphone permission..."
