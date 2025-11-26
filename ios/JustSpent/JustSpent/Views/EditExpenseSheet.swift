@@ -45,7 +45,7 @@ struct EditExpenseSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 // Currency Section (Read-only)
                 Section(header: Text("Currency")) {
@@ -70,28 +70,9 @@ struct EditExpenseSheet: View {
 
                 // Category Section
                 Section(header: Text("Category")) {
-                    Menu {
+                    Picker("Category", selection: $selectedCategory) {
                         ForEach(categories, id: \.self) { category in
-                            Button(action: {
-                                selectedCategory = category
-                            }) {
-                                HStack {
-                                    Text(category)
-                                    if selectedCategory == category {
-                                        Spacer()
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            .accessibilityIdentifier(category)
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedCategory)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.secondary)
+                            Text(category).tag(category)
                         }
                     }
                     .accessibilityIdentifier("category_picker")
