@@ -28,6 +28,10 @@ struct CurrencyExpenseListView: View {
     @State private var showDeleteConfirmation = false
     @State private var expenseToDelete: Expense?
 
+    // Edit state
+    @State private var showEditSheet = false
+    @State private var expenseToEdit: Expense?
+
     // Filtered expenses based on date filter
     private var filteredExpenses: [Expense] {
         let dateFilterUtils = DateFilterUtils.shared
@@ -129,8 +133,24 @@ struct CurrencyExpenseListView: View {
                         CurrencyExpenseRowView(expense: expense, currency: currency)
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                Button {
+                                    expenseToEdit = expense
+                                    showEditSheet = true
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                                .tint(.blue)
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    expenseToDelete = expense
+                                    showDeleteConfirmation = true
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                     }
-                    .onDelete(perform: requestDelete)
                 }
                 .listStyle(.plain)
             }
@@ -148,20 +168,17 @@ struct CurrencyExpenseListView: View {
         } message: {
             Text("Are you sure you want to delete this expense?")
         }
+        .sheet(isPresented: $showEditSheet) {
+            if let expense = expenseToEdit {
+                EditExpenseSheet(expense: expense, currency: currency)
+                    .environment(\.managedObjectContext, viewContext)
+            }
+        }
     }
 
     // Public computed property for parent views to display the total
     var totalSpendingFormatted: String {
         formattedTotal
-    }
-
-    /// Request delete confirmation for the selected expense (using filtered expenses)
-    private func requestDelete(offsets: IndexSet) {
-        // Get the expense to delete from filtered results
-        if let index = offsets.first {
-            expenseToDelete = filteredExpenses[index]
-            showDeleteConfirmation = true
-        }
     }
 
     /// Perform the actual delete after confirmation

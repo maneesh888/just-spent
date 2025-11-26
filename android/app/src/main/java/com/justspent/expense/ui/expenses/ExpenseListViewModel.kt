@@ -106,6 +106,15 @@ class ExpenseListViewModel @Inject constructor(
         }
     }
 
+    fun updateExpense(expense: Expense) {
+        viewModelScope.launch {
+            repository.updateExpense(expense)
+                .onFailure { error ->
+                    _errorMessage.value = error.message
+                }
+        }
+    }
+
     fun clearErrorMessage() {
         _errorMessage.value = null
     }
