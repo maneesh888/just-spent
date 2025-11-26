@@ -26,6 +26,9 @@ import com.justspent.expense.data.model.Expense
 import com.justspent.expense.ui.components.FilterStrip
 import com.justspent.expense.utils.DateFilter
 import com.justspent.expense.utils.DateFilterUtils
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Reusable expense list screen filtered by currency
@@ -460,8 +463,8 @@ private fun EditExpenseDialog(
                     val updatedExpense = expense.copy(
                         amount = amount,
                         category = selectedCategory,
-                        updatedAt = kotlinx.datetime.Clock.System.now()
-                            .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
+                        updatedAt = Clock.System.now()
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
                     )
                     onSave(updatedExpense)
                 },
