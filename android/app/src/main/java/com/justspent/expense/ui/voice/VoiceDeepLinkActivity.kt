@@ -30,7 +30,7 @@ import java.util.*
 
 /**
  * Activity that handles Google Assistant deep links for voice expense logging
- * URL Format: https://justspent.app/expense?amount=50&category=grocery&merchant=store&note=weekly
+ * URL Format: https://com.justspent.expense/expense?amount=50&category=grocery&merchant=store&note=weekly
  */
 @AndroidEntryPoint
 class VoiceDeepLinkActivity : ComponentActivity() {
@@ -41,6 +41,7 @@ class VoiceDeepLinkActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         // Parse the incoming intent
+        android.util.Log.d("VoiceDeepLinkActivity", "Received intent: $intent data: ${intent.data}")
         val deepLinkData = parseDeepLinkIntent(intent)
         
         setContent {

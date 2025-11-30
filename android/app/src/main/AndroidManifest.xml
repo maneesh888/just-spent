@@ -63,22 +63,13 @@
             android:resizeableActivity="true"
             android:theme="@style/Theme.JustSpent.NoActionBar"
             android:launchMode="singleTop">
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https"
-                    android:host="justspent.app"
-                    android:pathPrefix="/expense" />
-            </intent-filter>
-            
-            <!-- Support for Assistant shortcuts -->
+            <!-- Voice Deep Link Handler -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="justspent"
-                    android:host="expense" />
+                <data android:scheme="justspent" android:host="expense" />
+                <data android:scheme="justspent" android:host="view" />
             </intent-filter>
         </activity>
         
