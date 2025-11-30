@@ -225,11 +225,11 @@ jobs:
             adb install -r android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
             echo "=== Granting runtime permissions ==="
-            adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
+            adb shell pm grant com.justspent.expense android.permission.RECORD_AUDIO
 
             # Verify permissions were granted
             echo "=== Checking granted permissions ==="
-            adb shell dumpsys package com.justspent.app | grep permission || true
+            adb shell dumpsys package com.justspent.expense | grep permission || true
 
             echo "=== Starting UI tests with timeout protection ==="
             # Run tests with timeout to prevent hanging (35 minutes max for tests)

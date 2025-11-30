@@ -295,7 +295,7 @@ ExpenseRowView(
 
 **Android:**
 ```kotlin
-import com.justspent.app.ui.components.PrimaryButton
+import com.justspent.expense.ui.components.PrimaryButton
 ```
 
 ### Common Patterns

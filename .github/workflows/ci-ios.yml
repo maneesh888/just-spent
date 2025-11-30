@@ -57,6 +57,8 @@ jobs:
           echo "Granting speech recognition permission..."
           xcrun simctl privacy "$SIMULATOR_ID" grant speech-recognition com.justspent.app || true
 
+          # Note: iOS bundle ID is com.justspent.app (not changed during Android package rename)
+
           echo "✅ Permissions granted to iOS simulator"
 
       - name: Cache Xcode DerivedData
