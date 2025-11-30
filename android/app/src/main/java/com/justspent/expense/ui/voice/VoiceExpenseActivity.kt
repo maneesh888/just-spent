@@ -46,7 +46,7 @@ class VoiceExpenseActivity : ComponentActivity() {
     
     private fun parseDeepLinkIntent(intent: Intent) {
         val data: Uri? = intent.data
-        if (data != null && data.scheme == "https" && data.host == "justspent.app") {
+        if (data != null && data.scheme == "https" && data.host == "com.justspent.expense") {
             val amount = data.getQueryParameter("amount")
             val category = data.getQueryParameter("category")
             val merchant = data.getQueryParameter("merchant")

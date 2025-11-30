@@ -25,7 +25,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.justspent.expense"
             android:targetClass="com.justspent.expense.ui.voice.VoiceDeepLinkActivity"
-            android:data="https://justspent.app/expense">
+            android:data="justspent://expense">
             <extra
                 android:name="autoStartRecording"
                 android:value="true" />
@@ -66,7 +66,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.justspent.expense"
             android:targetClass="com.justspent.expense.ui.voice.VoiceDeepLinkActivity"
-            android:data="https://justspent.app/expense?amount=5&amp;category=Food%20%26%20Dining&amp;merchant=Coffee%20Shop" />
+            android:data="justspent://expense?amount=5&amp;category=Food%20%26%20Dining&amp;merchant=Coffee%20Shop" />
 
         <!-- Categories for Assistant discovery -->
         <categories android:name="android.shortcut.conversation" />
@@ -85,7 +85,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.justspent.expense"
             android:targetClass="com.justspent.expense.ui.voice.VoiceDeepLinkActivity"
-            android:data="https://justspent.app/expense?amount=15&amp;category=Food%20%26%20Dining&amp;merchant=Restaurant" />
+            android:data="justspent://expense?amount=15&amp;category=Food%20%26%20Dining&amp;merchant=Restaurant" />
 
         <!-- Categories for Assistant discovery -->
         <categories android:name="android.shortcut.conversation" />

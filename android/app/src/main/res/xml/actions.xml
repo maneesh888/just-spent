@@ -19,7 +19,7 @@
 
     <!-- Log Expense Action using CREATE_MONEY_TRANSFER Built-in Intent -->
     <action intentName="actions.intent.CREATE_MONEY_TRANSFER">
-        <fulfillment urlTemplate="https://justspent.app/expense{?amount,currency,category,merchant,note}">
+        <fulfillment urlTemplate="justspent://expense{?amount,currency,category,merchant,note}">
             <!-- Amount mapping -->
             <parameter-mapping
                 intentParameter="moneyTransfer.amount.value"
@@ -50,7 +50,7 @@
     
     <!-- View Expenses Action -->
     <action intentName="actions.intent.GET_FINANCIAL_ACCOUNT">
-        <fulfillment urlTemplate="https://justspent.app/view{?period,category}">
+        <fulfillment urlTemplate="justspent://view{?period,category}">
             <parameter-mapping
                 intentParameter="temporalCoverage.endDate"
                 urlParameter="period" />
@@ -62,7 +62,7 @@
     
     <!-- Custom Quick Expense Action -->
     <action intentName="custom.actions.intent.QUICK_EXPENSE">
-        <fulfillment urlTemplate="https://justspent.app/expense{?command}">
+        <fulfillment urlTemplate="justspent://expense{?command}">
             <parameter-mapping
                 intentParameter="text"
                 urlParameter="command" />
@@ -71,7 +71,7 @@
     
     <!-- Natural Language Expense Action -->
     <action intentName="actions.intent.CREATE_THING">
-        <fulfillment urlTemplate="https://justspent.app/expense{?command}">
+        <fulfillment urlTemplate="justspent://expense{?command}">
             <parameter-mapping
                 intentParameter="thing.name"
                 urlParameter="command" />
@@ -79,6 +79,11 @@
         <parameter name="thing.name">
             <entity-set-reference entitySetId="ExpenseCommands" />
         </parameter>
+    </action>
+
+    <!-- Fallback Action: Open App Feature -->
+    <action intentName="actions.intent.OPEN_APP_FEATURE">
+        <fulfillment urlTemplate="justspent://expense" />
     </action>
 
     <!-- Entity Sets -->
