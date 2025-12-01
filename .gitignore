@@ -85,3 +85,7 @@ ios/fastlane/certs/
 ios/fastlane/profiles/
 android/app/keystore.jks
 android/keystore.properties
+# Temporary documentation from previous sessions
+docs/DEPLOYMENT-INCIDENT-*.md
+docs/MERGE-CONFLICT-RESOLUTION.md
+docs/RELEASE-WORKFLOW-QUICK-REF.md
