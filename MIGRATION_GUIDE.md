@@ -287,7 +287,7 @@ Ensure `Localizable.strings` is included in the app target:
 Create `android/app/src/main/java/com/justspent/app/constants/AppConstants.kt`:
 
 ```kotlin
-package com.justspent.app.constants
+package com.justspent.expense.constants
 
 object AppConstants {
 
@@ -362,9 +362,9 @@ object AppConstants {
 Create `android/app/src/main/java/com/justspent/app/util/VoiceCommandParser.kt`:
 
 ```kotlin
-package com.justspent.app.util
+package com.justspent.expense.util
 
-import com.justspent.app.constants.AppConstants
+import com.justspent.expense.constants.AppConstants
 
 data class ParsedExpenseData(
     val amount: Double?,
@@ -484,8 +484,8 @@ import IntentsUI
 ```kotlin
 import android.content.Context
 import androidx.compose.runtime.*
-import com.justspent.app.constants.AppConstants
-import com.justspent.app.util.VoiceCommandParser
+import com.justspent.expense.constants.AppConstants
+import com.justspent.expense.util.VoiceCommandParser
 ```
 
 ---
