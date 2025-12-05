@@ -227,7 +227,7 @@ Test deep links directly without Google Assistant:
 ```bash
 adb shell am start -a android.intent.action.VIEW \
   -d "https://justspent.app/expense?command=I%20spent%2050%20dirhams%20on%20groceries" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 **Expected**: VoiceDeepLinkActivity opens, processes command, shows expense details
@@ -236,7 +236,7 @@ adb shell am start -a android.intent.action.VIEW \
 ```bash
 adb shell am start -a android.intent.action.VIEW \
   -d "https://justspent.app/expense?amount=100&currency=USD&category=Food%20%26%20Dining&merchant=Starbucks" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 **Expected**: VoiceDeepLinkActivity opens, uses structured data path, high confidence save
@@ -245,7 +245,7 @@ adb shell am start -a android.intent.action.VIEW \
 ```bash
 adb shell am start -a android.intent.action.VIEW \
   -d "https://justspent.app/expense?amount=50&currency=AED&category=Grocery" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 **Expected**: Expense saved with AED currency, not default currency
@@ -254,7 +254,7 @@ adb shell am start -a android.intent.action.VIEW \
 ```bash
 adb shell am start -a android.intent.action.VIEW \
   -d "justspent://expense?amount=25&category=Food" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 **Expected**: VoiceDeepLinkActivity opens via custom scheme
@@ -263,7 +263,7 @@ adb shell am start -a android.intent.action.VIEW \
 ```bash
 adb shell am start -a android.intent.action.VIEW \
   -d "https://justspent.app/view?period=today&category=Food" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 **Expected**: Main app opens, filtered by today + Food category (if implemented)
@@ -297,16 +297,16 @@ adb shell am start -a android.intent.action.VIEW \
 **Solutions:**
 ```bash
 # Verify deep link configuration
-adb shell dumpsys package com.justspent.app | grep -A 20 "Intent Filter"
+adb shell dumpsys package com.justspent.expense | grep -A 20 "Intent Filter"
 
 # Check if VoiceDeepLinkActivity is exported
 # Should show: android:exported=true
-adb shell dumpsys package com.justspent.app | grep VoiceDeepLinkActivity
+adb shell dumpsys package com.justspent.expense | grep VoiceDeepLinkActivity
 
 # Test deep link manually
 adb shell am start -a android.intent.action.VIEW \
   -d "https://justspent.app/expense?amount=50" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 **Checklist:**
@@ -325,12 +325,12 @@ adb shell am start -a android.intent.action.VIEW \
 **Solutions:**
 1. Clear default app associations:
 ```bash
-adb shell pm clear-default-for-app com.justspent.app
+adb shell pm clear-default-for-app com.justspent.expense
 ```
 
 2. Make your app the default handler:
 ```bash
-adb shell pm set-app-link com.justspent.app 0
+adb shell pm set-app-link com.justspent.expense 0
 ```
 
 3. Verify intent filter priority in manifest
@@ -349,7 +349,7 @@ adb shell pm set-app-link com.justspent.app 0
 # Instead of &, use %26
 adb shell am start -a android.intent.action.VIEW \
   -d "https://justspent.app/expense?command=I%20spent%2050%20dirhams%20on%20groceries" \
-  com.justspent.app
+  com.justspent.expense
 ```
 
 2. Check logcat for parsing errors:
@@ -401,11 +401,11 @@ adb logcat | grep "Extracted:"
 **Solutions:**
 ```bash
 # Grant permission manually
-adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
-adb shell pm grant com.justspent.app android.permission.MODIFY_AUDIO_SETTINGS
+adb shell pm grant com.justspent.expense android.permission.RECORD_AUDIO
+adb shell pm grant com.justspent.expense android.permission.MODIFY_AUDIO_SETTINGS
 
 # Check permission status
-adb shell dumpsys package com.justspent.app | grep permission
+adb shell dumpsys package com.justspent.expense | grep permission
 
 # Reset all permissions
 adb shell pm reset-permissions
@@ -490,8 +490,8 @@ adb shell setprop persist.sys.locale en-US  # English (US)
 adb shell setprop persist.sys.locale en-GB  # English (UK)
 
 # Restart app
-adb shell am force-stop com.justspent.app
-adb shell am start com.justspent.app/.MainActivity
+adb shell am force-stop com.justspent.expense
+adb shell am start com.justspent.expense/.MainActivity
 ```
 
 ---
