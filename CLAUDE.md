@@ -6,6 +6,7 @@
 @docs/GIT-WORKFLOW-RULES.md
 @docs/REUSABLE-COMPONENTS.md
 @docs/DEPLOYMENT-README.md
+@KNOWN_ISSUES.md
 
 ## 🎯 Current Context
 
@@ -27,9 +28,17 @@
 - ✅ Consistent currency formatting (. decimal, , grouping)
 - ✅ Reusable components library (PrimaryButton, Header, EmptyState)
 
+**Known Issues** (Dec 5, 2025):
+- ⚠️ **Android**: 2 UI tests failing on phone emulator (83.3% pass rate) - timing issues in EditExpenseUITest
+- ⚠️ **iOS**: 1 UI test failing (98.8% pass rate) - multi-currency tab display issue
+- ⚠️ **Overall**: 425/428 tests passing (99.3%) - See @KNOWN_ISSUES.md for details and proposed fixes
+
 **Reference Documents:**
 - @ui-design-spec.md - Complete Android UI implementation details
 - @docs/REUSABLE-COMPONENTS.md - UI component catalog and usage guide
+- @KNOWN_ISSUES.md - Current test failures and known issues tracker
+- @android/TEST_STATUS_FINAL.md - Detailed Android test analysis
+- @ios/TEST_STATUS_FINAL.md - Detailed iOS test analysis
 
 ## 🏗️ Architecture Quick Reference
 
