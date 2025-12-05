@@ -1,14 +1,25 @@
 package com.justspent.expense
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.justspent.expense.data.database.JustSpentDatabase
+import com.justspent.expense.data.model.Expense
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.math.BigDecimal
+import javax.inject.Inject
 
 /**
  * UI tests for edit expense functionality
@@ -25,11 +36,67 @@ class EditExpenseUITest {
     @get:Rule(order = 1)
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
+    @Inject
+    lateinit var database: JustSpentDatabase
+
     @Before
-    fun setUp() {
+    fun setUp() = runBlocking {
         hiltRule.inject()
-        // Wait for app to load
+
+        // Skip onboarding for tests
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("has_completed_onboarding", true).apply()
+
+        // Add test data for edit tests
+        val dao = database.expenseDao()
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+
+        val testExpenses = listOf(
+            Expense(
+                amount = BigDecimal("150.00"),
+                currency = "AED",
+                category = "Grocery",
+                merchant = "Carrefour",
+                notes = "Weekly groceries",
+                transactionDate = now,
+                createdAt = now,
+                updatedAt = now,
+                source = "voice",
+                voiceTranscript = "I spent 150 dirhams on groceries"
+            ),
+            Expense(
+                amount = BigDecimal("50.00"),
+                currency = "AED",
+                category = "Food & Dining",
+                merchant = "Starbucks",
+                notes = "Morning coffee",
+                transactionDate = now,
+                createdAt = now,
+                updatedAt = now,
+                source = "manual"
+            ),
+            Expense(
+                amount = BigDecimal("200.00"),
+                currency = "AED",
+                category = "Transportation",
+                merchant = "ENOC",
+                notes = "Gas refill",
+                transactionDate = now,
+                createdAt = now,
+                updatedAt = now,
+                source = "voice",
+                voiceTranscript = "200 dirhams for gas"
+            )
+        )
+
+        testExpenses.forEach { dao.insertExpense(it) }
+
+        Log.d("EditExpenseUITest", "✅ Inserted ${testExpenses.size} test expenses")
+
+        // Wait for app to load and UI to update
         composeTestRule.waitForIdle()
+        Thread.sleep(2000) // Give time for data to load and display
     }
 
     // MARK: - Swipe to Edit Tests
@@ -168,7 +235,7 @@ class EditExpenseUITest {
         // When - Click on category dropdown
         composeTestRule.onNodeWithTag("category_dropdown").performClick()
         composeTestRule.waitForIdle()
-        Thread.sleep(300)
+        Thread.sleep(1500) // Increased to 1500ms for reliable dropdown expansion
 
         // Then - Category options should appear
         // Check for at least one common category
@@ -270,7 +337,23 @@ class EditExpenseUITest {
         // Given - Open edit dialog
         openEditDialog()
 
+        // Wait for dialog to fully render
+        Thread.sleep(1500)
+        composeTestRule.waitForIdle()
+
+        // First verify the dialog itself is showing
+        composeTestRule.onNodeWithText("Edit Expense").assertExists()
+
         // Then - All interactive elements should exist and be clickable
+        // Try to find buttons with extended wait - use onAllNodesWithText to check if they exist at all
+        val cancelNodes = composeTestRule.onAllNodesWithText("Cancel", substring = true, ignoreCase = true)
+        val cancelCount = cancelNodes.fetchSemanticsNodes().size
+        if (cancelCount == 0) {
+            // Print semantics tree for debugging
+            composeTestRule.onRoot().printToLog("SEMANTICS")
+            throw AssertionError("Cancel button not found in dialog. Found $cancelCount nodes.")
+        }
+
         composeTestRule.onNodeWithText("Cancel").assertHasClickAction()
         composeTestRule.onNodeWithText("Save").assertHasClickAction()
         composeTestRule.onNodeWithTag("amount_field").assertExists()
@@ -326,8 +409,11 @@ class EditExpenseUITest {
             0
         }
 
+        Log.d("EditExpenseUITest", "Found $rowCount expense rows")
+
         if (rowCount == 0) {
             // No expenses to test with
+            Log.d("EditExpenseUITest", "ERROR: No expense rows found! Test data may not be visible to UI.")
             return
         }
 
@@ -337,6 +423,6 @@ class EditExpenseUITest {
             swipeRight()
         }
         composeTestRule.waitForIdle()
-        Thread.sleep(500)
+        Thread.sleep(2000) // Increased to 2000ms for reliable dialog animation across all emulators
     }
 }
