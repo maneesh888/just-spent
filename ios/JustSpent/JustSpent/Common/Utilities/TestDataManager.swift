@@ -153,54 +153,73 @@ class TestDataManager {
         print("✅ Created 5 test expenses in AED")
     }
 
-    /// Populate multi-currency test data
+    /// Populate multi-currency test data with extensive entries for pagination testing
     private func populateMultiCurrencyData(context: NSManagedObjectContext) {
         let calendar = Calendar.current
         let today = Date()
 
-        // Create test expenses across multiple currencies
-        let testExpenses: [(amount: Double, currency: String, category: String, merchant: String?, daysAgo: Int)] = [
-            // AED expenses
-            (150.00, "AED", "Grocery", "Carrefour", 0),
-            (50.00, "AED", "Food & Dining", "Starbucks", 1),
-            (200.00, "AED", "Transportation", "Uber", 2),
-
-            // USD expenses
-            (25.00, "USD", "Food & Dining", "McDonald's", 0),
-            (100.00, "USD", "Shopping", "Amazon", 1),
-            (45.00, "USD", "Entertainment", "Cinema", 3),
-
-            // EUR expenses
-            (20.00, "EUR", "Food & Dining", "Cafe", 0),
-            (80.00, "EUR", "Shopping", "Store", 2),
-
-            // GBP expenses
-            (15.00, "GBP", "Food & Dining", "Pub", 1),
-            (60.00, "GBP", "Transportation", "Train", 3),
-
-            // INR expenses
-            (500.00, "INR", "Grocery", "Local Market", 0),
-            (200.00, "INR", "Food & Dining", "Restaurant", 1),
-
-            // SAR expenses
-            (75.00, "SAR", "Shopping", "Mall", 2),
-            (30.00, "SAR", "Food & Dining", "Fast Food", 3)
+        // Categories and merchants for varied data
+        let categories = ["Grocery", "Food & Dining", "Transportation", "Shopping", "Entertainment",
+                         "Bills & Utilities", "Healthcare", "Education"]
+        let merchantsByCategory: [String: [String]] = [
+            "Grocery": ["Carrefour", "Lulu", "Spinneys", "Waitrose", "Choithrams"],
+            "Food & Dining": ["Starbucks", "McDonald's", "KFC", "Shake Shack", "Five Guys", "Costa Coffee"],
+            "Transportation": ["Uber", "Careem", "RTA", "ENOC", "ADNOC", "Shell"],
+            "Shopping": ["Amazon", "Mall", "H&M", "Zara", "Noon", "Souq"],
+            "Entertainment": ["VOX Cinemas", "Reel Cinemas", "Dubai Parks", "IMG Worlds", "Ski Dubai"],
+            "Bills & Utilities": ["DEWA", "ADDC", "Du", "Etisalat", "Netflix", "Spotify"],
+            "Healthcare": ["Pharmacy", "Clinic", "Hospital", "Lab", "Dentist"],
+            "Education": ["School", "Course", "Books", "Tuition", "University"]
         ]
 
-        for expenseData in testExpenses {
-            let expense = Expense(context: context)
-            expense.id = UUID()
-            expense.amount = NSDecimalNumber(value: expenseData.amount)
-            expense.currency = expenseData.currency
-            expense.category = expenseData.category
-            expense.merchant = expenseData.merchant
-            expense.transactionDate = calendar.date(byAdding: .day, value: -expenseData.daysAgo, to: today)
-            expense.createdAt = Date()
-            expense.updatedAt = Date()
-            expense.source = AppConstants.ExpenseSource.manual
-            expense.status = "active"
+        // Currency configurations with realistic amount ranges
+        let currencyConfigs: [(code: String, minAmount: Double, maxAmount: Double, count: Int)] = [
+            ("AED", 10.0, 500.0, 50),   // 50 AED expenses
+            ("USD", 5.0, 200.0, 40),     // 40 USD expenses
+            ("EUR", 5.0, 150.0, 30),     // 30 EUR expenses
+            ("GBP", 3.0, 120.0, 25),     // 25 GBP expenses
+            ("INR", 100.0, 5000.0, 20),  // 20 INR expenses
+            ("SAR", 10.0, 400.0, 15)     // 15 SAR expenses
+        ]
+
+        var totalExpenses = 0
+
+        for config in currencyConfigs {
+            for i in 0..<config.count {
+                let expense = Expense(context: context)
+                expense.id = UUID()
+
+                // Random amount within range
+                let amount = Double.random(in: config.minAmount...config.maxAmount)
+                expense.amount = NSDecimalNumber(value: round(amount * 100) / 100)
+                expense.currency = config.code
+
+                // Random category
+                let category = categories.randomElement()!
+                expense.category = category
+
+                // Random merchant from category
+                if let merchants = merchantsByCategory[category] {
+                    expense.merchant = merchants.randomElement()
+                } else {
+                    expense.merchant = "Merchant \(i + 1)"
+                }
+
+                // Varied dates over past 90 days
+                let daysAgo = Int.random(in: 0...90)
+                expense.transactionDate = calendar.date(byAdding: .day, value: -daysAgo, to: today)
+                expense.createdAt = Date()
+                expense.updatedAt = Date()
+
+                // Mix of manual and voice sources
+                expense.source = i % 3 == 0 ? AppConstants.ExpenseSource.voiceSiri : AppConstants.ExpenseSource.manual
+                expense.status = "active"
+
+                totalExpenses += 1
+            }
         }
 
-        print("✅ Created \(testExpenses.count) test expenses across 6 currencies (AED, USD, EUR, GBP, INR, SAR)")
+        print("✅ Created \(totalExpenses) test expenses across 6 currencies (50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR)")
+        print("ℹ️  Data spans 90 days with varied categories and merchants for pagination testing")
     }
 }

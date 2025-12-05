@@ -33,176 +33,74 @@ object TestDataHelper {
         // Clear existing expenses for clean test state
         // Note: This deletes ALL expenses - use only in test environment
 
-        val testExpenses = listOf(
-            // AED Expenses (5 items, total: 650.00 AED)
-            Expense(
-                amount = BigDecimal("150.00"),
-                currency = "AED",
-                category = "Grocery",
-                merchant = "Carrefour",
-                notes = "Weekly groceries",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "I spent 150 dirhams on groceries at Carrefour"
-            ),
-            Expense(
-                amount = BigDecimal("50.00"),
-                currency = "AED",
-                category = "Food & Dining",
-                merchant = "Starbucks",
-                notes = "Morning coffee",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-            Expense(
-                amount = BigDecimal("200.00"),
-                currency = "AED",
-                category = "Transportation",
-                merchant = "ENOC",
-                notes = "Gas refill",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "200 dirhams for gas"
-            ),
-            Expense(
-                amount = BigDecimal("120.00"),
-                currency = "AED",
-                category = "Shopping",
-                merchant = "H&M",
-                notes = "Clothes shopping",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-            Expense(
-                amount = BigDecimal("130.50"),
-                currency = "AED",
-                category = "Entertainment",
-                merchant = "VOX Cinemas",
-                notes = "Movie tickets",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "I just spent 130 dirhams and 50 fils at VOX Cinemas"
-            ),
+        // Generate extensive test data for pagination testing
+        val testExpenses = mutableListOf<Expense>()
 
-            // USD Expenses (4 items, total: 285.99 USD)
-            Expense(
-                amount = BigDecimal("99.99"),
-                currency = "USD",
-                category = "Shopping",
-                merchant = "Amazon",
-                notes = "Online shopping",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-            Expense(
-                amount = BigDecimal("45.00"),
-                currency = "USD",
-                category = "Food & Dining",
-                merchant = "McDonald's",
-                notes = "Lunch",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "45 dollars at McDonald's"
-            ),
-            Expense(
-                amount = BigDecimal("120.00"),
-                currency = "USD",
-                category = "Bills & Utilities",
-                merchant = "Electricity Company",
-                notes = "Monthly electricity bill",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-            Expense(
-                amount = BigDecimal("21.00"),
-                currency = "USD",
-                category = "Transportation",
-                merchant = "Uber",
-                notes = "Ride to office",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "I spent 21 dollars on Uber"
-            ),
-
-            // EUR Expenses (3 items, total: 198.50 EUR)
-            Expense(
-                amount = BigDecimal("78.50"),
-                currency = "EUR",
-                category = "Food & Dining",
-                merchant = "Local Restaurant",
-                notes = "Dinner with friends",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-            Expense(
-                amount = BigDecimal("65.00"),
-                currency = "EUR",
-                category = "Healthcare",
-                merchant = "Pharmacy",
-                notes = "Medication",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "65 euros at pharmacy"
-            ),
-            Expense(
-                amount = BigDecimal("55.00"),
-                currency = "EUR",
-                category = "Entertainment",
-                merchant = "Concert Hall",
-                notes = "Concert tickets",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-
-            // GBP Expenses (2 items, total: 89.99 GBP)
-            Expense(
-                amount = BigDecimal("44.99"),
-                currency = "GBP",
-                category = "Shopping",
-                merchant = "Marks & Spencer",
-                notes = "Groceries",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "manual"
-            ),
-            Expense(
-                amount = BigDecimal("45.00"),
-                currency = "GBP",
-                category = "Transportation",
-                merchant = "National Rail",
-                notes = "Train ticket",
-                transactionDate = now,
-                createdAt = now,
-                updatedAt = now,
-                source = "voice",
-                voiceTranscript = "45 pounds for train"
-            )
+        // Categories and merchants for varied data
+        val categories = listOf("Grocery", "Food & Dining", "Transportation", "Shopping", "Entertainment",
+                               "Bills & Utilities", "Healthcare", "Education")
+        val merchantsByCategory = mapOf(
+            "Grocery" to listOf("Carrefour", "Lulu", "Spinneys", "Waitrose", "Choithrams"),
+            "Food & Dining" to listOf("Starbucks", "McDonald's", "KFC", "Shake Shack", "Five Guys", "Costa Coffee"),
+            "Transportation" to listOf("Uber", "Careem", "RTA", "ENOC", "ADNOC", "Shell"),
+            "Shopping" to listOf("Amazon", "Mall", "H&M", "Zara", "Noon", "Souq"),
+            "Entertainment" to listOf("VOX Cinemas", "Reel Cinemas", "Dubai Parks", "IMG Worlds", "Ski Dubai"),
+            "Bills & Utilities" to listOf("DEWA", "ADDC", "Du", "Etisalat", "Netflix", "Spotify"),
+            "Healthcare" to listOf("Pharmacy", "Clinic", "Hospital", "Lab", "Dentist"),
+            "Education" to listOf("School", "Course", "Books", "Tuition", "University")
         )
+
+        // Currency configurations with realistic amount ranges
+        val currencyConfigs = listOf(
+            Triple("AED", Pair(10.0, 500.0), 50),   // 50 AED expenses
+            Triple("USD", Pair(5.0, 200.0), 40),     // 40 USD expenses
+            Triple("EUR", Pair(5.0, 150.0), 30),     // 30 EUR expenses
+            Triple("GBP", Pair(3.0, 120.0), 25),     // 25 GBP expenses
+            Triple("INR", Pair(100.0, 5000.0), 20),  // 20 INR expenses
+            Triple("SAR", Pair(10.0, 400.0), 15)     // 15 SAR expenses
+        )
+
+        for ((currencyCode, amountRange, count) in currencyConfigs) {
+            for (i in 0 until count) {
+                // Random amount within range
+                val amount = (amountRange.first + Math.random() * (amountRange.second - amountRange.first))
+                val roundedAmount = String.format("%.2f", amount)
+
+                // Random category
+                val category = categories.random()
+
+                // Random merchant from category
+                val merchant = merchantsByCategory[category]?.random() ?: "Merchant ${i + 1}"
+
+                // Varied dates over past 90 days
+                val daysAgo = (Math.random() * 90).toLong()
+                val transactionDate = now.date.minusDays(daysAgo).atTime(12, 0, 0, 0)
+                    .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
+
+                // Mix of manual and voice sources
+                val source = if (i % 3 == 0) "voice" else "manual"
+                val voiceTranscript = if (source == "voice")
+                    "I spent $roundedAmount $currencyCode at $merchant" else null
+
+                testExpenses.add(
+                    Expense(
+                        amount = BigDecimal(roundedAmount),
+                        currency = currencyCode,
+                        category = category,
+                        merchant = merchant,
+                        notes = if (i % 2 == 0) "Test expense $i" else null,
+                        transactionDate = transactionDate,
+                        createdAt = now,
+                        updatedAt = now,
+                        source = source,
+                        voiceTranscript = voiceTranscript
+                    )
+                )
+            }
+        }
+
+        println("✅ Generated ${testExpenses.size} test expenses across 6 currencies (50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR)")
+        println("ℹ️  Data spans 90 days with varied categories and merchants for pagination testing")
 
         // Insert all test expenses
         testExpenses.forEach { expense ->
