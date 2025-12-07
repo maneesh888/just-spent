@@ -10,15 +10,15 @@ coverage:
   status:
     project:
       default:
-        target: 80%
-        threshold: 5%
+        target: 100%
+        threshold: 0%
         base: auto
         if_ci_failed: error
 
     patch:
       default:
-        target: 70%
-        threshold: 5%
+        target: 100%
+        threshold: 0%
         base: auto
 
 # Flags for different platforms

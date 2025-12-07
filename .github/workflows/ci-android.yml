@@ -70,8 +70,8 @@ jobs:
         working-directory: android
         id: android-coverage
         run: |
-          # Extract coverage percentage from Jacoco XML report
-          COVERAGE_FILE="app/build/reports/jacoco/unitTests/jacocoUnitTestReport.xml"
+          # Extract coverage percentage from Jacoco FULL report (includes UI tests)
+          COVERAGE_FILE="app/build/reports/jacoco/fullCoverage/jacocoFullReport.xml"
 
           if [ -f "$COVERAGE_FILE" ]; then
             # Extract line coverage from Jacoco XML
@@ -97,11 +97,25 @@ jobs:
           except Exception as e:
               print('0.0')
           ")
-            echo "Android Coverage: ${COVERAGE_PCT}%"
+            echo "Android Full Coverage: ${COVERAGE_PCT}%"
             echo "android_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
+            
+            # Check strict coverage requirement
+            if (( $(echo "$COVERAGE_PCT < 100.0" | bc -l) )); then
+               echo "::error::Coverage is ${COVERAGE_PCT}%, but 100% is required!"
+               # We don't fail properly yet to allow the report to be uploaded/commented
+               # but ideally we should fail here if strict. 
+               # For now, let's allow it to pass so we can see the result, but mark error.
+               # If user wants strict failure immediately, we'd exit 1.
+               # Given "Strict 100% Enforcement", I will make it fail.
+               echo "STRICT COVERAGE ENFORCEMENT: FAILED"
+               exit 1
+            fi
+            
           else
-            echo "Coverage file not found"
+            echo "Coverage file not found at $COVERAGE_FILE"
             echo "android_coverage=0.0" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
       - name: Upload Unit Test Results

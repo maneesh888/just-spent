@@ -137,26 +137,35 @@ jobs:
           # Create coverage directory
           mkdir -p coverage-report
 
-          # Extract coverage report as JSON
-          xcrun xccov view --report --json test-results-unit.xcresult > coverage-report/coverage.json || {
-            echo "⚠️  Failed to extract coverage from unit tests"
-          }
-
-          # Also extract from UI tests if available
-          if [ -d "test-results-ui.xcresult" ]; then
-            xcrun xccov view --report --json test-results-ui.xcresult > coverage-report/coverage-ui.json || true
+          # MERGE reports if both exist
+          if [ -d "test-results-ui.xcresult" ] && [ -d "test-results-unit.xcresult" ]; then
+             echo "Merging Unit and UI test results..."
+             xcrun xcresulttool merge test-results-unit.xcresult test-results-ui.xcresult --output-path test-results-merged.xcresult
+             REPORT_PATH="test-results-merged.xcresult"
+          elif [ -d "test-results-unit.xcresult" ]; then
+             echo "Using only Unit test results..."
+             REPORT_PATH="test-results-unit.xcresult"
+          else
+             echo "⚠️  No test results found"
+             exit 1
           fi
+
+          # Extract coverage report as JSON from the (potentially merged) report
+          xcrun xccov view --report --json "$REPORT_PATH" > coverage-report/coverage.json || {
+            echo "⚠️  Failed to extract coverage from tests"
+          }
 
           # Generate human-readable summary
           echo "=== iOS Coverage Summary ==="
-          xcrun xccov view --report test-results-unit.xcresult 2>/dev/null | head -50 || echo "Coverage summary not available"
+          xcrun xccov view --report "$REPORT_PATH" 2>/dev/null | head -50 || echo "Coverage summary not available"
 
           # Extract overall coverage percentage for PR comment
-          COVERAGE_PCT=$(xcrun xccov view --report --json test-results-unit.xcresult 2>/dev/null | python3 -c "
+          COVERAGE_PCT=$(xcrun xccov view --report --json "$REPORT_PATH" 2>/dev/null | python3 -c "
           import json, sys
           try:
               data = json.load(sys.stdin)
               # Get line coverage from targets
+              # We want 'JustSpent.app' target specifically
               if 'targets' in data:
                   for target in data['targets']:
                       if target.get('name', '').endswith('.app'):
@@ -170,8 +179,15 @@ jobs:
               print('0.0')
           " || echo "0.0")
 
-          echo "iOS Coverage: ${COVERAGE_PCT}%"
+          echo "iOS Full Coverage: ${COVERAGE_PCT}%"
           echo "ios_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
+          
+          # Check strict coverage requirement
+          if (( $(echo "$COVERAGE_PCT < 100.0" | bc -l) )); then
+             echo "::error::Coverage is ${COVERAGE_PCT}%, but 100% is required!"
+             echo "STRICT COVERAGE ENFORCEMENT: FAILED"
+             exit 1
+          fi
         id: ios-coverage
 
       - name: Upload iOS Coverage Report
