@@ -6,7 +6,11 @@ import com.justspent.expense.data.database.JustSpentDatabase
 import com.justspent.expense.data.model.Expense
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import java.math.BigDecimal
 
@@ -19,8 +23,10 @@ object TestDataHelper {
     /**
      * Add comprehensive test expenses across multiple currencies
      * @param context Application context
+     * @param usePaginationDataset If true, generates 180 expenses for pagination testing.
+     *                             If false, generates 14 expenses (default for regular tests).
      */
-    fun addTestExpenses(context: Context) = runBlocking {
+    fun addTestExpenses(context: Context, usePaginationDataset: Boolean = false) = runBlocking {
         val database = Room.databaseBuilder(
             context,
             JustSpentDatabase::class.java,
@@ -51,14 +57,26 @@ object TestDataHelper {
         )
 
         // Currency configurations with realistic amount ranges
-        val currencyConfigs = listOf(
-            Triple("AED", Pair(10.0, 500.0), 50),   // 50 AED expenses
-            Triple("USD", Pair(5.0, 200.0), 40),     // 40 USD expenses
-            Triple("EUR", Pair(5.0, 150.0), 30),     // 30 EUR expenses
-            Triple("GBP", Pair(3.0, 120.0), 25),     // 25 GBP expenses
-            Triple("INR", Pair(100.0, 5000.0), 20),  // 20 INR expenses
-            Triple("SAR", Pair(10.0, 400.0), 15)     // 15 SAR expenses
-        )
+        // Use large dataset (180 total) for pagination testing, or small dataset (14 total) for regular tests
+        val currencyConfigs = if (usePaginationDataset) {
+            // Full dataset for pagination tests (180 expenses total)
+            listOf(
+                Triple("AED", Pair(10.0, 500.0), 50),   // 50 AED expenses
+                Triple("USD", Pair(5.0, 200.0), 40),     // 40 USD expenses
+                Triple("EUR", Pair(5.0, 150.0), 30),     // 30 EUR expenses
+                Triple("GBP", Pair(3.0, 120.0), 25),     // 25 GBP expenses
+                Triple("INR", Pair(100.0, 5000.0), 20),  // 20 INR expenses
+                Triple("SAR", Pair(10.0, 400.0), 15)     // 15 SAR expenses
+            )
+        } else {
+            // Minimal dataset for regular tests (14 expenses total - same as original)
+            listOf(
+                Triple("AED", Pair(10.0, 500.0), 5),    // 5 AED expenses
+                Triple("USD", Pair(5.0, 200.0), 4),      // 4 USD expenses
+                Triple("EUR", Pair(5.0, 150.0), 3),      // 3 EUR expenses
+                Triple("GBP", Pair(3.0, 120.0), 2)       // 2 GBP expenses
+            )
+        }
 
         for ((currencyCode, amountRange, count) in currencyConfigs) {
             for (i in 0 until count) {
@@ -73,9 +91,9 @@ object TestDataHelper {
                 val merchant = merchantsByCategory[category]?.random() ?: "Merchant ${i + 1}"
 
                 // Varied dates over past 90 days
-                val daysAgo = (Math.random() * 90).toLong()
-                val transactionDate = now.date.minusDays(daysAgo).atTime(12, 0, 0, 0)
-                    .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
+                val daysAgo = (Math.random() * 90).toInt()
+                val pastDate = now.date.minus(DatePeriod(days = daysAgo))
+                val transactionDate = LocalDateTime(pastDate.year, pastDate.monthNumber, pastDate.dayOfMonth, 12, 0, 0, 0)
 
                 // Mix of manual and voice sources
                 val source = if (i % 3 == 0) "voice" else "manual"
@@ -99,8 +117,14 @@ object TestDataHelper {
             }
         }
 
-        println("✅ Generated ${testExpenses.size} test expenses across 6 currencies (50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR)")
-        println("ℹ️  Data spans 90 days with varied categories and merchants for pagination testing")
+        if (usePaginationDataset) {
+            println("✅ Generated ${testExpenses.size} test expenses across 6 currencies for PAGINATION TESTING")
+            println("   (50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR)")
+            println("ℹ️  Data spans 90 days with varied categories and merchants")
+        } else {
+            println("✅ Generated ${testExpenses.size} test expenses for REGULAR TESTS")
+            println("   (5 AED, 4 USD, 3 EUR, 2 GBP)")
+        }
 
         // Insert all test expenses
         testExpenses.forEach { expense ->
