@@ -47,4 +47,29 @@ interface ExpenseDao {
 
     @Query("DELETE FROM expenses")
     suspend fun deleteAllExpenses()
+
+    // Pagination queries
+    @Query("SELECT * FROM expenses WHERE currency = :currency AND user_id = :userId ORDER BY transaction_date DESC LIMIT :limit OFFSET :offset")
+    suspend fun getExpensesPaginated(
+        currency: String,
+        limit: Int,
+        offset: Int,
+        userId: String = "default_user"
+    ): List<Expense>
+
+    @Query("SELECT * FROM expenses WHERE currency = :currency AND transaction_date BETWEEN :startDate AND :endDate AND user_id = :userId ORDER BY transaction_date DESC LIMIT :limit OFFSET :offset")
+    suspend fun getExpensesPaginatedWithDateFilter(
+        currency: String,
+        startDate: LocalDateTime,
+        endDate: LocalDateTime,
+        limit: Int,
+        offset: Int,
+        userId: String = "default_user"
+    ): List<Expense>
+
+    @Query("SELECT DISTINCT currency FROM expenses WHERE user_id = :userId ORDER BY currency")
+    fun getDistinctCurrencies(userId: String = "default_user"): Flow<List<String>>
+
+    @Query("SELECT SUM(amount) FROM expenses WHERE currency = :currency AND user_id = :userId")
+    fun getTotalByCurrency(currency: String, userId: String = "default_user"): Flow<BigDecimal?>
 }

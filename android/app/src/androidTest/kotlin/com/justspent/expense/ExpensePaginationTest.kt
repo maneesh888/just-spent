@@ -53,6 +53,9 @@ class ExpensePaginationTest {
     @Inject
     lateinit var repository: ExpenseRepository
 
+    @Inject
+    lateinit var userPreferences: com.justspent.expense.data.preferences.UserPreferences
+
     private lateinit var viewModel: ExpenseListViewModel
     private lateinit var dao: ExpenseDao
     private lateinit var context: Context
@@ -68,8 +71,8 @@ class ExpensePaginationTest {
             dao.deleteAllExpenses()
         }
 
-        // Initialize ViewModel
-        viewModel = ExpenseListViewModel(repository)
+        // Initialize ViewModel with UserPreferences
+        viewModel = ExpenseListViewModel(repository, userPreferences)
     }
 
     @After
