@@ -122,6 +122,13 @@ class CurrencyInitializationTests: XCTestCase {
 
         // Then - Should successfully convert all 6
         XCTAssertEqual(currencies.count, 6, "Should convert all 6 currency codes to Currency objects")
+
+        // Safely check each currency (with defensive guard)
+        guard currencies.count >= 6 else {
+            XCTFail("Expected 6 currencies but got \(currencies.count). Currency.initialize() may have failed to load currencies.json")
+            return
+        }
+
         XCTAssertEqual(currencies[0].code, "AED")
         XCTAssertEqual(currencies[1].code, "USD")
         XCTAssertEqual(currencies[2].code, "EUR")
