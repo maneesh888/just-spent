@@ -145,8 +145,8 @@ data class Currency(
             fun matchesKeyword(text: String, keyword: String): Boolean {
                 val lowercaseKeyword = keyword.lowercase()
 
-                // For single character or symbol keywords, use contains
-                if (keyword.length <= 2 && keyword.any { !it.isLetterOrDigit() }) {
+                // For symbol keywords (containing non-alphanumeric characters), use contains
+                if (keyword.any { !it.isLetterOrDigit() }) {
                     return text.contains(lowercaseKeyword)
                 }
 
