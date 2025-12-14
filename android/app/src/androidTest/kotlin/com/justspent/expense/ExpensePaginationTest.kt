@@ -17,14 +17,13 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import javax.inject.Inject
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
 /**
  * Unit tests for pagination functionality in Just Spent app.
@@ -37,10 +36,11 @@ import kotlin.test.assertTrue
  * Approach: Data verification (not UI-dependent)
  *
  * TDD Phase: RED - These tests will FAIL until pagination is implemented
+ *
+ * Note: Uses Hilt for dependency injection with AndroidJUnit4 runner (instrumentation tests)
  */
 @HiltAndroidTest
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpensePaginationTest {
 
@@ -98,9 +98,9 @@ class ExpensePaginationTest {
 
         // Then: Should load exactly 20 expenses
         val state = viewModel.paginationState.first()
-        assertEquals(20, state.loadedExpenses.size, "First page should contain 20 expenses")
-        assertTrue(state.hasMore, "Should have more pages available")
-        assertEquals(0, state.currentPage, "Current page should be 0")
+        assertEquals("First page should contain 20 expenses", 20, state.loadedExpenses.size)
+        assertTrue("Should have more pages available", state.hasMore)
+        assertEquals("Current page should be 0", 0, state.currentPage)
     }
 
     /**
@@ -123,25 +123,25 @@ class ExpensePaginationTest {
 
         // Then: Should have 40 total expenses
         val updatedState = viewModel.paginationState.first()
-        assertEquals(40, updatedState.loadedExpenses.size, "Should have 40 expenses after loading page 2")
+        assertEquals("Should have 40 expenses after loading page 2", 40, updatedState.loadedExpenses.size)
 
         // Verify no duplicates
         val uniqueIds = updatedState.loadedExpenses.map { it.id }.toSet()
-        assertEquals(40, uniqueIds.size, "All expenses should be unique (no duplicates)")
+        assertEquals("All expenses should be unique (no duplicates)", 40, uniqueIds.size)
 
         // Verify expenses from page 2 are new
         val page1Ids = initialState.loadedExpenses.map { it.id }.toSet()
         val page2Expenses = updatedState.loadedExpenses.drop(20)
         val page2Ids = page2Expenses.map { it.id }.toSet()
-        assertEquals(0, page1Ids.intersect(page2Ids).size, "Page 2 should not contain expenses from page 1")
+        assertEquals("Page 2 should not contain expenses from page 1", 0, page1Ids.intersect(page2Ids).size)
 
         // Verify correct order (newest first)
         for (i in 0 until updatedState.loadedExpenses.size - 1) {
             val current = updatedState.loadedExpenses[i]
             val next = updatedState.loadedExpenses[i + 1]
             assertTrue(
-                current.transactionDate >= next.transactionDate,
-                "Expenses should be ordered by date (newest first)"
+                "Expenses should be ordered by date (newest first)",
+                current.transactionDate >= next.transactionDate
             )
         }
     }
@@ -169,18 +169,18 @@ class ExpensePaginationTest {
         }
 
         // Then: Should have loaded all 50 AED expenses
-        assertEquals(50, state.loadedExpenses.size, "Should load all 50 AED expenses")
-        assertFalse(state.hasMore, "Should have no more pages after loading all expenses")
+        assertEquals("Should load all 50 AED expenses", 50, state.loadedExpenses.size)
+        assertFalse("Should have no more pages after loading all expenses", state.hasMore)
 
         // Verify all are AED currency
         assertTrue(
-            state.loadedExpenses.all { it.currency == "AED" },
-            "All loaded expenses should be AED currency"
+            "All loaded expenses should be AED currency",
+            state.loadedExpenses.all { it.currency == "AED" }
         )
 
         // Verify no duplicates
         val uniqueIds = state.loadedExpenses.map { it.id }.toSet()
-        assertEquals(50, uniqueIds.size, "All 50 expenses should be unique")
+        assertEquals("All 50 expenses should be unique", 50, uniqueIds.size)
     }
 
     /**
@@ -207,20 +207,20 @@ class ExpensePaginationTest {
         }
 
         // Then: Should have exactly 40 USD expenses (2 pages)
-        assertEquals(40, state.loadedExpenses.size, "Should load all 40 USD expenses")
+        assertEquals("Should load all 40 USD expenses", 40, state.loadedExpenses.size)
 
         // Verify all are USD currency
         assertTrue(
-            state.loadedExpenses.all { it.currency == "USD" },
-            "All expenses should be USD currency"
+            "All expenses should be USD currency",
+            state.loadedExpenses.all { it.currency == "USD" }
         )
 
         // Verify no other currencies present
         val currencies = state.loadedExpenses.map { it.currency }.toSet()
-        assertEquals(setOf("USD"), currencies, "Only USD currency should be present")
+        assertEquals("Only USD currency should be present", setOf("USD"), currencies)
 
         // Verify pagination worked (should have been 2 pages: 20+20)
-        assertFalse(state.hasMore, "Should have no more pages after loading all USD expenses")
+        assertFalse("Should have no more pages after loading all USD expenses", state.hasMore)
     }
 
     /**
@@ -258,11 +258,11 @@ class ExpensePaginationTest {
         )
 
         // Verify pagination stopped correctly
-        assertFalse(state.hasMore, "Should have no more pages")
+        assertFalse("Should have no more pages", state.hasMore)
 
         // Note: Count may vary depending on how many expenses fall on today's date
         // Just verify we got some results (may be 0 if no expenses today in test data)
-        assertNotNull(state.loadedExpenses, "Should return a list (may be empty if no expenses today)")
+        assertNotNull("Should return a list (may be empty if no expenses today)", state.loadedExpenses)
     }
 
     /**
@@ -290,9 +290,9 @@ class ExpensePaginationTest {
         }
 
         // Then: Should have loaded 3 pages (20+20+10 = 50 total)
-        assertEquals(3, pageCount, "Should have loaded exactly 3 pages")
-        assertEquals(50, state.loadedExpenses.size, "Should have all 50 expenses")
-        assertFalse(state.hasMore, "Should have no more pages")
+        assertEquals("Should have loaded exactly 3 pages", 3, pageCount)
+        assertEquals("Should have all 50 expenses", 50, state.loadedExpenses.size)
+        assertFalse("Should have no more pages", state.hasMore)
 
         // When: Attempt to load another page beyond end
         val initialSize = state.loadedExpenses.size
@@ -300,8 +300,8 @@ class ExpensePaginationTest {
         state = viewModel.paginationState.first()
 
         // Then: Size should not change (no new expenses loaded)
-        assertEquals(initialSize, state.loadedExpenses.size, "Should not load more expenses beyond end")
-        assertFalse(state.hasMore, "Should still have no more pages")
+        assertEquals("Should not load more expenses beyond end", initialSize, state.loadedExpenses.size)
+        assertFalse("Should still have no more pages", state.hasMore)
     }
 
     /**
@@ -322,9 +322,9 @@ class ExpensePaginationTest {
         val state = viewModel.paginationState.first()
 
         // Then: Should return empty list without errors
-        assertEquals(0, state.loadedExpenses.size, "Should return empty list")
-        assertFalse(state.hasMore, "Should have no more pages")
-        assertEquals(0, state.currentPage, "Current page should be 0")
+        assertEquals("Should return empty list", 0, state.loadedExpenses.size)
+        assertFalse("Should have no more pages", state.hasMore)
+        assertEquals("Current page should be 0", 0, state.currentPage)
     }
 
     /**
@@ -350,7 +350,7 @@ class ExpensePaginationTest {
         val usdState1 = viewModel.paginationState.first()
 
         // Then: USD should show fresh data (not AED data)
-        assertEquals(20, usdState1.loadedExpenses.size, "USD should load 20 expenses")
+        assertEquals("USD should load 20 expenses", 20, usdState1.loadedExpenses.size)
         assertTrue(
             usdState1.loadedExpenses.all { it.currency == "USD" },
             "All expenses should be USD"
@@ -377,17 +377,3 @@ class ExpensePaginationTest {
         )
     }
 }
-
-/**
- * Data class representing pagination state
- *
- * Note: This should match the actual PaginationState in your ViewModel
- * Adjust properties as needed to match your implementation
- */
-data class PaginationState(
-    val loadedExpenses: List<com.justspent.expense.data.model.Expense> = emptyList(),
-    val currentPage: Int = 0,
-    val hasMore: Boolean = false,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)

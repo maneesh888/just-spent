@@ -3,7 +3,9 @@ package com.justspent.expense.ui.expenses
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -31,8 +33,13 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * Reusable expense list screen filtered by currency
+ * Reusable expense list screen filtered by currency with pagination
  * Used by both SingleCurrencyScreen and MultiCurrencyTabbedScreen
+ *
+ * Implements lazy loading pagination:
+ * - Loads 20 items per page
+ * - Automatically loads more when scrolling near bottom
+ * - Shows loading indicator while fetching
  *
  * @param currency Currency to filter expenses by
  * @param dateFilter Current date filter selection
@@ -46,27 +53,44 @@ fun CurrencyExpenseListScreen(
     onDateFilterChanged: (DateFilter) -> Unit,
     viewModel: ExpenseListViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val expenses = uiState.expenses
+    // Use pagination state instead of regular UI state
+    val paginationState by viewModel.paginationState.collectAsState()
+    val expenses = paginationState.loadedExpenses
+    val isLoading = paginationState.isLoading
+    val hasMore = paginationState.hasMore
 
-    // Filter expenses by currency - explicitly depend on both expenses and currency
-    // Use remember with both keys to ensure proper recomposition
-    val currencyExpenses = remember(expenses, currency.code) {
-        expenses.filter { it.currency == currency.code }
+    // LazyListState for scroll detection
+    val listState = rememberLazyListState()
+
+    // Load first page when currency or date filter changes
+    LaunchedEffect(currency.code, dateFilter) {
+        viewModel.loadFirstPage(
+            currency = currency.code,
+            dateFilter = dateFilter
+        )
     }
 
-    // Apply date filter to currency expenses
-    val filteredExpenses = remember(currencyExpenses, dateFilter) {
-        currencyExpenses.filter { expense ->
-            DateFilterUtils.isDateInFilter(expense.transactionDate, dateFilter)
-        }
+    // Detect when scrolling near bottom and load more
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .collect { visibleItems ->
+                if (!isLoading && hasMore && visibleItems.isNotEmpty()) {
+                    val lastVisibleItem = visibleItems.last()
+                    val totalItems = listState.layoutInfo.totalItemsCount
+
+                    // Load next page when within 5 items of the end (prefetch distance)
+                    if (lastVisibleItem.index >= totalItems - 5) {
+                        viewModel.loadNextPage()
+                    }
+                }
+            }
     }
 
     // Expense List - wrap in key() to force recreation when currency changes
     key(currency.code) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Show filter strip only when there are expenses
-            if (currencyExpenses.isNotEmpty()) {
+            if (expenses.isNotEmpty()) {
                 FilterStrip(
                     selectedFilter = dateFilter,
                     onFilterSelected = onDateFilterChanged,
@@ -74,20 +98,18 @@ fun CurrencyExpenseListScreen(
                 )
             }
 
-            if (currencyExpenses.isEmpty()) {
-                // Empty state for this currency (no expenses at all)
+            if (expenses.isEmpty() && !isLoading) {
+                // Empty state (no expenses loaded)
                 EmptyCurrencyState(currency = currency)
-            } else if (filteredExpenses.isEmpty()) {
-                // Empty state for filtered results
-                EmptyFilterState(filter = dateFilter)
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(
-                        items = filteredExpenses,
+                        items = expenses,
                         key = { expense -> expense.id }
                     ) { expense ->
                         CurrencyExpenseRow(
@@ -96,6 +118,22 @@ fun CurrencyExpenseListScreen(
                             onDelete = { viewModel.deleteExpense(expense) },
                             onEdit = { viewModel.updateExpense(it) }
                         )
+                    }
+
+                    // Loading indicator at bottom
+                    if (isLoading) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
