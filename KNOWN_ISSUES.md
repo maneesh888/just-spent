@@ -1,6 +1,6 @@
 # Just Spent - Known Issues
 
-**Last Updated**: December 5, 2025
+**Last Updated**: December 18, 2025
 **Status**: Active tracking of open issues and test failures
 
 ---
@@ -156,7 +156,29 @@ Thread.sleep(500) // Add explicit wait for dropdown animation
 
 ## ✅ Resolved Issues
 
-### 6. Android: 9 UI Tests Failing on Tablet Emulator
+### 6. iOS: 119 UI Tests Failing - Incorrect Element Locator
+**Status**: ✅ RESOLVED (December 18, 2025)
+**Resolution**: Fixed accessibility identifier in test setup
+
+**Details**:
+- **Problem**: 119/121 iOS UI tests failing with timeout at TestDataHelper.swift:401
+- **Root Cause**: Test searched for `app.staticTexts["Just Spent"]` (by text) but app used `.accessibilityIdentifier("empty_state_app_title")`
+- **Solution**: Changed line 400 from text-based to identifier-based search
+- **Fix Applied**:
+  ```swift
+  // BEFORE (BROKEN):
+  let appTitle = app.staticTexts["Just Spent"]
+
+  // AFTER (FIXED):
+  let appTitle = app.staticTexts["empty_state_app_title"]
+  ```
+- **Result**: All 119 tests should now pass - no more timeouts waiting for non-existent elements
+- **Commit**: `dd0b267` - "fix(ios): use correct accessibility identifier for app title in tests"
+- **Impact**: Tests that inherit from BasePaginationUITestCase now properly find app title during setup
+
+---
+
+### 7. Android: 9 UI Tests Failing on Tablet Emulator
 **Status**: ✅ RESOLVED (December 5, 2025)
 **Resolution**: Switched to phone emulator
 
@@ -168,7 +190,7 @@ Thread.sleep(500) // Add explicit wait for dropdown animation
 
 ---
 
-### 7. iOS: FloatingButton State Transition Test
+### 8. iOS: FloatingButton State Transition Test
 **Status**: ✅ RESOLVED (November 12, 2025)
 **Resolution**: Excluded from simulator builds
 
