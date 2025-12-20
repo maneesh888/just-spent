@@ -100,11 +100,63 @@ class BasePaginationUITestCase: XCTestCase {
 
         // Wait for app to fully load with test data
         // Pagination dataset (180 expenses) may take longer to load
-        let appTitle = app.staticTexts["Just Spent"]
-        XCTAssertTrue(appTitle.waitForExistence(timeout: 30.0), "App should launch and show title")
 
-        // Wait for data to populate (give extra time for 180 expenses)
+        print("🧪 ========================================")
+        print("🧪 TEST SETUP: Waiting for app to launch")
+        print("🧪 ========================================")
+
+        // First, wait for app to launch (check for any state)
+        let appIsReady = app.wait(for: .runningForeground, timeout: 30.0)
+        XCTAssertTrue(appIsReady, "App should launch")
+        print("🧪 ✅ App is running in foreground")
+
+        // Give time for Core Data to populate and @FetchRequest to update
+        print("🧪 Waiting 5 seconds for test data to populate...")
+        Thread.sleep(forTimeInterval: 5.0)
+        print("🧪 5-second wait complete")
+
+        // Check all possible states
+        print("🧪 Checking app states:")
+        let emptyState = app.otherElements["test_state_empty"]
+        let singleState = app.otherElements["test_state_single_currency"]
+        let multiState = app.otherElements["test_state_multi_currency"]
+
+        print("🧪   - Empty state exists: \(emptyState.exists)")
+        print("🧪   - Single currency exists: \(singleState.exists)")
+        print("🧪   - Multi currency exists: \(multiState.exists)")
+
+        // Now check for multi-currency view
+        // The app should switch from empty/single to multi-currency after data loads
+        print("🧪 Waiting up to 30 seconds for multi-currency state...")
+        let foundMultiCurrency = multiState.waitForExistence(timeout: 30.0)
+
+        if !foundMultiCurrency {
+            // Debug: print all accessibility identifiers
+            print("🧪 ❌ Multi-currency view NOT FOUND after 30s wait")
+            print("🧪 Current app states:")
+            print("🧪   - Empty state exists: \(emptyState.exists)")
+            print("🧪   - Single currency exists: \(singleState.exists)")
+            print("🧪   - Multi currency exists: \(multiState.exists)")
+
+            // List all accessibility identifiers we can find
+            print("🧪 All otherElements identifiers:")
+            for element in app.otherElements.allElementsBoundByIndex {
+                if !element.identifier.isEmpty {
+                    print("🧪   - \(element.identifier)")
+                }
+            }
+        } else {
+            print("🧪 ✅ Multi-currency view found!")
+        }
+
+        XCTAssertTrue(foundMultiCurrency, "App should show multi-currency view with test data")
+
+        // Additional wait for UI to stabilize
+        print("🧪 Waiting 2 seconds for UI to stabilize...")
         Thread.sleep(forTimeInterval: 2.0)
+        print("🧪 ========================================")
+        print("🧪 TEST SETUP COMPLETE")
+        print("🧪 ========================================")
     }
 
     override func tearDownWithError() throws {

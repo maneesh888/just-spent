@@ -23,29 +23,23 @@ class ExpensePaginationTests: XCTestCase {
     var viewContext: NSManagedObjectContext!
     var viewModel: ExpenseListViewModel!
 
+    @MainActor
     override func setUpWithError() throws {
         try super.setUpWithError()
 
-        // Create in-memory Core Data stack for testing
-        let persistentContainer = NSPersistentContainer(name: "JustSpent")
-        let description = NSPersistentStoreDescription()
-        description.type = NSInMemoryStoreType
-        persistentContainer.persistentStoreDescriptions = [description]
-
-        persistentContainer.loadPersistentStores { (description, error) in
-            XCTAssertNil(error, "Failed to load Core Data stack")
-        }
-
-        viewContext = persistentContainer.viewContext
+        // Create in-memory Core Data stack for testing using PersistenceController
+        let testPersistence = PersistenceController(inMemory: true)
+        viewContext = testPersistence.container.viewContext
 
         // Clear any existing data
         clearAllExpenses()
 
-        // Populate test data (180 expenses)
+        // Populate test data (180 expenses) in the same context the ViewModel will use
         populatePaginationTestData()
 
-        // Initialize ViewModel
-        viewModel = ExpenseListViewModel(context: viewContext)
+        // Initialize ViewModel with test repository using the SAME persistence controller
+        let testRepository = ExpenseRepository(persistenceController: testPersistence)
+        viewModel = ExpenseListViewModel(repository: testRepository)
     }
 
     override func tearDownWithError() throws {
@@ -127,6 +121,7 @@ class ExpensePaginationTests: XCTestCase {
                 expense.updatedAt = Date()
                 expense.source = "manual"
                 expense.status = "active"
+                expense.isRecurring = false
             }
         }
 
@@ -147,11 +142,12 @@ class ExpensePaginationTests: XCTestCase {
      * - hasMore flag is true (more pages available)
      * - currentPage is 0
      */
-    func testInitialPageLoad_loads20Expenses() throws {
+    @MainActor
+    func testInitialPageLoad_loads20Expenses() async throws {
         // Given: 180 AED expenses in database (50 AED from test data)
 
         // When: Load first page for AED currency
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
 
         // Then: Should load exactly 20 expenses
         XCTAssertEqual(20, viewModel.paginationState.loadedExpenses.count, "First page should contain 20 expenses")
@@ -167,14 +163,16 @@ class ExpensePaginationTests: XCTestCase {
      * - No duplicate expenses
      * - Expenses are in correct order (newest first)
      */
-    func testLoadNextPage_appendsNextPageExpenses() throws {
+    @MainActor
+    func testLoadNextPage_appendsNextPageExpenses() async throws {
         // Given: Initial page loaded (20 expenses)
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+
         let initialState = viewModel.paginationState
         let page1Ids = Set(initialState.loadedExpenses.map { $0.id })
 
         // When: Load next page
-        viewModel.loadNextPage()
+        await viewModel.loadNextPage()
 
         // Then: Should have 40 total expenses
         let updatedState = viewModel.paginationState
@@ -205,13 +203,14 @@ class ExpensePaginationTests: XCTestCase {
      *
      * Note: Test data creates 50 AED expenses (3 pages: 20+20+10)
      */
-    func testPagination_loads50AEDExpenses_inThreePages() throws {
+    @MainActor
+    func testPagination_loads50AEDExpenses_inThreePages() async throws {
         // Given: 50 AED expenses (from test data generator)
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
 
         // When: Load all pages for AED
         while viewModel.paginationState.hasMore {
-            viewModel.loadNextPage()
+            await viewModel.loadNextPage()
         }
 
         // Then: Should have loaded all 50 AED expenses
@@ -238,15 +237,16 @@ class ExpensePaginationTests: XCTestCase {
      * - Correct page count for filtered set (40 USD = 2 pages)
      * - No expenses from other currencies
      */
-    func testPagination_respectsCurrencyFilter() throws {
+    @MainActor
+    func testPagination_respectsCurrencyFilter() async throws {
         // Given: 180 expenses across 6 currencies (USD has 40 expenses)
 
         // When: Load pages filtered by USD
-        viewModel.loadFirstPage(currency: "USD", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "USD", dateFilter: .all)
 
         // Load all USD pages
         while viewModel.paginationState.hasMore {
-            viewModel.loadNextPage()
+            await viewModel.loadNextPage()
         }
 
         // Then: Should have exactly 40 USD expenses (2 pages)
@@ -275,15 +275,16 @@ class ExpensePaginationTests: XCTestCase {
      * - Pagination works with filtered subset
      * - Date filter + pagination combined correctly
      */
-    func testPagination_respectsDateFilter_todayFilter() throws {
+    @MainActor
+    func testPagination_respectsDateFilter_todayFilter() async throws {
         // Given: 180 expenses spread over 90 days
 
         // When: Apply "Today" filter and load pages for AED
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .today)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .today)
 
         // Load all pages (may be less than 20 if few expenses today)
         while viewModel.paginationState.hasMore {
-            viewModel.loadNextPage()
+            await viewModel.loadNextPage()
         }
 
         // Then: All expenses should be from today
@@ -315,14 +316,15 @@ class ExpensePaginationTests: XCTestCase {
      * - hasMore becomes false after last page
      * - Attempting to load beyond end returns empty result
      */
-    func testEndOfList_doesNotLoadMore() throws {
+    @MainActor
+    func testEndOfList_doesNotLoadMore() async throws {
         // Given: 50 AED expenses (3 pages: 20+20+10)
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
         var pageCount = 1
 
         // When: Load all pages until end
         while viewModel.paginationState.hasMore {
-            viewModel.loadNextPage()
+            await viewModel.loadNextPage()
             pageCount += 1
         }
 
@@ -333,7 +335,7 @@ class ExpensePaginationTests: XCTestCase {
 
         // When: Attempt to load another page beyond end
         let initialSize = viewModel.paginationState.loadedExpenses.count
-        viewModel.loadNextPage()
+        await viewModel.loadNextPage()
 
         // Then: Size should not change (no new expenses loaded)
         XCTAssertEqual(initialSize, viewModel.paginationState.loadedExpenses.count, "Should not load more expenses beyond end")
@@ -348,12 +350,13 @@ class ExpensePaginationTests: XCTestCase {
      * - hasMore is false
      * - No errors thrown
      */
-    func testEmptyList_handlesGracefully() throws {
+    @MainActor
+    func testEmptyList_handlesGracefully() async throws {
         // Given: Empty database (no expenses)
         clearAllExpenses()
 
         // When: Load first page
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
 
         // Then: Should return empty list without errors
         XCTAssertEqual(0, viewModel.paginationState.loadedExpenses.count, "Should return empty list")
@@ -369,11 +372,12 @@ class ExpensePaginationTests: XCTestCase {
      * - Switching currency starts fresh pagination
      * - Returning to previous currency preserves its state
      */
-    func testMultiCurrency_paginationIndependent() throws {
+    @MainActor
+    func testMultiCurrency_paginationIndependent() async throws {
         // Given: Expenses in multiple currencies
 
         // When: Load AED page 1
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
         let aedState1 = viewModel.paginationState
         let aedPage1Ids = Set(aedState1.loadedExpenses.map { $0.id })
 
@@ -384,7 +388,7 @@ class ExpensePaginationTests: XCTestCase {
         )
 
         // When: Switch to USD and load page 1
-        viewModel.loadFirstPage(currency: "USD", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "USD", dateFilter: .all)
         let usdState1 = viewModel.paginationState
 
         // Then: USD should show fresh data (not AED data)
@@ -403,7 +407,7 @@ class ExpensePaginationTests: XCTestCase {
         )
 
         // When: Switch back to AED
-        viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
+        await viewModel.loadFirstPage(currency: "AED", dateFilter: .all)
         let aedState2 = viewModel.paginationState
 
         // Then: AED should show same data as before (state could be preserved or reloaded)

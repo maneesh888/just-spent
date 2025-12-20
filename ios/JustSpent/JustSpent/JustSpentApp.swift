@@ -22,18 +22,19 @@ struct JustSpentApp: App {
 
         // Initialize currency system from JSON
         Currency.initialize()
-        print("✅ Currency system initialized with \(Currency.all.count) currencies")
+        NSLog("✅ Currency system initialized with %d currencies", Currency.all.count)
 
         // Initialize default currency based on locale if not already set
         // This ensures app ALWAYS has a default currency (module independence)
         UserPreferences.shared.initializeDefaultCurrency()
-        print("💱 Default currency initialized")
+        NSLog("💱 Default currency initialized")
 
         // Setup test environment if running UI tests
         if TestDataManager.isUITesting() {
-            print("🧪 UI Testing mode detected - setting up test environment")
+            NSLog("🧪 UI Testing mode detected - setting up test environment")
             let context = persistenceController.container.viewContext
             TestDataManager.shared.setupTestEnvironment(context: context)
+            NSLog("🧪 Test environment setup complete")
         }
     }
 

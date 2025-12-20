@@ -4,22 +4,25 @@
 //
 //  Created by Claude Code on 2025-10-20.
 //  Shared expense list component for displaying expenses in a specific currency
+//  WITH LAZY LOADING PAGINATION SUPPORT
 //
 
 import SwiftUI
 import CoreData
 
-/// Reusable expense list view filtered by currency
+/// Reusable expense list view filtered by currency with pagination
 /// Used by both SingleCurrencyView and MultiCurrencyTabbedView
+///
+/// Implements lazy loading pagination:
+/// - Loads 20 items per page
+/// - Automatically loads more when scrolling near bottom
+/// - Shows loading indicator while fetching
 struct CurrencyExpenseListView: View {
     let currency: Currency
     @Environment(\.managedObjectContext) private var viewContext
 
-    // Fetch expenses for this specific currency
-    @FetchRequest private var expenses: FetchedResults<Expense>
-
-    // User preferences
-    @StateObject private var userPreferences = UserPreferences.shared
+    // ViewModel for pagination
+    @StateObject private var viewModel: ExpenseListViewModel
 
     // Date filter state
     @Binding var dateFilter: DateFilter
@@ -32,18 +35,12 @@ struct CurrencyExpenseListView: View {
     @State private var showEditSheet = false
     @State private var expenseToEdit: Expense?
 
-    // Filtered expenses based on date filter
-    private var filteredExpenses: [Expense] {
-        let dateFilterUtils = DateFilterUtils.shared
-        return expenses.filter { expense in
-            guard let transactionDate = expense.transactionDate else { return true }
-            return dateFilterUtils.isDate(transactionDate, inFilter: dateFilter)
-        }
-    }
+    // Track last visible expense ID for scroll detection
+    @State private var lastVisibleExpenseId: UUID?
 
-    // Computed total for filtered expenses
+    // Computed total for paginated expenses
     private var totalSpending: Double {
-        filteredExpenses.reduce(0) { total, expense in
+        viewModel.paginationState.loadedExpenses.reduce(0) { total, expense in
             total + (expense.amount?.doubleValue ?? 0)
         }
     }
@@ -62,26 +59,21 @@ struct CurrencyExpenseListView: View {
         self.currency = currency
         self._dateFilter = dateFilter
 
-        // Initialize FetchRequest with currency filter
-        let predicate = NSPredicate(format: "currency == %@", currency.code)
-        _expenses = FetchRequest<Expense>(
-            sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
-            predicate: predicate,
-            animation: .default
-        )
+        // Initialize ViewModel with repository
+        _viewModel = StateObject(wrappedValue: ExpenseListViewModel())
     }
 
     var body: some View {
         VStack(spacing: 0) {
             // Show filter strip only when there are expenses
-            if !expenses.isEmpty {
+            if !viewModel.paginationState.loadedExpenses.isEmpty {
                 FilterStripView(selectedFilter: $dateFilter)
                     .accessibilityIdentifier("expense_filter_strip")
             }
 
             // Expense List
-            if expenses.isEmpty {
-                // Empty state for this currency (no expenses at all)
+            if viewModel.paginationState.loadedExpenses.isEmpty && !viewModel.paginationState.isLoading {
+                // Empty state (no expenses loaded)
                 VStack(spacing: 16) {
                     Spacer()
 
@@ -103,57 +95,57 @@ struct CurrencyExpenseListView: View {
                     Spacer()
                 }
                 .padding()
-            } else if filteredExpenses.isEmpty {
-                // Empty state for filtered results
-                VStack(spacing: 16) {
-                    Spacer()
-
-                    Image(systemName: "calendar.badge.exclamationmark")
-                        .font(.system(size: 48))
-                        .foregroundColor(.gray)
-
-                    VStack(spacing: 8) {
-                        Text("No Expenses for \(dateFilter.displayName)")
-                            .font(.title3)
-                            .foregroundColor(.secondary)
-
-                        Text("Try selecting a different time period")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    Spacer()
-                }
-                .padding()
-                .accessibilityIdentifier("empty_filter_state")
             } else {
-                List {
-                    ForEach(filteredExpenses, id: \.id) { expense in
-                        CurrencyExpenseRowView(expense: expense, currency: currency)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                Button {
-                                    expenseToEdit = expense
-                                    showEditSheet = true
-                                } label: {
-                                    Label("Edit", systemImage: "pencil")
+                // Paginated expense list
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(viewModel.paginationState.loadedExpenses, id: \.id) { expense in
+                            CurrencyExpenseRowView(expense: expense, currency: currency)
+                                .padding(.horizontal, 16)
+                                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                    Button {
+                                        expenseToEdit = expense
+                                        showEditSheet = true
+                                    } label: {
+                                        Label("Edit", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
                                 }
-                                .tint(.blue)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    expenseToDelete = expense
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        expenseToDelete = expense
+                                        showDeleteConfirmation = true
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
+                                .onAppear {
+                                    // Detect when scrolling near bottom (prefetch distance = 5)
+                                    checkAndLoadMore(for: expense)
+                                }
+                        }
+
+                        // Loading indicator at bottom when fetching more
+                        if viewModel.paginationState.isLoading {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                    .padding()
+                                Spacer()
                             }
+                        }
                     }
+                    .padding(.vertical, 8)
                 }
-                .listStyle(.plain)
             }
+        }
+        .onAppear {
+            // Load first page when view appears
+            loadFirstPage()
+        }
+        .onChange(of: dateFilter) { _ in
+            // Reload when filter changes
+            loadFirstPage()
         }
         .alert("Delete Expense", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {
@@ -181,6 +173,30 @@ struct CurrencyExpenseListView: View {
         formattedTotal
     }
 
+    /// Load first page of expenses
+    private func loadFirstPage() {
+        Task {
+            await viewModel.loadFirstPage(currency: currency.code, dateFilter: dateFilter)
+        }
+    }
+
+    /// Check if we need to load more expenses (scroll detection)
+    /// Triggers when within 5 items of the end (prefetch distance)
+    private func checkAndLoadMore(for expense: Expense) {
+        let expenses = viewModel.paginationState.loadedExpenses
+        guard let index = expenses.firstIndex(where: { $0.id == expense.id }) else {
+            return
+        }
+
+        // Load next page when within 5 items of the end
+        let thresholdIndex = expenses.count - 5
+        if index >= thresholdIndex && viewModel.paginationState.hasMore && !viewModel.paginationState.isLoading {
+            Task {
+                await viewModel.loadNextPage()
+            }
+        }
+    }
+
     /// Perform the actual delete after confirmation
     private func performDelete(_ expense: Expense) {
         withAnimation {
@@ -188,6 +204,8 @@ struct CurrencyExpenseListView: View {
 
             do {
                 try viewContext.save()
+                // Reload first page to reflect deletion
+                loadFirstPage()
             } catch {
                 print("❌ Error deleting expense: \(error.localizedDescription)")
             }

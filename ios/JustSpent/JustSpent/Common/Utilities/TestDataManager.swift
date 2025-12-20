@@ -54,7 +54,10 @@ class TestDataManager {
             return
         }
 
-        print("🧪 Setting up UI test environment...")
+        NSLog("🧪 ========================================")
+        NSLog("🧪 STARTING UI TEST ENVIRONMENT SETUP")
+        NSLog("🧪 ========================================")
+        NSLog("🧪 Launch arguments: %@", ProcessInfo.processInfo.arguments.joined(separator: ", "))
 
         // Always clear existing data when in UI testing mode
         clearAllData(context: context)
@@ -70,32 +73,54 @@ class TestDataManager {
         }
 
         // Populate test data based on arguments
+        NSLog("🧪 Checking test data population flags:")
+        NSLog("🧪   - shouldShowEmptyState: %d", TestDataManager.shouldShowEmptyState())
+        NSLog("🧪   - shouldPopulateMultiCurrency: %d", TestDataManager.shouldPopulateMultiCurrency())
+
         if TestDataManager.shouldShowEmptyState() {
-            print("🧪 Empty state - no test data populated")
+            NSLog("🧪 Empty state - no test data populated")
             // No data needed, just cleared data is sufficient
         } else if TestDataManager.shouldPopulateMultiCurrency() {
-            print("🧪 Populating multi-currency test data")
+            NSLog("🧪 ⚡ POPULATING MULTI-CURRENCY TEST DATA ⚡")
             populateMultiCurrencyData(context: context)
         } else {
-            print("🧪 Populating default test data (single currency)")
+            NSLog("🧪 Populating default test data (single currency)")
             populateDefaultTestData(context: context)
         }
 
         // Save changes
         do {
+            NSLog("🧪 Attempting to save test data to Core Data...")
             try context.save()
-            print("✅ Test data saved to Core Data")
+            NSLog("✅ Test data saved to Core Data")
+
+            // Verify data was saved
+            let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
+            let savedExpenseCount = try context.count(for: fetchRequest)
+            NSLog("🧪 VERIFICATION: Saved %d expenses to Core Data", savedExpenseCount)
+
+            // Check currency distribution
+            let expenses = try context.fetch(fetchRequest)
+            let currencyCounts = Dictionary(grouping: expenses) { $0.currency ?? "UNKNOWN" }.mapValues { $0.count }
+            NSLog("🧪 CURRENCY DISTRIBUTION:")
+            for (currency, count) in currencyCounts.sorted(by: { $0.key < $1.key }) {
+                NSLog("🧪   - %@: %d expenses", currency, count)
+            }
 
             // CRITICAL: Force context to refresh and merge changes
             // This ensures @FetchRequest in ContentView sees the new data immediately
             context.refreshAllObjects()
-            print("✅ Context refreshed - @FetchRequest should now see test data")
+            NSLog("✅ Context refreshed - @FetchRequest should now see test data")
 
             // Post notification to force SwiftUI views to update
             NotificationCenter.default.post(name: .NSManagedObjectContextDidSave, object: context)
-            print("✅ Test environment setup complete")
+            NSLog("🧪 ========================================")
+            NSLog("🧪 TEST ENVIRONMENT SETUP COMPLETE")
+            NSLog("🧪 Total Expenses: %d", savedExpenseCount)
+            NSLog("🧪 Unique Currencies: %d", currencyCounts.keys.count)
+            NSLog("🧪 ========================================")
         } catch {
-            print("❌ Failed to save test data: \(error)")
+            NSLog("❌ Failed to save test data: %@", error.localizedDescription)
         }
     }
 
@@ -148,6 +173,7 @@ class TestDataManager {
             expense.updatedAt = Date()
             expense.source = AppConstants.ExpenseSource.manual
             expense.status = "active"
+            expense.isRecurring = false // Required for Core Data validation
         }
 
         print("✅ Created 5 test expenses in AED")
@@ -155,6 +181,7 @@ class TestDataManager {
 
     /// Populate multi-currency test data with extensive entries for pagination testing
     private func populateMultiCurrencyData(context: NSManagedObjectContext) {
+        print("🧪 [populateMultiCurrencyData] Starting multi-currency data population...")
         let calendar = Calendar.current
         let today = Date()
 
@@ -185,6 +212,7 @@ class TestDataManager {
         var totalExpenses = 0
 
         for config in currencyConfigs {
+            print("🧪 [populateMultiCurrencyData] Creating \(config.count) expenses for \(config.code)...")
             for i in 0..<config.count {
                 let expense = Expense(context: context)
                 expense.id = UUID()
@@ -214,12 +242,18 @@ class TestDataManager {
                 // Mix of manual and voice sources
                 expense.source = i % 3 == 0 ? AppConstants.ExpenseSource.voiceSiri : AppConstants.ExpenseSource.manual
                 expense.status = "active"
+                expense.isRecurring = false // Required for Core Data validation
 
                 totalExpenses += 1
             }
+            print("🧪 [populateMultiCurrencyData] ✅ Created \(config.count) \(config.code) expenses")
         }
 
-        print("✅ Created \(totalExpenses) test expenses across 6 currencies (50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR)")
-        print("ℹ️  Data spans 90 days with varied categories and merchants for pagination testing")
+        print("🧪 [populateMultiCurrencyData] ========================================")
+        print("🧪 [populateMultiCurrencyData] MULTI-CURRENCY DATA POPULATION COMPLETE")
+        print("🧪 [populateMultiCurrencyData] Total: \(totalExpenses) expenses")
+        print("🧪 [populateMultiCurrencyData] Distribution: 50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR")
+        print("🧪 [populateMultiCurrencyData] Date Range: 90 days")
+        print("🧪 [populateMultiCurrencyData] ========================================")
     }
 }
