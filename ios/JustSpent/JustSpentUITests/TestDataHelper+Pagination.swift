@@ -145,11 +145,15 @@ class BasePaginationUITestCase: XCTestCase {
                     NSLog("🧪   - %@", element.identifier)
                 }
             }
+
+            // Provide detailed failure message
+            let actualState = emptyState.exists ? "EMPTY STATE" : (singleState.exists ? "SINGLE CURRENCY" : "UNKNOWN")
+            XCTFail("App should show multi-currency view with 180 test expenses across 6 currencies, but showing: \(actualState). Empty=\(emptyState.exists), Single=\(singleState.exists), Multi=\(multiState.exists)")
         } else {
             NSLog("🧪 ✅ Multi-currency view found!")
         }
 
-        XCTAssertTrue(foundMultiCurrency, "App should show multi-currency view with test data")
+        XCTAssertTrue(foundMultiCurrency, "Multi-currency view should appear with test data")
 
         // Additional wait for UI to stabilize
         NSLog("🧪 Waiting 2 seconds for UI to stabilize...")
