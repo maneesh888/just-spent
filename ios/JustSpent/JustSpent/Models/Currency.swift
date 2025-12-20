@@ -180,40 +180,40 @@ private struct CurrencyLoader {
         let fileManager = FileManager.default
         var jsonURL: URL?
 
-        // 1. Try from current working directory and relative paths (works in tests and CI)
-        let currentDirPath = fileManager.currentDirectoryPath
-        let possiblePaths = [
-            "\(currentDirPath)/shared/currencies.json",        // From project root
-            "\(currentDirPath)/../shared/currencies.json",     // From ios/ directory
-            "\(currentDirPath)/../../shared/currencies.json"   // From ios/JustSpent/ directory
-        ]
+        // 1. PRIORITY: Try app bundle first (most reliable for production and UI tests)
+        jsonURL = Bundle.main.url(forResource: "currencies", withExtension: "json")
+        if jsonURL != nil {
+            NSLog("✅ Currency: Found currencies.json in app bundle (priority source)")
+        }
 
-        for path in possiblePaths {
-            if fileManager.fileExists(atPath: path) {
-                jsonURL = URL(fileURLWithPath: path)
-                NSLog("✅ Currency: Found currencies.json in shared folder (from current dir: %@)", path)
-                break
+        // 2. Fallback: Try shared folder (for development when running from Xcode)
+        if jsonURL == nil {
+            let currentDirPath = fileManager.currentDirectoryPath
+            let possiblePaths = [
+                "\(currentDirPath)/shared/currencies.json",        // From project root
+                "\(currentDirPath)/../shared/currencies.json",     // From ios/ directory
+                "\(currentDirPath)/../../shared/currencies.json"   // From ios/JustSpent/ directory
+            ]
+
+            for path in possiblePaths {
+                if fileManager.fileExists(atPath: path) {
+                    jsonURL = URL(fileURLWithPath: path)
+                    NSLog("✅ Currency: Found currencies.json in shared folder (from current dir: %@)", path)
+                    break
+                }
             }
         }
 
-        // 2. Try searching up from bundle path to find project root (works in simulator)
+        // 3. Last resort: Search up from bundle path
         if jsonURL == nil {
             jsonURL = findCurrencyFileFromBundle(fileManager: fileManager)
         }
 
-        // 3. Fallback: load from bundle (production build with file added to Xcode)
-        if jsonURL == nil {
-            jsonURL = Bundle.main.url(forResource: "currencies", withExtension: "json")
-            if jsonURL != nil {
-                NSLog("✅ Currency: Found currencies.json in app bundle")
-            }
-        }
-
         guard let url = jsonURL else {
             NSLog("❌ Currency: currencies.json NOT FOUND in any location")
-            NSLog("   Searched: shared folder, bundle path, and app bundle")
+            NSLog("   Searched: app bundle, shared folder, and bundle path")
             NSLog("📂 Currency: Bundle path: %@", Bundle.main.bundlePath)
-            NSLog("📂 Currency: Current dir: %@", currentDirPath)
+            NSLog("📂 Currency: Current dir: %@", fileManager.currentDirectoryPath)
             return []
         }
 
