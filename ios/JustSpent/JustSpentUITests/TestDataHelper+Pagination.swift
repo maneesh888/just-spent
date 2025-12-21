@@ -115,42 +115,43 @@ class BasePaginationUITestCase: XCTestCase {
         Thread.sleep(forTimeInterval: 10.0)
         NSLog("🧪 10-second wait complete")
 
-        // Check all possible states
+        // Check all possible states by looking for specific elements inside each view
+        // This matches the pattern from BaseUITestCase (commit dd0b267)
         NSLog("🧪 Checking app states:")
-        let emptyState = app.otherElements["test_state_empty"]
-        let singleState = app.otherElements["test_state_single_currency"]
-        let multiState = app.otherElements["test_state_multi_currency"]
+        let emptyStateTitle = app.staticTexts["empty_state_app_title"]
+        let singleCurrencyTitle = app.staticTexts["single_currency_app_title"]
+        let multiCurrencyTitle = app.staticTexts["multi_currency_app_title"]
 
-        NSLog("🧪   - Empty state exists: %d", emptyState.exists)
-        NSLog("🧪   - Single currency exists: %d", singleState.exists)
-        NSLog("🧪   - Multi currency exists: %d", multiState.exists)
+        NSLog("🧪   - Empty state title exists: %d", emptyStateTitle.exists)
+        NSLog("🧪   - Single currency title exists: %d", singleCurrencyTitle.exists)
+        NSLog("🧪   - Multi currency title exists: %d", multiCurrencyTitle.exists)
 
-        // Now check for multi-currency view
-        // The app should switch from empty/single to multi-currency after data loads
-        NSLog("🧪 Waiting up to 30 seconds for multi-currency state...")
-        let foundMultiCurrency = multiState.waitForExistence(timeout: 30.0)
+        // Now check for multi-currency view by waiting for its app title element
+        // This is the same pattern that BaseUITestCase uses successfully
+        NSLog("🧪 Waiting up to 30 seconds for multi-currency app title...")
+        let foundMultiCurrency = multiCurrencyTitle.waitForExistence(timeout: 30.0)
 
         if !foundMultiCurrency {
             // Debug: print all accessibility identifiers
-            NSLog("🧪 ❌ Multi-currency view NOT FOUND after 30s wait")
+            NSLog("🧪 ❌ Multi-currency app title NOT FOUND after 30s wait")
             NSLog("🧪 Current app states:")
-            NSLog("🧪   - Empty state exists: %d", emptyState.exists)
-            NSLog("🧪   - Single currency exists: %d", singleState.exists)
-            NSLog("🧪   - Multi currency exists: %d", multiState.exists)
+            NSLog("🧪   - Empty state title exists: %d", emptyStateTitle.exists)
+            NSLog("🧪   - Single currency title exists: %d", singleCurrencyTitle.exists)
+            NSLog("🧪   - Multi currency title exists: %d", multiCurrencyTitle.exists)
 
-            // List all accessibility identifiers we can find
-            NSLog("🧪 All otherElements identifiers:")
-            for element in app.otherElements.allElementsBoundByIndex {
+            // List all staticText identifiers we can find
+            NSLog("🧪 All staticText identifiers:")
+            for element in app.staticTexts.allElementsBoundByIndex {
                 if !element.identifier.isEmpty {
                     NSLog("🧪   - %@", element.identifier)
                 }
             }
 
             // Provide detailed failure message
-            let actualState = emptyState.exists ? "EMPTY STATE" : (singleState.exists ? "SINGLE CURRENCY" : "UNKNOWN")
-            XCTFail("App should show multi-currency view with 180 test expenses across 6 currencies, but showing: \(actualState). Empty=\(emptyState.exists), Single=\(singleState.exists), Multi=\(multiState.exists)")
+            let actualState = emptyStateTitle.exists ? "EMPTY STATE" : (singleCurrencyTitle.exists ? "SINGLE CURRENCY" : "UNKNOWN")
+            XCTFail("App should show multi-currency view with 180 test expenses across 6 currencies, but showing: \(actualState). Empty title=\(emptyStateTitle.exists), Single title=\(singleCurrencyTitle.exists), Multi title=\(multiCurrencyTitle.exists)")
         } else {
-            NSLog("🧪 ✅ Multi-currency view found!")
+            NSLog("🧪 ✅ Multi-currency app title found!")
         }
 
         XCTAssertTrue(foundMultiCurrency, "Multi-currency view should appear with test data")
