@@ -91,11 +91,24 @@ The tests fail at setup (BasePaginationUITestCase line 156) because `test_state_
 - ✅ Changed Currency loading to prioritize Bundle.main (commit ea1372b)
 - ✅ Increased test wait time from 5s to 10s (commit fb0f2bc)
 - ✅ Added detailed failure messages (commit dcdec31)
+- ✅ Applied dd0b267 fix pattern: Changed from app.otherElements[...] to app.staticTexts[...] (commit 603901f)
+- ✅ Added accessibility identifiers to SingleCurrencyView to match EmptyStateView/MultiCurrencyTabbedView pattern
 
-**Next Steps**:
-1. Debug in Xcode with breakpoints to see actual app state during test
-2. Verify Currency.all is populated and @FetchRequest has expenses
-3. Consider alternative test approach (unit test the scroll detection logic directly)
+**Fix Applied (commit 603901f)**:
+Following the pattern from commit dd0b267 that fixed 119 UI tests:
+- Changed BasePaginationUITestCase to search for:
+  - `app.staticTexts["multi_currency_app_title"]` instead of `app.otherElements["test_state_multi_currency"]`
+  - `app.staticTexts["single_currency_app_title"]` instead of `app.otherElements["test_state_single_currency"]`
+  - `app.staticTexts["empty_state_app_title"]` instead of `app.otherElements["test_state_empty"]`
+
+**Result**: Tests still fail with ~29s timeout, suggesting a different root cause than element type mismatch.
+
+**Requires Xcode Debugging**:
+NSLog output is not visible in xcodebuild terminal output. Must run tests in Xcode to see:
+- Whether Currency.all is populated (line 63 in ContentView.swift)
+- Whether @FetchRequest has expenses (line 61 in ContentView.swift)
+- Whether activeCurrencies resolves correctly (line 64 in ContentView.swift)
+- Which view state ContentView is actually rendering (lines 100-147)
 
 ### iOS Implementation Artifacts
 
