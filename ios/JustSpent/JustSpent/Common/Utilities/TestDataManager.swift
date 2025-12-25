@@ -112,8 +112,23 @@ class TestDataManager {
             context.refreshAllObjects()
             NSLog("✅ Context refreshed - @FetchRequest should now see test data")
 
+            // Force process pending changes
+            context.processPendingChanges()
+            NSLog("✅ Pending changes processed")
+
             // Post notification to force SwiftUI views to update
             NotificationCenter.default.post(name: .NSManagedObjectContextDidSave, object: context)
+
+            // Additional synchronization: give Core Data time to propagate changes
+            // This is critical for @FetchRequest to see the new data
+            Thread.sleep(forTimeInterval: 0.5)
+
+            // Force another save to ensure persistence
+            if context.hasChanges {
+                try context.save()
+                NSLog("✅ Additional context save completed")
+            }
+
             NSLog("🧪 ========================================")
             NSLog("🧪 TEST ENVIRONMENT SETUP COMPLETE")
             NSLog("🧪 Total Expenses: %d", savedExpenseCount)

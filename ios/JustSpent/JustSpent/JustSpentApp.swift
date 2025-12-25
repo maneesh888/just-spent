@@ -3,7 +3,8 @@ import NaturalLanguage
 
 @main
 struct JustSpentApp: App {
-    let persistenceController = PersistenceController.shared
+    // Use in-memory store for UI tests, production store otherwise
+    let persistenceController: PersistenceController
 
     // App lifecycle management
     @StateObject private var lifecycleManager = AppLifecycleManager()
@@ -13,6 +14,15 @@ struct JustSpentApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        // CRITICAL FIX: Use in-memory Core Data store for UI tests
+        // This ensures @FetchRequest sees test data immediately
+        if TestDataManager.isUITesting() {
+            NSLog("🧪 UI Testing mode detected - using IN-MEMORY Core Data store")
+            persistenceController = PersistenceController(inMemory: true)
+        } else {
+            persistenceController = PersistenceController.shared
+        }
+
         // Create lifecycle manager first
         let lifecycle = AppLifecycleManager()
         _lifecycleManager = StateObject(wrappedValue: lifecycle)
@@ -31,7 +41,7 @@ struct JustSpentApp: App {
 
         // Setup test environment if running UI tests
         if TestDataManager.isUITesting() {
-            NSLog("🧪 UI Testing mode detected - setting up test environment")
+            NSLog("🧪 Setting up test environment with in-memory store")
             let context = persistenceController.container.viewContext
             TestDataManager.shared.setupTestEnvironment(context: context)
             NSLog("🧪 Test environment setup complete")
