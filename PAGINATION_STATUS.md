@@ -1,8 +1,8 @@
 # Pagination Implementation Status Report
 
 **Generated**: December 14, 2025
-**Last Updated**: December 25, 2025
-**Session Context**: iOS UI test failures fixed - all multi-currency tests now passing
+**Last Updated**: December 28, 2025
+**Session Context**: iOS pagination ViewModel tests added and passing; UI tests still failing due to test setup issues
 
 ## Executive Summary
 
@@ -12,10 +12,14 @@ This document tracks pagination implementation status across iOS and Android pla
 
 | Platform | Unit Tests | UI Tests | Implementation | Status |
 |----------|------------|----------|----------------|--------|
-| **iOS** | ✅ 8/8 PASSING | ✅ 20/20 MULTI-CURRENCY PASSING | ✅ Data + UI Layer | ✅ Complete* |
+| **iOS** | ✅ 14/14 PASSING | ⚠️ 20/20 Multi-Currency PASSING, 0/3 Pagination UI FAILING | ✅ Data + ViewModel Layer | ⚠️ Partial |
 | **Android** | ✅ 133/133 PASSING | ✅ VERIFIED | ✅ COMPLETE (Data + UI) | ✅ Complete |
 
-*iOS UI tests fixed (Dec 25, 2025) - BaseUITestCase now waits for universal "Just Spent" title instead of state-specific empty_state_app_title
+**iOS Status Details**:
+- ✅ Data layer pagination: COMPLETE and TESTED (ExpensePaginationTests.swift - 8/8 passing)
+- ✅ ViewModel pagination: COMPLETE and TESTED (ExpenseListViewModelPaginationTests.swift - 6/6 passing)
+- ✅ Multi-currency UI: COMPLETE and TESTED (MultiCurrencyTabbedUITests.swift - 20/20 passing)
+- ❌ Pagination UI tests: NOT READY (ExpensePaginationUITests.swift - 0/3 passing - test setup issues)
 
 ## Background Processes Status
 
@@ -57,13 +61,60 @@ This document tracks pagination implementation status across iOS and Android pla
 expense.isRecurring = false  // Added to prevent Core Data validation error
 ```
 
-### ✅ UI Tests (Presentation Layer) - FIXED AND PASSING
+### ✅ ViewModel Tests - NEW AND PASSING
+
+**Location**: `ios/JustSpent/JustSpentTests/ExpenseListViewModelPaginationTests.swift`
+
+**Test Count**: 6 tests
+**Status**: **ALL 6 PASSING** ✅ (Added December 28, 2025)
+**TDD Phase**: GREEN ✅
+
+**Tests Passing**:
+1. ✅ `testLoadFirstPage_loads20Expenses_fromDatabase()` - 0.004s
+2. ✅ `testLoadNextPage_appendsNext20_whenScrolling()` - 0.004s
+3. ✅ `testPagination_respectsCurrencyFilter()` - 0.004s
+4. ✅ `testSwitchingCurrencies_resetsPagination()` - 0.004s
+5. ✅ `testLoadNextPage_preventsMultipleConcurrentLoads()` - 0.004s
+6. ✅ `testLoadAllPages_untilEnd_hasMoreBecomesFalse()` - 0.006s
+
+**Implementation Verified**:
+- ✅ ExpenseListViewModel.loadFirstPage() correctly loads first 20 expenses
+- ✅ ExpenseListViewModel.loadNextPage() correctly appends next page
+- ✅ Pagination respects currency filter (each currency maintains separate state)
+- ✅ Currency switching resets pagination state correctly
+- ✅ Concurrent load prevention working (prevents duplicate loads)
+- ✅ hasMore flag correctly becomes false at end of data
+
+### ✅ UI Tests (Multi-Currency) - FIXED AND PASSING
 
 **Location**: `ios/JustSpent/JustSpentUITests/MultiCurrencyTabbedUITests.swift`
 
 **Test Count**: 20 tests (multi-currency UI tests)
 **Status**: **ALL 20 PASSING** ✅ (Fixed December 25, 2025)
 **TDD Phase**: GREEN ✅
+
+### ❌ UI Tests (Pagination-Specific) - NOT YET READY
+
+**Location**: `ios/JustSpent/JustSpentUITests/ExpensePaginationUITests.swift`
+
+**Test Count**: 3 tests
+**Status**: **0/3 PASSING** ❌ (Test setup failing)
+**TDD Phase**: RED ❌
+
+**Root Cause**: BasePaginationUITestCase.setUpWithError() waits for currency tab bar to appear, but multi-currency view doesn't render during UI test execution. Test times out after ~35 seconds waiting for currency_tab_bar element that never appears.
+
+**Investigation Results**:
+- ✅ ViewModel pagination logic works correctly (proven by 6/6 ViewModel tests passing)
+- ✅ Multi-currency UI works correctly in normal app usage (proven by 20/20 MultiCurrencyTabbedUITests passing)
+- ❌ Pagination UI tests can't complete setUp - multi-currency view not rendering in test environment
+- ❌ Launch arguments match MultiCurrencyTabbedUITests (`["--uitesting", "--multi-currency"]`) but behavior differs
+- ❌ 10s data population sleep + 20s currency tab wait both timeout
+
+**Next Steps**:
+- Investigate why multi-currency view renders for MultiCurrencyTabbedUITests but not ExpensePaginationUITests
+- Possible difference in test base classes (BaseUITestCase vs BasePaginationUITestCase)
+- Consider if pagination UI components are actually implemented or just tested prematurely
+- May need to implement explicit pagination UI (load more button, page indicators, etc.)
 
 **Tests Passing**:
 All 20 MultiCurrencyTabbedUITests passing after fix:

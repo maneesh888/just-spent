@@ -35,7 +35,8 @@ extension TestDataHelper {
     /// - Returns: Launch arguments for pagination test mode
     static func configurePaginationTestData() -> [String] {
         // Uses existing --multi-currency flag which triggers TestDataManager.populateMultiCurrencyData()
-        return ["--uitesting", "--skip-onboarding", "--multi-currency"]
+        // Note: --uitesting automatically skips onboarding, no need for --skip-onboarding flag
+        return ["--uitesting", "--multi-currency"]
     }
 
     /// Pagination test dataset specifications
@@ -115,46 +116,50 @@ class BasePaginationUITestCase: XCTestCase {
         Thread.sleep(forTimeInterval: 10.0)
         NSLog("🧪 10-second wait complete")
 
-        // Check all possible states by looking for specific elements inside each view
-        // This matches the pattern from BaseUITestCase (commit dd0b267)
-        NSLog("🧪 Checking app states:")
-        let emptyStateTitle = app.staticTexts["empty_state_app_title"]
-        let singleCurrencyTitle = app.staticTexts["single_currency_app_title"]
-        let multiCurrencyTitle = app.staticTexts["multi_currency_app_title"]
+        // Wait for app to fully load by checking for universal "Just Spent" title
+        // This title appears in ALL view states (empty, single-currency, multi-currency)
+        NSLog("🧪 Waiting for app to fully load (checking for 'Just Spent' title)...")
+        let appTitle = app.staticTexts["Just Spent"]
+        let appLoaded = appTitle.waitForExistence(timeout: 30.0)
 
-        NSLog("🧪   - Empty state title exists: %d", emptyStateTitle.exists)
-        NSLog("🧪   - Single currency title exists: %d", singleCurrencyTitle.exists)
-        NSLog("🧪   - Multi currency title exists: %d", multiCurrencyTitle.exists)
-
-        // Now check for multi-currency view by waiting for its app title element
-        // This is the same pattern that BaseUITestCase uses successfully
-        NSLog("🧪 Waiting up to 30 seconds for multi-currency app title...")
-        let foundMultiCurrency = multiCurrencyTitle.waitForExistence(timeout: 30.0)
-
-        if !foundMultiCurrency {
-            // Debug: print all accessibility identifiers
-            NSLog("🧪 ❌ Multi-currency app title NOT FOUND after 30s wait")
-            NSLog("🧪 Current app states:")
-            NSLog("🧪   - Empty state title exists: %d", emptyStateTitle.exists)
-            NSLog("🧪   - Single currency title exists: %d", singleCurrencyTitle.exists)
-            NSLog("🧪   - Multi currency title exists: %d", multiCurrencyTitle.exists)
-
-            // List all staticText identifiers we can find
+        if !appLoaded {
+            NSLog("🧪 ❌ App title 'Just Spent' NOT FOUND after 30s wait")
+            // List all staticText identifiers for debugging
             NSLog("🧪 All staticText identifiers:")
             for element in app.staticTexts.allElementsBoundByIndex {
-                if !element.identifier.isEmpty {
-                    NSLog("🧪   - %@", element.identifier)
+                if !element.identifier.isEmpty || !element.label.isEmpty {
+                    NSLog("🧪   - identifier: '%@', label: '%@'", element.identifier, element.label)
                 }
             }
-
-            // Provide detailed failure message
-            let actualState = emptyStateTitle.exists ? "EMPTY STATE" : (singleCurrencyTitle.exists ? "SINGLE CURRENCY" : "UNKNOWN")
-            XCTFail("App should show multi-currency view with 180 test expenses across 6 currencies, but showing: \(actualState). Empty title=\(emptyStateTitle.exists), Single title=\(singleCurrencyTitle.exists), Multi title=\(multiCurrencyTitle.exists)")
+            XCTFail("App should launch and show 'Just Spent' title")
         } else {
-            NSLog("🧪 ✅ Multi-currency app title found!")
+            NSLog("🧪 ✅ App loaded successfully - 'Just Spent' title found!")
         }
 
-        XCTAssertTrue(foundMultiCurrency, "Multi-currency view should appear with test data")
+        XCTAssertTrue(appLoaded, "App should launch and show title")
+
+        // CRITICAL: Verify the multi-currency tabbed view actually rendered
+        // Pagination tests require currency tabs (180 expenses across 6 currencies)
+        NSLog("🧪 Verifying currency tabs rendered...")
+        let currencyTabBar = app.otherElements["currency_tab_bar"]
+
+        let tabBarAppeared = currencyTabBar.waitForExistence(timeout: 20.0)
+
+        if !tabBarAppeared {
+            NSLog("🧪 ❌ Currency tab bar NOT FOUND after 20s wait")
+            // Debug: List all UI elements to see what's actually on screen
+            NSLog("🧪 All otherElements identifiers:")
+            for element in app.otherElements.allElementsBoundByIndex {
+                if !element.identifier.isEmpty {
+                    NSLog("🧪   - '%@'", element.identifier)
+                }
+            }
+            XCTFail("Currency tab bar should exist with multi-currency test data (180 expenses across 6 currencies). Check TestDataManager.populateMultiCurrencyData()")
+        } else {
+            NSLog("🧪 ✅ Currency tab bar found - multi-currency view is active")
+        }
+
+        XCTAssertTrue(tabBarAppeared, "Currency tab bar should appear with pagination test data")
 
         // Additional wait for UI to stabilize
         NSLog("🧪 Waiting 2 seconds for UI to stabilize...")
