@@ -5,6 +5,9 @@
 
 set -e  # Exit on error
 
+# Ensure we are in the android directory
+cd "$(dirname "$0")/../../android" || exit 1
+
 echo "🔨 Building test APKs..."
 ./gradlew assembleDebug assembleDebugAndroidTest
 

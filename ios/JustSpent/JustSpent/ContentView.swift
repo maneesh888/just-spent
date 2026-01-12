@@ -15,6 +15,7 @@ struct ContentView: View {
     @StateObject private var viewModel = ExpenseListViewModel()
     @StateObject private var speechRecognitionManager = SpeechRecognitionManager()
     @StateObject private var permissionManager = PermissionManager()
+    @StateObject private var voiceTransactionManager = VoiceTransactionManager()
 
     @State private var showingSiriSuccess = false
     @State private var siriMessage = ""
@@ -264,52 +265,18 @@ struct ContentView: View {
     // MARK: - Voice Command Processing
 
     private func processVoiceInput(_ input: String) {
-        // Use VoiceCommandParser for NLP processing
-        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(input)
-
-        if let amount = extractedData.amount,
-           let category = extractedData.category {
-
-            Task {
-                do {
-                    let repository = ExpenseRepository()
-                    let expenseData = ExpenseData(
-                        amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
-                        category: category,
-                        merchant: extractedData.merchant,
-                        notes: LocalizedStrings.expenseAddedViaIntelligent,
-                        transactionDate: Date(),
-                        source: AppConstants.ExpenseSource.voiceSiri,
-                        voiceTranscript: input
-                    )
-
-                    _ = try await repository.addExpense(expenseData)
-
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseSmartProcessing(
-                            amount: String(amount),
-                            category: category,
-                            transcript: input
-                        )
-                        showingSiriSuccess = true
-                        Task {
-                            await viewModel.loadExpenses()
-                        }
-                    }
-
-                } catch {
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseFailedToSave(error.localizedDescription)
-                        isErrorMessage = true
-                        showingSiriSuccess = true
+        Task {
+            let result = await voiceTransactionManager.process(input: input, source: AppConstants.ExpenseSource.voiceSiri)
+            await MainActor.run {
+                siriMessage = result.message
+                isErrorMessage = result.isError
+                showingSiriSuccess = true
+                if result.success {
+                    Task {
+                        await viewModel.loadExpenses()
                     }
                 }
             }
-        } else {
-            siriMessage = LocalizedStrings.expenseCouldNotUnderstand(input)
-            isErrorMessage = true
-            showingSiriSuccess = true
         }
     }
 
@@ -318,70 +285,18 @@ struct ContentView: View {
         print(LocalizedStrings.debugProcessingTranscription(transcription))
         #endif
 
-        // Validate input
-        guard !transcription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            siriMessage = LocalizedStrings.voiceRecognitionSpeakClearly
-            isErrorMessage = true
-            showingSiriSuccess = true
-            return
-        }
-
-        // Use VoiceCommandParser for NLP processing
-        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(transcription)
-
-        // Debug output
-        #if DEBUG
-        print(LocalizedStrings.debugExtracted(
-            amount: String(extractedData.amount ?? 0),
-            currency: extractedData.currency ?? "none",
-            category: extractedData.category ?? "none"
-        ))
-        #endif
-
-        if let amount = extractedData.amount,
-           let category = extractedData.category {
-
-            Task {
-                do {
-                    let repository = ExpenseRepository()
-                    let expenseData = ExpenseData(
-                        amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
-                        category: category,
-                        merchant: extractedData.merchant,
-                        notes: LocalizedStrings.expenseAddedViaVoice,
-                        transactionDate: Date(),
-                        source: AppConstants.ExpenseSource.voiceRecognition,
-                        voiceTranscript: transcription
-                    )
-
-                    _ = try await repository.addExpense(expenseData)
-
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseAddedSuccess(
-                            currency: extractedData.currency ?? "",
-                            amount: String(amount),
-                            category: category,
-                            transcript: transcription
-                        )
-                        showingSiriSuccess = true
-                        Task {
-                            await viewModel.loadExpenses()
-                        }
-                    }
-
-                } catch {
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseFailedToSave(error.localizedDescription)
-                        isErrorMessage = true
-                        showingSiriSuccess = true
+        Task {
+            let result = await voiceTransactionManager.process(input: transcription, source: AppConstants.ExpenseSource.voiceRecognition)
+            await MainActor.run {
+                siriMessage = result.message
+                isErrorMessage = result.isError
+                showingSiriSuccess = true
+                if result.success {
+                    Task {
+                        await viewModel.loadExpenses()
                     }
                 }
             }
-        } else {
-            siriMessage = LocalizedStrings.expenseCouldNotUnderstand(transcription)
-            isErrorMessage = true
-            showingSiriSuccess = true
         }
     }
 

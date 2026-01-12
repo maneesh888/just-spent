@@ -29,9 +29,10 @@ set -o pipefail  # Catch errors in pipes
 # ============================================================================
 # Configuration
 # ============================================================================
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="$SCRIPT_DIR/.ci-results"
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export RESULTS_DIR="$REPO_ROOT/.ci-results"
+export TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 REPORT_FILE="$RESULTS_DIR/report_$TIMESTAMP.json"
 
 # Colors for terminal output
@@ -263,7 +264,7 @@ show_progress() {
         elif [ "$test_type" = "gradle" ]; then
           # Parse Android test progress from XML results
           # (Gradle doesn't output real-time test info to console)
-          local test_results_dir="$SCRIPT_DIR/android/app/build/test-results/testDebugUnitTest"
+          local test_results_dir="$REPO_ROOT/android/app/build/test-results/testDebugUnitTest"
           if [ -d "$test_results_dir" ]; then
             test_count=$(find "$test_results_dir" -name "*.xml" -type f -exec grep -h '<testsuite' {} \; 2>/dev/null | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum}' || echo "0")
             if [ "$test_count" -gt 0 ]; then
@@ -363,10 +364,10 @@ parse_gradle_test_output() {
   if [ "$test_type" = "ui" ]; then
     # Android UI tests (instrumented tests) results location
     # Note: Results may be in connected/ or connected/debug/ subdirectory
-    test_results_dir="$SCRIPT_DIR/android/app/build/outputs/androidTest-results/connected"
+    test_results_dir="$REPO_ROOT/android/app/build/outputs/androidTest-results/connected"
   else
     # Android unit tests results location
-    test_results_dir="$SCRIPT_DIR/android/app/build/test-results/testDebugUnitTest"
+    test_results_dir="$REPO_ROOT/android/app/build/test-results/testDebugUnitTest"
   fi
 
   if [ -d "$test_results_dir" ]; then
@@ -603,7 +604,7 @@ run_ios_pipeline() {
   local ios_success=true
   local ios_start=$(date +%s)
 
-  cd "$SCRIPT_DIR/ios/JustSpent"
+  cd "$REPO_ROOT/ios/JustSpent"
 
   # iOS Build
   running "Building iOS app..."
@@ -627,7 +628,7 @@ run_ios_pipeline() {
     error "Check log: $RESULTS_DIR/ios_build_$TIMESTAMP.log"
     record_test_result "ios" "build" "fail" "$build_time"
     ios_success=false
-    cd "$SCRIPT_DIR"
+    cd "$REPO_ROOT"
     return 1
   fi
 
@@ -772,7 +773,7 @@ run_ios_pipeline() {
     record_test_result "ios" "ui" "skip" "0" "0" "0" "0"
   fi
 
-  cd "$SCRIPT_DIR"
+  cd "$REPO_ROOT"
 
   local ios_end=$(date +%s)
   local ios_duration=$((ios_end - ios_start))
@@ -794,7 +795,7 @@ run_android_pipeline() {
   local android_success=true
   local android_start=$(date +%s)
 
-  cd "$SCRIPT_DIR/android"
+  cd "$REPO_ROOT/android"
 
   # Grant execute permission
   chmod +x gradlew
@@ -814,7 +815,7 @@ run_android_pipeline() {
     error "Check log: $RESULTS_DIR/android_build_$TIMESTAMP.log"
     record_test_result "android" "build" "fail" "$build_time"
     android_success=false
-    cd "$SCRIPT_DIR"
+    cd "$REPO_ROOT"
     return 1
   fi
 
@@ -899,7 +900,7 @@ run_android_pipeline() {
       running "No emulator detected, launching automatically..."
 
       # Use emulator manager to start emulator
-      if "$SCRIPT_DIR/scripts/android-emulator-manager.sh" start --wait --grant-permissions \
+      if "$REPO_ROOT/scripts/android-emulator-manager.sh" start --wait --grant-permissions \
         > "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1; then
 
         success "Emulator launched and ready"
@@ -910,14 +911,14 @@ run_android_pipeline() {
         warning "Android UI tests skipped (emulator launch failed)"
         warning "You can manually start an emulator and re-run tests"
         # Don't fail the whole pipeline, just skip UI tests
-        cd "$SCRIPT_DIR"
+        cd "$REPO_ROOT"
         return 0
       fi
     else
       info "Emulator already running, granting permissions..."
 
       # Grant permissions to existing emulator
-      if "$SCRIPT_DIR/scripts/android-emulator-manager.sh" grant-permissions \
+      if "$REPO_ROOT/scripts/android-emulator-manager.sh" grant-permissions \
         >> "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1; then
 
         success "Permissions granted"
@@ -968,7 +969,7 @@ run_android_pipeline() {
     # Kill emulator if requested and we started it
     if [ "$KILL_EMULATOR" = true ] && [ "$emulator_was_started" = true ]; then
       info "Stopping emulator (--kill-emulator flag set)..."
-      "$SCRIPT_DIR/scripts/android-emulator-manager.sh" stop \
+      "$REPO_ROOT/scripts/android-emulator-manager.sh" stop \
         >> "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1 || true
       success "Emulator stopped"
     fi
@@ -977,7 +978,7 @@ run_android_pipeline() {
     record_test_result "android" "ui" "skip" "0"
   fi
 
-  cd "$SCRIPT_DIR"
+  cd "$REPO_ROOT"
 
   local android_end=$(date +%s)
   local android_duration=$((android_end - android_start))
@@ -1434,8 +1435,8 @@ if [ "$OVERALL_SUCCESS" = true ]; then
 
   # Generate HTML report
   info "Generating HTML report..."
-  if [ -f "$SCRIPT_DIR/scripts/generate-report.sh" ]; then
-    "$SCRIPT_DIR/scripts/generate-report.sh" "$REPORT_FILE"
+  if [ -f "$REPO_ROOT/scripts/generate-report.sh" ]; then
+    "$REPO_ROOT/scripts/generate-report.sh" "$REPORT_FILE"
   fi
 
   exit 0
@@ -1456,8 +1457,8 @@ else
 
   # Generate HTML report
   info "Generating HTML report..."
-  if [ -f "$SCRIPT_DIR/scripts/generate-report.sh" ]; then
-    "$SCRIPT_DIR/scripts/generate-report.sh" "$REPORT_FILE"
+  if [ -f "$REPO_ROOT/scripts/generate-report.sh" ]; then
+    "$REPO_ROOT/scripts/generate-report.sh" "$REPORT_FILE"
   fi
 
   exit 1

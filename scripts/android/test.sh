@@ -5,6 +5,9 @@
 
 set -e  # Exit on error
 
+# Ensure we are in the android directory
+cd "$(dirname "$0")/../../android" || exit 1
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

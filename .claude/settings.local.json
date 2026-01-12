@@ -48,7 +48,9 @@
       "Bash(for i in {1..3})",
       "Bash(do echo \"=== Test Run #$i ===\")",
       "Bash(python3:*)",
-      "Bash(./local-ci.sh:*)"
+      "Bash(./local-ci.sh:*)",
+      "Bash(grep:*)",
+      "Bash(brew services:*)"
     ],
     "deny": [],
     "ask": []

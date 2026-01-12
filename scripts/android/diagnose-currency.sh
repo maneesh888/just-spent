@@ -8,6 +8,9 @@ echo "================================"
 echo
 
 # Check 1: File exists
+# Ensure we are in the android directory
+cd "$(dirname "$0")/../../android" || exit 1
+
 echo "✓ Checking Currency.kt exists..."
 if [ -f "app/src/main/java/com/justspent/app/data/model/Currency.kt" ]; then
     echo "  ✅ Currency.kt found"

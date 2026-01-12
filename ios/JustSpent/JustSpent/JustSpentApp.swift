@@ -139,56 +139,31 @@ struct JustSpentApp: App {
         print(LocalizedStrings.debugProcessing(command))
         #endif
 
-        // Use VoiceCommandParser for NLP processing
-        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(command)
-        
-        if let amount = extractedData.amount,
-           let category = extractedData.category {
+        Task {
+            // Use local manager for background processing
+            let manager = VoiceTransactionManager()
+            let result = await manager.process(input: command, source: AppConstants.ExpenseSource.voiceSiri)
             
-            // Save the expense
-            Task {
-                do {
-                    let repository = ExpenseRepository()
-                    let expenseData = ExpenseData(
-                        amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
-                        category: category,
-                        merchant: extractedData.merchant,
-                        notes: LocalizedStrings.expenseAddedViaIntelligent,
-                        transactionDate: Date(),
-                        source: AppConstants.ExpenseSource.voiceSiri,
-                        voiceTranscript: command
+            if result.success {
+                // Show success notification which updates UI
+                await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name(AppConstants.Notification.siriExpenseReceived),
+                        object: nil,
+                        userInfo: [
+                            "message": result.message
+                        ]
                     )
-
-                    _ = try await repository.addExpense(expenseData)
-
-                    // Show success notification
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(
-                            name: NSNotification.Name(AppConstants.Notification.siriExpenseReceived),
-                            object: nil,
-                            userInfo: [
-                                "message": LocalizedStrings.expenseSmartProcessing(
-                                    amount: String(amount),
-                                    category: category,
-                                    transcript: command
-                                )
-                            ]
-                        )
-                    }
-
-                    #if DEBUG
-                    print(LocalizedStrings.debugSavedExpense(amount: String(amount), category: category))
-                    #endif
-                    
-                } catch {
-                    print("❌ Failed to save intelligent expense: \(error)")
                 }
+                
+                #if DEBUG
+                print("✅ Successfully processed voice command via Manager")
+                #endif
+            } else {
+                #if DEBUG
+                print("❌ Failed to process voice command: \(result.message)")
+                #endif
             }
-        } else {
-            #if DEBUG
-            print(LocalizedStrings.errorCouldNotExtract(command))
-            #endif
         }
     }
 
