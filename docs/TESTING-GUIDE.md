@@ -34,6 +34,17 @@ Both platforms follow the **Testing Pyramid** approach from `comprehensive-test-
 - **UI Tests:** Critical user paths
 - **Performance Tests:** Voice processing <1.5s
 
+### Testing Policy Updates
+
+**Device Support** (Updated 2025-12-05):
+- ✅ **Mobile Phones (iOS & Android)**: Portrait orientation only - **PRIMARY TESTING FOCUS**
+- ❌ **Tablets**: NOT SUPPORTED - App is designed exclusively for phones (see ui-design-spec.md)
+- **Rationale**: App is phone-only by design, simplifies testing, reduces complexity
+
+**Landscape Mode Testing** (Updated 2025-11-11):
+- ✅ **Mobile Phones**: Portrait orientation only
+- **Rationale**: Simplifies testing, reduces execution time, mobile landscape not a priority
+
 ---
 
 ## iOS Testing
@@ -156,6 +167,37 @@ android/app/src/
     └── java/com/justspent/app/
         └── MultiCurrencyUITest.kt
 ```
+
+### Emulator Requirements ⚠️
+
+**CRITICAL**: This app is **PHONE-ONLY**. Always use phone emulators, never tablets.
+
+**Required AVD Configuration**:
+- **Device Type**: Phone (e.g., Pixel 6, Pixel 9 Pro)
+- **API Level**: 28+ (Android 9+) recommended
+- **System Image**: Google APIs (for Google services)
+- **NOT SUPPORTED**: Tablet AVDs (7_WSVGA_Tablet, etc.)
+
+**Creating Recommended AVD**:
+```bash
+# Via Android Studio:
+# 1. Tools → Device Manager
+# 2. Create Device
+# 3. Select "Pixel 6" (or similar phone)
+# 4. System Image: API 34 (Android 14) or API 28+
+# 5. Name: Pixel_6_API_34
+# 6. Finish
+
+# Verify AVD type:
+emulator -list-avds
+# Should show phone AVDs only, not tablets
+```
+
+**Why This Matters**:
+- App UI is optimized for phone screen sizes
+- Tablet emulators will cause UI test failures
+- Swipe gestures and dialogs may not render correctly on tablets
+- See android/TEST_STATUS_FINAL.md for detailed analysis
 
 ### Running Android Tests
 

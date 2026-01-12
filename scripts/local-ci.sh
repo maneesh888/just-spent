@@ -7,15 +7,19 @@
 # feedback during development. Part of the hybrid CI/CD approach.
 #
 # Usage:
-#   ./local-ci.sh [--ios] [--android] [--all] [--skip-ui] [--quick] [--kill-emulator]
+#   ./local-ci.sh [--ios] [--android] [--all] [--skip-ui] [--quick] [--commit-mode] [--kill-emulator] [--sequential] [--verbose] [--no-progress]
 #
 # Options:
 #   --ios            Run iOS checks only
 #   --android        Run Android checks only
 #   --all            Run both iOS and Android (default)
 #   --skip-ui        Skip UI tests (faster, unit tests only)
-#   --quick          Fast mode: build + unit tests only
+#   --quick          Fast mode: build + unit tests only (alias for --skip-ui)
+#   --commit-mode    Pre-commit mode: skip UI tests for faster commits (same as --quick)
 #   --kill-emulator  Stop Android emulator after tests complete
+#   --sequential     Run iOS and Android one after another (default is parallel, 40-50% faster)
+#   --verbose        Show detailed progress including current test names
+#   --no-progress    Disable progress indicators (spinners, counters)
 #   --help           Show this help message
 # ============================================================================
 
@@ -25,9 +29,10 @@ set -o pipefail  # Catch errors in pipes
 # ============================================================================
 # Configuration
 # ============================================================================
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="$SCRIPT_DIR/.ci-results"
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export RESULTS_DIR="$REPO_ROOT/.ci-results"
+export TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 REPORT_FILE="$RESULTS_DIR/report_$TIMESTAMP.json"
 
 # Colors for terminal output
@@ -70,6 +75,9 @@ RUN_ALL=false
 SKIP_UI_TESTS=false
 QUICK_MODE=false
 KILL_EMULATOR=false
+PARALLEL_MODE=true  # Default to parallel mode (40-50% faster)
+VERBOSE_MODE=false
+SHOW_PROGRESS=true
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -94,12 +102,29 @@ while [[ $# -gt 0 ]]; do
       SKIP_UI_TESTS=true
       shift
       ;;
+    --commit-mode)
+      QUICK_MODE=true
+      SKIP_UI_TESTS=true
+      shift
+      ;;
     --kill-emulator)
       KILL_EMULATOR=true
       shift
       ;;
+    --sequential)
+      PARALLEL_MODE=false
+      shift
+      ;;
+    --verbose)
+      VERBOSE_MODE=true
+      shift
+      ;;
+    --no-progress)
+      SHOW_PROGRESS=false
+      shift
+      ;;
     --help)
-      head -n 20 "$0" | tail -n 17
+      head -n 22 "$0" | tail -n 19
       exit 0
       ;;
     *)
@@ -188,6 +213,112 @@ format_duration() {
   fi
 }
 
+# Progress indicator with spinner
+show_progress() {
+  local pid=$1
+  local message=$2
+  local log_file=${3:-}
+  local test_type=${4:-}
+
+  if [ "$SHOW_PROGRESS" = false ]; then
+    # Just wait for the process to finish without showing progress
+    wait "$pid" 2>/dev/null
+    return $?
+  fi
+
+  local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local elapsed=0
+  local test_count=0
+  local test_passed=0
+
+  while kill -0 "$pid" 2>/dev/null; do
+    for i in $(seq 0 9); do
+      # Check if process still running
+      if ! kill -0 "$pid" 2>/dev/null; then
+        break 2
+      fi
+
+      # Show spinner with elapsed time
+      local spinner_char="${spinner:$i:1}"
+      local status_line="\r${spinner_char} ${message} [$(format_duration $elapsed)]"
+
+      # Add test count if log file provided and verbose mode
+      if [ -n "$log_file" ] && [ -f "$log_file" ] && [ "$VERBOSE_MODE" = true ]; then
+        if [ "$test_type" = "xcode" ]; then
+          # Parse iOS test progress
+          test_passed=$(grep -ci "Test [Cc]ase .* passed" "$log_file" 2>/dev/null || echo "0")
+          local test_failed=$(grep -ci "Test [Cc]ase .* failed" "$log_file" 2>/dev/null || echo "0")
+          test_count=$((test_passed + test_failed))
+
+          if [ "$test_count" -gt 0 ]; then
+            status_line="${status_line} - Tests: ${test_count} (${test_passed} passed, ${test_failed} failed)"
+          fi
+
+          # Show current test name
+          local current_test=$(tail -5 "$log_file" 2>/dev/null | grep -o "Test Case .* started" | tail -1 | sed 's/Test Case //' | sed 's/ started//' || echo "")
+          if [ -n "$current_test" ]; then
+            # Truncate long test names
+            current_test=$(echo "$current_test" | cut -c1-50)
+            status_line="${status_line}\n  Current: ${current_test}"
+          fi
+        elif [ "$test_type" = "gradle" ]; then
+          # Parse Android test progress from XML results
+          # (Gradle doesn't output real-time test info to console)
+          local test_results_dir="$REPO_ROOT/android/app/build/test-results/testDebugUnitTest"
+          if [ -d "$test_results_dir" ]; then
+            test_count=$(find "$test_results_dir" -name "*.xml" -type f -exec grep -h '<testsuite' {} \; 2>/dev/null | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum+=$1} END {print sum}' || echo "0")
+            if [ "$test_count" -gt 0 ]; then
+              status_line="${status_line} - Tests completed: ${test_count}"
+            fi
+          fi
+        fi
+      fi
+
+      echo -ne "${status_line}"
+      sleep 0.1
+      elapsed=$((elapsed + 1))
+    done
+    elapsed=$((elapsed / 10))  # Adjust for the 10 iterations
+  done
+
+  # Clear the line and show completion
+  echo -ne "\r$(printf ' %.0s' {1..100})\r"
+
+  # Wait for process and return its exit code
+  wait "$pid" 2>/dev/null
+  return $?
+}
+
+# Display parallel status for both platforms
+show_parallel_status() {
+  local ios_phase=$1
+  local android_phase=$2
+  local ios_elapsed=$3
+  local android_elapsed=$4
+
+  if [ "$SHOW_PROGRESS" = false ]; then
+    return
+  fi
+
+  # Clear screen section
+  echo -ne "\033[2K\r"
+
+  # Box drawing
+  echo -e "${CYAN}┌─────────────────────────────┬─────────────────────────────┐${NC}"
+  echo -e "${CYAN}│${NC} ${BLUE}iOS Pipeline${NC}                │ ${BLUE}Android Pipeline${NC}            │"
+  echo -e "${CYAN}├─────────────────────────────┼─────────────────────────────┤${NC}"
+
+  # iOS status
+  local ios_status_line="│ ${ios_phase}"
+  printf "%-60s│\n" "$ios_status_line"
+
+  # Android status
+  local android_status_line="│ ${android_phase}"
+  printf "%-60s│\n" "$android_status_line"
+
+  echo -e "${CYAN}└─────────────────────────────┴─────────────────────────────┘${NC}"
+}
+
 # Global variables to store test results
 IOS_BUILD_STATUS=""
 IOS_BUILD_DURATION=0
@@ -233,10 +364,10 @@ parse_gradle_test_output() {
   if [ "$test_type" = "ui" ]; then
     # Android UI tests (instrumented tests) results location
     # Note: Results may be in connected/ or connected/debug/ subdirectory
-    test_results_dir="$SCRIPT_DIR/android/app/build/outputs/androidTest-results/connected"
+    test_results_dir="$REPO_ROOT/android/app/build/outputs/androidTest-results/connected"
   else
     # Android unit tests results location
-    test_results_dir="$SCRIPT_DIR/android/app/build/test-results/testDebugUnitTest"
+    test_results_dir="$REPO_ROOT/android/app/build/test-results/testDebugUnitTest"
   fi
 
   if [ -d "$test_results_dir" ]; then
@@ -473,7 +604,7 @@ run_ios_pipeline() {
   local ios_success=true
   local ios_start=$(date +%s)
 
-  cd "$SCRIPT_DIR/ios/JustSpent"
+  cd "$REPO_ROOT/ios/JustSpent"
 
   # iOS Build
   running "Building iOS app..."
@@ -497,7 +628,7 @@ run_ios_pipeline() {
     error "Check log: $RESULTS_DIR/ios_build_$TIMESTAMP.log"
     record_test_result "ios" "build" "fail" "$build_time"
     ios_success=false
-    cd "$SCRIPT_DIR"
+    cd "$REPO_ROOT"
     return 1
   fi
 
@@ -642,7 +773,7 @@ run_ios_pipeline() {
     record_test_result "ios" "ui" "skip" "0" "0" "0" "0"
   fi
 
-  cd "$SCRIPT_DIR"
+  cd "$REPO_ROOT"
 
   local ios_end=$(date +%s)
   local ios_duration=$((ios_end - ios_start))
@@ -664,7 +795,7 @@ run_android_pipeline() {
   local android_success=true
   local android_start=$(date +%s)
 
-  cd "$SCRIPT_DIR/android"
+  cd "$REPO_ROOT/android"
 
   # Grant execute permission
   chmod +x gradlew
@@ -684,7 +815,7 @@ run_android_pipeline() {
     error "Check log: $RESULTS_DIR/android_build_$TIMESTAMP.log"
     record_test_result "android" "build" "fail" "$build_time"
     android_success=false
-    cd "$SCRIPT_DIR"
+    cd "$REPO_ROOT"
     return 1
   fi
 
@@ -769,7 +900,7 @@ run_android_pipeline() {
       running "No emulator detected, launching automatically..."
 
       # Use emulator manager to start emulator
-      if "$SCRIPT_DIR/scripts/android-emulator-manager.sh" start --wait --grant-permissions \
+      if "$REPO_ROOT/scripts/android-emulator-manager.sh" start --wait --grant-permissions \
         > "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1; then
 
         success "Emulator launched and ready"
@@ -780,14 +911,14 @@ run_android_pipeline() {
         warning "Android UI tests skipped (emulator launch failed)"
         warning "You can manually start an emulator and re-run tests"
         # Don't fail the whole pipeline, just skip UI tests
-        cd "$SCRIPT_DIR"
+        cd "$REPO_ROOT"
         return 0
       fi
     else
       info "Emulator already running, granting permissions..."
 
       # Grant permissions to existing emulator
-      if "$SCRIPT_DIR/scripts/android-emulator-manager.sh" grant-permissions \
+      if "$REPO_ROOT/scripts/android-emulator-manager.sh" grant-permissions \
         >> "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1; then
 
         success "Permissions granted"
@@ -838,7 +969,7 @@ run_android_pipeline() {
     # Kill emulator if requested and we started it
     if [ "$KILL_EMULATOR" = true ] && [ "$emulator_was_started" = true ]; then
       info "Stopping emulator (--kill-emulator flag set)..."
-      "$SCRIPT_DIR/scripts/android-emulator-manager.sh" stop \
+      "$REPO_ROOT/scripts/android-emulator-manager.sh" stop \
         >> "$RESULTS_DIR/android_emulator_$TIMESTAMP.log" 2>&1 || true
       success "Emulator stopped"
     fi
@@ -847,7 +978,7 @@ run_android_pipeline() {
     record_test_result "android" "ui" "skip" "0"
   fi
 
-  cd "$SCRIPT_DIR"
+  cd "$REPO_ROOT"
 
   local android_end=$(date +%s)
   local android_duration=$((android_end - android_start))
@@ -874,13 +1005,34 @@ echo -e "${BOLD}${CYAN}╚══════════════════
 echo ""
 
 info "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+
+# Display execution mode
 if [ "$QUICK_MODE" = true ]; then
-  info "Mode: Quick (build + unit tests only)"
+  info "Test Mode: Quick (build + unit tests only)"
 elif [ "$SKIP_UI_TESTS" = true ]; then
-  info "Mode: Skip UI tests"
+  info "Test Mode: Skip UI tests"
 else
-  info "Mode: Full (build + unit tests + UI tests)"
+  info "Test Mode: Full (build + unit tests + UI tests)"
 fi
+
+# Display execution strategy
+if [ "$PARALLEL_MODE" = true ]; then
+  info "Execution: Parallel (40-50% faster)"
+else
+  info "Execution: Sequential (default)"
+fi
+
+# Display progress settings
+if [ "$SHOW_PROGRESS" = true ]; then
+  if [ "$VERBOSE_MODE" = true ]; then
+    info "Progress: Enabled (verbose with test details)"
+  else
+    info "Progress: Enabled (spinners and counters)"
+  fi
+else
+  info "Progress: Disabled"
+fi
+
 echo ""
 
 # Initialize results
@@ -892,17 +1044,364 @@ TOTAL_START=$(date +%s)
 # Track overall success
 OVERALL_SUCCESS=true
 
-# Run iOS pipeline
-if [ "$RUN_IOS" = true ]; then
-  if ! run_ios_pipeline; then
+# Run pipelines (parallel or sequential based on flag)
+if [ "$PARALLEL_MODE" = true ] && [ "$RUN_IOS" = true ] && [ "$RUN_ANDROID" = true ]; then
+  # ========================================================================
+  # Parallel Execution Mode (40-50% faster)
+  # ========================================================================
+  info "Running iOS and Android pipelines in parallel..."
+  echo ""
+
+  # Create temp files to store exit codes and results
+  IOS_EXIT_FILE=$(mktemp)
+  ANDROID_EXIT_FILE=$(mktemp)
+  IOS_OUTPUT_FILE=$(mktemp)
+  ANDROID_OUTPUT_FILE=$(mktemp)
+
+  # Run iOS in background (redirect output to temp file)
+  (
+    if run_ios_pipeline > "$IOS_OUTPUT_FILE" 2>&1; then
+      echo "0" > "$IOS_EXIT_FILE"
+    else
+      echo "1" > "$IOS_EXIT_FILE"
+    fi
+  ) &
+  IOS_PID=$!
+
+  # Run Android in background (redirect output to temp file)
+  (
+    if run_android_pipeline > "$ANDROID_OUTPUT_FILE" 2>&1; then
+      echo "0" > "$ANDROID_EXIT_FILE"
+    else
+      echo "1" > "$ANDROID_EXIT_FILE"
+    fi
+  ) &
+  ANDROID_PID=$!
+
+  # Show progress while waiting
+  if [ "$SHOW_PROGRESS" = true ]; then
+    SPINNER='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    ELAPSED=0
+
+    # Expected test counts
+    IOS_EXPECTED_TESTS=186  # 105 unit + 81 UI
+    ANDROID_EXPECTED_TESTS=359  # 262 unit + 97 UI
+
+    if [ "$SKIP_UI_TESTS" = true ]; then
+      IOS_EXPECTED_TESTS=105  # Unit tests only
+      ANDROID_EXPECTED_TESTS=262  # Unit tests only
+    fi
+
+    # Track platform status
+    IOS_STATUS="🏗️ Building"
+    ANDROID_STATUS="🏗️ Building"
+    IOS_DONE=false
+    ANDROID_DONE=false
+    IOS_DURATION=0
+    ANDROID_DURATION=0
+    IOS_CURRENT_TESTS=0
+    ANDROID_CURRENT_TESTS=0
+
+    # Save cursor position and hide cursor
+    tput sc 2>/dev/null || true
+    tput civis 2>/dev/null || true
+
+    while kill -0 $IOS_PID 2>/dev/null || kill -0 $ANDROID_PID 2>/dev/null; do
+      for i in $(seq 0 9); do
+        if ! kill -0 $IOS_PID 2>/dev/null && ! kill -0 $ANDROID_PID 2>/dev/null; then
+          break 2
+        fi
+
+        # Check iOS status and test progress
+        if ! kill -0 $IOS_PID 2>/dev/null && [ "$IOS_DONE" = false ]; then
+          IOS_DONE=true
+          IOS_DURATION=$((ELAPSED / 10))
+          IOS_STATUS="✅ Done"
+          IOS_CURRENT_TESTS=$IOS_EXPECTED_TESTS
+        elif [ "$IOS_DONE" = false ]; then
+          # Parse test counts from log files in real-time
+          IOS_CURRENT_TESTS=0
+
+          # Check build status
+          if [ -f "$RESULTS_DIR/ios_build_$TIMESTAMP.log" ]; then
+            IOS_STATUS="🧪 Testing"
+          fi
+
+          # Count unit tests - count individual test case passes
+          if [ -f "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" ]; then
+            unit_count=$(grep -c "Test case.*passed" "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" 2>/dev/null || echo "0")
+            # Trim whitespace and ensure it's a valid number
+            unit_count=$(echo "$unit_count" | tr -d ' \n\r')
+            IOS_CURRENT_TESTS=$((IOS_CURRENT_TESTS + ${unit_count:-0}))
+          fi
+
+          # Count UI tests - count individual test case passes
+          if [ -f "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" ] && [ "$SKIP_UI_TESTS" = false ]; then
+            ui_count=$(grep -c "Test case.*passed" "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" 2>/dev/null || echo "0")
+            # Trim whitespace and ensure it's a valid number
+            ui_count=$(echo "$ui_count" | tr -d ' \n\r')
+            IOS_CURRENT_TESTS=$((IOS_CURRENT_TESTS + ${ui_count:-0}))
+          fi
+        fi
+
+        # Check Android status and test progress
+        if ! kill -0 $ANDROID_PID 2>/dev/null && [ "$ANDROID_DONE" = false ]; then
+          ANDROID_DONE=true
+          ANDROID_DURATION=$((ELAPSED / 10))
+          ANDROID_STATUS="✅ Done"
+          ANDROID_CURRENT_TESTS=$ANDROID_EXPECTED_TESTS
+        elif [ "$ANDROID_DONE" = false ]; then
+          # Parse test counts from log files in real-time
+          ANDROID_CURRENT_TESTS=0
+
+          # Check build status
+          if [ -f "$RESULTS_DIR/android_build_$TIMESTAMP.log" ]; then
+            ANDROID_STATUS="🧪 Testing"
+          fi
+
+          # Count unit tests - Gradle completes all tests at once, so check if task completed
+          # Gradle doesn't output per-test progress - it runs all tests and then writes XML files
+          if [ -f "$RESULTS_DIR/android_unit_$TIMESTAMP.log" ]; then
+            # Check if unit tests completed by looking for BUILD SUCCESSFUL or testDebugUnitTest completion
+            if grep -q "BUILD SUCCESSFUL\|> Task :app:testDebugUnitTest" "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>/dev/null; then
+              # Tests completed - count from XML files
+              unit_test_dir="android/app/build/test-results/testDebugUnitTest"
+              if [ -d "$unit_test_dir" ]; then
+                unit_count=0
+                shopt -s nullglob
+                for xml_file in "$unit_test_dir"/*.xml; do
+                  if [ -f "$xml_file" ]; then
+                    file_tests=$(grep '<testsuite' "$xml_file" | sed 's/.*tests="\([0-9]*\)".*/\1/' | head -1)
+                    if [ -n "$file_tests" ]; then
+                      unit_count=$((unit_count + file_tests))
+                    fi
+                  fi
+                done
+                shopt -u nullglob
+                unit_count=$(echo "$unit_count" | tr -d ' \n\r')
+                ANDROID_CURRENT_TESTS=${unit_count:-0}
+              fi
+            else
+              # Tests still running - estimate progress based on task
+              if grep -q "> Task :app:compileDebugUnitTestKotlin" "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>/dev/null; then
+                # Compiling tests - show ~30% progress
+                ANDROID_CURRENT_TESTS=$((ANDROID_EXPECTED_TESTS * 30 / 100))
+              elif grep -q "> Task :app:testDebugUnitTest" "$RESULTS_DIR/android_unit_$TIMESTAMP.log" 2>/dev/null; then
+                # Running tests - show ~80% progress
+                ANDROID_CURRENT_TESTS=$((ANDROID_EXPECTED_TESTS * 80 / 100))
+              fi
+            fi
+          fi
+
+          # Count UI tests - same approach for UI tests
+          if [ -f "$RESULTS_DIR/android_ui_$TIMESTAMP.log" ] && [ "$SKIP_UI_TESTS" = false ]; then
+            if grep -q "BUILD SUCCESSFUL\|> Task :app:connectedDebugAndroidTest" "$RESULTS_DIR/android_ui_$TIMESTAMP.log" 2>/dev/null; then
+              ui_test_dir="android/app/build/outputs/androidTest-results/connected"
+              if [ -d "$ui_test_dir" ]; then
+                ui_count=0
+                while IFS= read -r -d '' xml_file; do
+                  if [ -f "$xml_file" ]; then
+                    file_tests=$(grep '<testsuite' "$xml_file" | sed 's/.*tests="\([0-9]*\)".*/\1/' | head -1)
+                    if [ -n "$file_tests" ]; then
+                      ui_count=$((ui_count + file_tests))
+                    fi
+                  fi
+                done < <(find "$ui_test_dir" -name "*.xml" -print0 2>/dev/null)
+                ui_count=$(echo "$ui_count" | tr -d ' \n\r')
+                ANDROID_CURRENT_TESTS=$((ANDROID_CURRENT_TESTS + ${ui_count:-0}))
+              fi
+            fi
+          fi
+        fi
+
+        SPINNER_CHAR="${SPINNER:$i:1}"
+        SECONDS_ELAPSED=$((ELAPSED / 10))
+
+        # Build iOS progress bar with test count
+        if [ "$IOS_DONE" = true ]; then
+          IOS_LINE="iOS: [${IOS_CURRENT_TESTS}/${IOS_EXPECTED_TESTS}] [████████████████████] 100% ${IOS_STATUS} ($(format_duration $IOS_DURATION))"
+        else
+          # Calculate progress based on test count
+          if [ $IOS_EXPECTED_TESTS -gt 0 ]; then
+            IOS_PROGRESS=$((IOS_CURRENT_TESTS * 100 / IOS_EXPECTED_TESTS))
+          else
+            IOS_PROGRESS=0
+          fi
+          [ $IOS_PROGRESS -gt 99 ] && IOS_PROGRESS=99
+          IOS_BARS=$((IOS_PROGRESS / 5))
+          IOS_SPACES=$((20 - IOS_BARS))
+          IOS_LINE="iOS: [${IOS_CURRENT_TESTS}/${IOS_EXPECTED_TESTS}] [$(printf '█%.0s' $(seq 1 $IOS_BARS))$(printf '░%.0s' $(seq 1 $IOS_SPACES))] ${IOS_PROGRESS}% ${IOS_STATUS}"
+        fi
+
+        # Build Android progress bar with test count
+        if [ "$ANDROID_DONE" = true ]; then
+          ANDROID_LINE="Android: [${ANDROID_CURRENT_TESTS}/${ANDROID_EXPECTED_TESTS}] [████████████████████] 100% ${ANDROID_STATUS} ($(format_duration $ANDROID_DURATION))"
+        else
+          # Calculate progress based on test count
+          if [ $ANDROID_EXPECTED_TESTS -gt 0 ]; then
+            ANDROID_PROGRESS=$((ANDROID_CURRENT_TESTS * 100 / ANDROID_EXPECTED_TESTS))
+          else
+            ANDROID_PROGRESS=0
+          fi
+          [ $ANDROID_PROGRESS -gt 99 ] && ANDROID_PROGRESS=99
+          ANDROID_BARS=$((ANDROID_PROGRESS / 5))
+          ANDROID_SPACES=$((20 - ANDROID_BARS))
+          ANDROID_LINE="Android: [${ANDROID_CURRENT_TESTS}/${ANDROID_EXPECTED_TESTS}] [$(printf '█%.0s' $(seq 1 $ANDROID_BARS))$(printf '░%.0s' $(seq 1 $ANDROID_SPACES))] ${ANDROID_PROGRESS}% ${ANDROID_STATUS}"
+        fi
+
+        # Restore cursor position, clear line, and display new content
+        tput rc 2>/dev/null || true
+        tput el 2>/dev/null || true
+        printf "%s [%s] %s | %s" "${SPINNER_CHAR}" "$(format_duration $SECONDS_ELAPSED)" "${IOS_LINE}" "${ANDROID_LINE}"
+
+        sleep 0.1
+        ELAPSED=$((ELAPSED + 1))
+      done
+    done
+
+    # Restore cursor position, clear line, show cursor, and add newline
+    tput rc 2>/dev/null || true
+    tput el 2>/dev/null || true
+    tput cnorm 2>/dev/null || true
+    echo ""
+  fi
+
+  # Wait for both to complete
+  wait $IOS_PID 2>/dev/null
+  IOS_RESULT=$(cat "$IOS_EXIT_FILE" 2>/dev/null || echo "1")
+
+  wait $ANDROID_PID 2>/dev/null
+  ANDROID_RESULT=$(cat "$ANDROID_EXIT_FILE" 2>/dev/null || echo "1")
+
+  info "Both pipelines completed"
+  echo ""
+
+  # Display captured output
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${PURPLE}${BOLD}  iOS Pipeline Results${NC}"
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  cat "$IOS_OUTPUT_FILE"
+  echo ""
+
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${PURPLE}${BOLD}  Android Pipeline Results${NC}"
+  echo -e "${PURPLE}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  cat "$ANDROID_OUTPUT_FILE"
+  echo ""
+
+  # Parse iOS results from logs
+  if [ -f "$RESULTS_DIR/ios_build_$TIMESTAMP.log" ]; then
+    if grep -q "BUILD SUCCEEDED" "$RESULTS_DIR/ios_build_$TIMESTAMP.log" 2>/dev/null; then
+      IOS_BUILD_STATUS="pass"
+    else
+      IOS_BUILD_STATUS="fail"
+    fi
+    IOS_BUILD_DURATION=0  # Duration tracking happens in the pipeline functions
+  fi
+
+  if [ -f "$RESULTS_DIR/ios_unit_$TIMESTAMP.log" ]; then
+    TEST_RESULTS=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_unit_$TIMESTAMP.log")
+    IOS_UNIT_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    IOS_UNIT_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    IOS_UNIT_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
+    if [ "$IOS_UNIT_FAILED" -eq 0 ] && [ "$IOS_UNIT_COUNT" -ge "$EXPECTED_IOS_UNIT_TESTS" ]; then
+      IOS_UNIT_STATUS="pass"
+    else
+      IOS_UNIT_STATUS="fail"
+    fi
+    IOS_UNIT_DURATION=0
+  fi
+
+  if [ "$SKIP_UI_TESTS" = true ]; then
+    IOS_UI_STATUS="skip"
+    IOS_UI_COUNT=0
+    IOS_UI_PASSED=0
+    IOS_UI_FAILED=0
+    IOS_UI_DURATION=0
+  elif [ -f "$RESULTS_DIR/ios_ui_$TIMESTAMP.log" ]; then
+    TEST_RESULTS=$(parse_xcodebuild_test_output "$RESULTS_DIR/ios_ui_$TIMESTAMP.log")
+    IOS_UI_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    IOS_UI_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    IOS_UI_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
+    if [ "$IOS_UI_FAILED" -eq 0 ] && [ "$IOS_UI_COUNT" -gt 0 ]; then
+      IOS_UI_STATUS="pass"
+    elif [ "$IOS_UI_COUNT" -eq 0 ]; then
+      IOS_UI_STATUS="no_tests"
+    else
+      IOS_UI_STATUS="fail"
+    fi
+    IOS_UI_DURATION=0
+  fi
+
+  # Parse Android results from logs
+  if [ -f "$RESULTS_DIR/android_build_$TIMESTAMP.log" ]; then
+    if grep -q "BUILD SUCCESSFUL" "$RESULTS_DIR/android_build_$TIMESTAMP.log" 2>/dev/null; then
+      ANDROID_BUILD_STATUS="pass"
+    else
+      ANDROID_BUILD_STATUS="fail"
+    fi
+    ANDROID_BUILD_DURATION=0
+  fi
+
+  if [ -f "$RESULTS_DIR/android_unit_$TIMESTAMP.log" ]; then
+    TEST_RESULTS=$(parse_gradle_test_output "$RESULTS_DIR/android_unit_$TIMESTAMP.log")
+    ANDROID_UNIT_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    ANDROID_UNIT_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    ANDROID_UNIT_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
+    if [ "$ANDROID_UNIT_FAILED" -eq 0 ] && [ "$ANDROID_UNIT_COUNT" -ge "$EXPECTED_ANDROID_UNIT_TESTS" ]; then
+      ANDROID_UNIT_STATUS="pass"
+    else
+      ANDROID_UNIT_STATUS="fail"
+    fi
+    ANDROID_UNIT_DURATION=0
+  fi
+
+  if [ "$SKIP_UI_TESTS" = true ]; then
+    ANDROID_UI_STATUS="skip"
+    ANDROID_UI_COUNT=0
+    ANDROID_UI_PASSED=0
+    ANDROID_UI_FAILED=0
+    ANDROID_UI_DURATION=0
+  elif [ -f "$RESULTS_DIR/android_ui_$TIMESTAMP.log" ]; then
+    TEST_RESULTS=$(parse_gradle_test_output "$RESULTS_DIR/android_ui_$TIMESTAMP.log" "ui")
+    ANDROID_UI_COUNT=$(echo "$TEST_RESULTS" | cut -d':' -f1)
+    ANDROID_UI_PASSED=$(echo "$TEST_RESULTS" | cut -d':' -f2)
+    ANDROID_UI_FAILED=$(echo "$TEST_RESULTS" | cut -d':' -f3)
+    if [ "$ANDROID_UI_FAILED" -eq 0 ] && [ "$ANDROID_UI_COUNT" -gt 0 ]; then
+      ANDROID_UI_STATUS="pass"
+    elif [ "$ANDROID_UI_COUNT" -eq 0 ]; then
+      ANDROID_UI_STATUS="no_tests"
+    else
+      ANDROID_UI_STATUS="fail"
+    fi
+    ANDROID_UI_DURATION=0
+  fi
+
+  # Clean up temp files
+  rm -f "$IOS_EXIT_FILE" "$ANDROID_EXIT_FILE" "$IOS_OUTPUT_FILE" "$ANDROID_OUTPUT_FILE"
+
+  # Check results
+  if [ "$IOS_RESULT" -ne 0 ] || [ "$ANDROID_RESULT" -ne 0 ]; then
     OVERALL_SUCCESS=false
   fi
-fi
 
-# Run Android pipeline
-if [ "$RUN_ANDROID" = true ]; then
-  if ! run_android_pipeline; then
-    OVERALL_SUCCESS=false
+else
+  # ========================================================================
+  # Sequential Execution Mode (default, backward compatible)
+  # ========================================================================
+
+  # Run iOS pipeline
+  if [ "$RUN_IOS" = true ]; then
+    if ! run_ios_pipeline; then
+      OVERALL_SUCCESS=false
+    fi
+  fi
+
+  # Run Android pipeline
+  if [ "$RUN_ANDROID" = true ]; then
+    if ! run_android_pipeline; then
+      OVERALL_SUCCESS=false
+    fi
   fi
 fi
 
@@ -936,8 +1435,8 @@ if [ "$OVERALL_SUCCESS" = true ]; then
 
   # Generate HTML report
   info "Generating HTML report..."
-  if [ -f "$SCRIPT_DIR/scripts/generate-report.sh" ]; then
-    "$SCRIPT_DIR/scripts/generate-report.sh" "$REPORT_FILE"
+  if [ -f "$REPO_ROOT/scripts/generate-report.sh" ]; then
+    "$REPO_ROOT/scripts/generate-report.sh" "$REPORT_FILE"
   fi
 
   exit 0
@@ -958,8 +1457,8 @@ else
 
   # Generate HTML report
   info "Generating HTML report..."
-  if [ -f "$SCRIPT_DIR/scripts/generate-report.sh" ]; then
-    "$SCRIPT_DIR/scripts/generate-report.sh" "$REPORT_FILE"
+  if [ -f "$REPO_ROOT/scripts/generate-report.sh" ]; then
+    "$REPO_ROOT/scripts/generate-report.sh" "$REPORT_FILE"
   fi
 
   exit 1

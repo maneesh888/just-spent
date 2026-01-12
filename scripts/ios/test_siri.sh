@@ -4,6 +4,9 @@ echo "🎙️  Siri Integration Test Script"
 echo "================================"
 
 # Check if we're in the right directory
+# Ensure we are in the ios/JustSpent directory
+cd "$(dirname "$0")/../../ios/JustSpent" || exit 1
+
 if [ ! -f "JustSpent.xcodeproj/project.pbxproj" ]; then
     echo "❌ Error: Run this script from the ios/JustSpent directory"
     exit 1

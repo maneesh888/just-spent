@@ -5,6 +5,9 @@
 
 set -e  # Exit on error
 
+# Ensure we are in the ios directory
+cd "$(dirname "$0")/../../ios" || exit 1
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
