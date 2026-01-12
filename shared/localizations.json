@@ -1,0 +1,171 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-29",
+  "app": {
+    "title": "Just Spent",
+    "subtitle": "Voice-enabled expense tracker",
+    "totalLabel": "Total"
+  },
+  "emptyState": {
+    "noExpenses": "No Expenses Yet",
+    "noCurrencyExpenses": "No %@ Expenses",
+    "tapVoiceButton": {
+      "ios": "Tap the voice button below to get started",
+      "android": "Tap the microphone button to add an expense"
+    },
+    "trySaying": "Try saying:",
+    "exampleCommand": "• \"I just spent 20 dollars on coffee\"",
+    "googleAssistantPrompt": {
+      "ios": null,
+      "android": "Say \"Hey Google, I just spent...\" to get started"
+    },
+    "permissionsNeeded": "Voice features need permissions",
+    "recognitionUnavailable": "Speech recognition is not available on this device",
+    "grantPermissions": "Grant Speech Recognition and Microphone permissions to use voice expense logging"
+  },
+  "buttons": {
+    "grantPermissions": "Grant Permissions",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "process": "Process",
+    "goToSettings": "Go to Settings",
+    "delete": "Delete",
+    "save": "Save",
+    "addSampleExpense": "Add Sample Expense"
+  },
+  "voiceConfirmation": {
+    "title": "Please confirm this expense:",
+    "amount": "Amount:",
+    "category": "Category:",
+    "merchant": "Merchant:",
+    "notes": "Notes:",
+    "confidence": "Confidence: %d%%",
+    "trySayingExample": "Try saying: 'I just spent 20 dollars on coffee'"
+  },
+  "voice": {
+    "listening": "Listening…",
+    "processing": "Processing…",
+    "willStopAuto": "Will stop automatically when you finish speaking",
+    "enterExpense": "Say your expense…",
+    "enterNaturally": "Enter your expense naturally, like: 'I just spent 20 dollars for tea'"
+  },
+  "permission": {
+    "title": {
+      "voiceUnavailable": "Voice Recognition Unavailable"
+    },
+    "message": {
+      "tempUnavailable": "Speech recognition is temporarily unavailable. Please try again in a few moments.",
+      "unavailable": "Speech recognition is not available on this device. Voice recording features require speech recognition support."
+    }
+  },
+  "voiceRecognition": {
+    "entry": {
+      "title": "Voice Expense Entry"
+    },
+    "error": {
+      "title": "Voice Recognition Error"
+    },
+    "success": {
+      "title": "Voice Success"
+    },
+    "speakClearly": "No speech detected. Please try speaking clearly."
+  },
+  "expense": {
+    "addedSuccess": "✅ Voice expense added successfully!\n💰 Amount: %@$%@\n📂 Category: %@\n🎙️ From: '%@'",
+    "couldNotUnderstand": "❌ Could not understand: '%@'\n\nTry saying: 'I just spent 20 dollars for tea'",
+    "failedToSave": "❌ Failed to save expense: %@",
+    "smartProcessing": "Smart processing success!\n💰 Amount: $%@\n📂 Category: %@\n📝 From: '%@'",
+    "addedViaVoice": "Added via voice recognition",
+    "addedViaIntelligent": "Added via intelligent voice processing"
+  },
+  "error": {
+    "couldNotExtract": "❌ Could not extract expense data from: '%@'"
+  },
+  "debug": {
+    "extracted": "🔍 Extracted - Amount: %@, Currency: %@, Category: %@",
+    "processing": "🧠 Processing: '%@'",
+    "processingTranscription": "🧠 Processing transcription: '%@'",
+    "processingURL": "📝 Processing URL text: '%@'",
+    "receivedURL": "🔗 Received URL: %@",
+    "savedExpense": "✅ Intelligently processed and saved expense: $%@ for %@"
+  },
+  "categories": {
+    "foodDining": "Food & Dining",
+    "grocery": "Grocery",
+    "transportation": "Transportation",
+    "shopping": "Shopping",
+    "entertainment": "Entertainment",
+    "bills": "Bills & Utilities",
+    "billsUtilities": "Bills & Utilities",
+    "healthcare": "Healthcare",
+    "education": "Education",
+    "other": "Other",
+    "unknown": "Unknown"
+  },
+  "voiceAssistant": {
+    "name": {
+      "ios": "Siri",
+      "android": "Assistant"
+    }
+  },
+  "platformNotes": {
+    "ellipsis": "Use proper ellipsis character (…) not three dots (...)",
+    "capitalization": "Use Title Case for UI labels and messages",
+    "ampersand": "Android: Use &amp; in XML, both platforms display as &"
+  },
+  "settings": {
+    "title": "Settings",
+    "currencySettings": "Currency Settings",
+    "currencyFooter": "All expenses will be displayed in your selected currency.",
+    "userInformation": "User Information",
+    "about": "About",
+    "version": "Version",
+    "build": "Build",
+    "name": "Name",
+    "email": "Email",
+    "memberSince": "Member Since",
+    "defaultCurrency": "Default Currency",
+    "resetToDefaults": "Reset to Defaults",
+    "selectCurrency": "Select Currency",
+    "done": "Done",
+    "back": "Back"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to Just Spent!",
+    "welcomeMessage": "Track your expenses effortlessly with voice commands",
+    "welcomeSubtitle": "We've pre-selected your currency based on your location. You can change it below.",
+    "helperText": "You can choose a different currency for expense tracking below",
+    "permissionsTitle": "Permissions Required",
+    "permissionsMessage": "We need microphone and speech recognition access to enable voice expense logging",
+    "currencyTitle": "Select Your Currency",
+    "currencyMessage": "Choose your default currency for expense tracking",
+    "continueButton": "Continue",
+    "skipButton": "Skip",
+    "getStarted": "Get Started"
+  },
+  "errors": {
+    "noMicrophonePermission": "Microphone permission is required. Please enable it in Settings.",
+    "noSpeechPermission": "Speech recognition permission is required. Please enable it in Settings.",
+    "speechRecognitionFailed": "Could not understand speech. Please try again.",
+    "couldNotParseExpense": "Could not parse expense from speech. Please try again.",
+    "invalidAmount": "Invalid amount detected. Please try again.",
+    "categoryNotRecognized": "Category not recognized. Using 'Other' as default.",
+    "tryAgain": "Please try again",
+    "goToSettingsToEnable": "Go to Settings to enable",
+    "recognitionNotAvailable": "Speech recognition is not available on this device"
+  },
+  "permissions": {
+    "microphoneTitle": "Microphone Access",
+    "microphoneMessage": "Just Spent needs access to your microphone to record voice expenses",
+    "speechRecognitionTitle": "Speech Recognition",
+    "speechRecognitionMessage": "Just Spent needs speech recognition to convert your voice to text",
+    "bothPermissionsTitle": "Microphone and Speech Recognition",
+    "bothPermissionsMessage": "Just Spent needs both microphone and speech recognition access to enable voice expense logging"
+  },
+  "currency": {
+    "selectCurrency": "Select Currency",
+    "searchCurrencies": "Search Currencies",
+    "noCurrenciesFound": "No currencies found"
+  }
+}

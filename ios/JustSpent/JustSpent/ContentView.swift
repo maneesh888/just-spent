@@ -60,7 +60,78 @@ struct ContentView: View {
 
     /// Determine if we should show tabs (multiple currencies) or single list
     private var shouldShowTabs: Bool {
-        return activeCurrencies.count > 1
+        let result = activeCurrencies.count > 1
+        #if DEBUG
+        if TestDataManager.isUITesting() {
+            print("🧪 [ContentView] shouldShowTabs = \(result), activeCurrencies.count = \(activeCurrencies.count), expenses.count = \(expenses.count)")
+            print("🧪 [ContentView] Active currencies: \(activeCurrencies.map { $0.code }.joined(separator: ", "))")
+        }
+        #endif
+        return result
+    }
+
+    // MARK: - View Components
+
+    /// Main content body - extracted to help Swift compiler
+    @ViewBuilder
+    private var mainContentBody: some View {
+        if expenses.isEmpty {
+            // Empty state (without floating button)
+            emptyStateView
+                // Test marker for empty state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_empty")
+        } else if shouldShowTabs {
+            // Multiple currencies → Tabbed interface
+            MultiCurrencyTabbedView(currencies: activeCurrencies)
+                .environment(\.managedObjectContext, viewContext)
+                // Test marker for multi-currency state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_multi_currency")
+        } else if let currency = activeCurrencies.first {
+            // Single currency → Simple list view
+            SingleCurrencyView(currency: currency)
+                .environment(\.managedObjectContext, viewContext)
+                // Test marker for single currency state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_single_currency")
+        } else {
+            // Fallback to empty state (shouldn't happen, but safety)
+            emptyStateView
+        }
+    }
+
+    /// Empty state view - extracted to avoid duplication
+    private var emptyStateView: some View {
+        EmptyStateView(
+            speechRecognitionAvailable: speechRecognitionManager.speechRecognitionAvailable,
+            speechPermissionGranted: permissionManager.speechPermissionGranted,
+            microphonePermissionGranted: permissionManager.microphonePermissionGranted,
+            errorMessage: viewModel.errorMessage,
+            onOpenSettings: permissionManager.openAppSettings
+        )
+    }
+
+    /// Floating voice button - extracted to help Swift compiler
+    private var floatingVoiceButton: some View {
+        FloatingVoiceButton(
+            isRecording: $speechRecognitionManager.isRecording,
+            hasDetectedSpeech: $speechRecognitionManager.hasDetectedSpeech,
+            speechRecognitionAvailable: $speechRecognitionManager.speechRecognitionAvailable,
+            speechPermissionGranted: $permissionManager.speechPermissionGranted,
+            microphonePermissionGranted: $permissionManager.microphonePermissionGranted,
+            onStartRecording: speechRecognitionManager.startRecording,
+            onStopRecording: speechRecognitionManager.stopRecording,
+            onPermissionAlert: handlePermissionAlert
+        )
+    }
+
+    /// Permission alert handler - extracted to reduce inline closure complexity
+    private func handlePermissionAlert() {
+        showPermissionAlert(
+            title: LocalizedStrings.permissionTitleVoiceUnavailable,
+            message: LocalizedStrings.permissionMessageUnavailable
+        )
     }
 
     var body: some View {
@@ -78,52 +149,10 @@ struct ContentView: View {
     private var mainAppContent: some View {
         ZStack {
             // MARK: - Main Content View Based on Currency Count
-            Group {
-                if expenses.isEmpty {
-                    // Empty state (without floating button)
-                    EmptyStateView(
-                        speechRecognitionAvailable: speechRecognitionManager.speechRecognitionAvailable,
-                        speechPermissionGranted: permissionManager.speechPermissionGranted,
-                        microphonePermissionGranted: permissionManager.microphonePermissionGranted,
-                        errorMessage: viewModel.errorMessage,
-                        onOpenSettings: permissionManager.openAppSettings
-                    )
-                } else if shouldShowTabs {
-                    // Multiple currencies → Tabbed interface
-                    MultiCurrencyTabbedView(currencies: activeCurrencies)
-                        .environment(\.managedObjectContext, viewContext)
-                } else if let currency = activeCurrencies.first {
-                    // Single currency → Simple list view
-                    SingleCurrencyView(currency: currency)
-                        .environment(\.managedObjectContext, viewContext)
-                } else {
-                    // Fallback to empty state (shouldn't happen, but safety)
-                    EmptyStateView(
-                        speechRecognitionAvailable: speechRecognitionManager.speechRecognitionAvailable,
-                        speechPermissionGranted: permissionManager.speechPermissionGranted,
-                        microphonePermissionGranted: permissionManager.microphonePermissionGranted,
-                        errorMessage: viewModel.errorMessage,
-                        onOpenSettings: permissionManager.openAppSettings
-                    )
-                }
-            }
+            mainContentBody
 
             // MARK: - Floating Voice Button (Always Visible)
-            FloatingVoiceButton(
-                isRecording: $speechRecognitionManager.isRecording,
-                hasDetectedSpeech: $speechRecognitionManager.hasDetectedSpeech,
-                speechRecognitionAvailable: $speechRecognitionManager.speechRecognitionAvailable,
-                speechPermissionGranted: $permissionManager.speechPermissionGranted,
-                microphonePermissionGranted: $permissionManager.microphonePermissionGranted,
-                onStartRecording: speechRecognitionManager.startRecording,
-                onStopRecording: speechRecognitionManager.stopRecording,
-                onPermissionAlert: {
-                    showPermissionAlert(
-                        title: LocalizedStrings.permissionTitleVoiceUnavailable,
-                        message: LocalizedStrings.permissionMessageUnavailable
-                    )
-                }
-            )
+            floatingVoiceButton
         }
         .alert(isErrorMessage ? LocalizedStrings.voiceRecognitionErrorTitle : LocalizedStrings.voiceRecognitionSuccessTitle, isPresented: $showingSiriSuccess) {
             Button(LocalizedStrings.buttonOK) {
@@ -252,7 +281,9 @@ struct ContentView: View {
     }
 
     private func processVoiceTranscription(_ transcription: String) {
+        #if DEBUG
         print(LocalizedStrings.debugProcessingTranscription(transcription))
+        #endif
 
         Task {
             let result = await voiceTransactionManager.process(input: transcription, source: AppConstants.ExpenseSource.voiceRecognition)

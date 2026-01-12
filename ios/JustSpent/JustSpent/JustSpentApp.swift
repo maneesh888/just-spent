@@ -47,7 +47,9 @@ struct JustSpentApp: App {
                     handleSiriExpense(userActivity)
                 }
                 .onContinueUserActivity(AppConstants.UserActivityType.viewExpenses) { userActivity in
+                    #if DEBUG
                     print(LocalizedStrings.debugReceivedURL("view_expenses"))
+                    #endif
                 }
                 .onContinueUserActivity(AppConstants.UserActivityType.processVoiceCommand) { userActivity in
                     handleVoiceCommandProcessing(userActivity)
@@ -133,7 +135,9 @@ struct JustSpentApp: App {
     }
     
     private func processVoiceCommand(_ command: String) {
+        #if DEBUG
         print(LocalizedStrings.debugProcessing(command))
+        #endif
 
         Task {
             // Use local manager for background processing

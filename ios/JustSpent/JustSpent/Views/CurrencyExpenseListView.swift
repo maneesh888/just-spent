@@ -21,9 +21,29 @@ struct CurrencyExpenseListView: View {
     // User preferences
     @StateObject private var userPreferences = UserPreferences.shared
 
-    // Computed total for this currency
+    // Date filter state
+    @Binding var dateFilter: DateFilter
+
+    // Delete confirmation state
+    @State private var showDeleteConfirmation = false
+    @State private var expenseToDelete: Expense?
+
+    // Edit state
+    @State private var showEditSheet = false
+    @State private var expenseToEdit: Expense?
+
+    // Filtered expenses based on date filter
+    private var filteredExpenses: [Expense] {
+        let dateFilterUtils = DateFilterUtils.shared
+        return expenses.filter { expense in
+            guard let transactionDate = expense.transactionDate else { return true }
+            return dateFilterUtils.isDate(transactionDate, inFilter: dateFilter)
+        }
+    }
+
+    // Computed total for filtered expenses
     private var totalSpending: Double {
-        expenses.reduce(0) { total, expense in
+        filteredExpenses.reduce(0) { total, expense in
             total + (expense.amount?.doubleValue ?? 0)
         }
     }
@@ -38,8 +58,9 @@ struct CurrencyExpenseListView: View {
         )
     }
 
-    init(currency: Currency) {
+    init(currency: Currency, dateFilter: Binding<DateFilter>) {
         self.currency = currency
+        self._dateFilter = dateFilter
 
         // Initialize FetchRequest with currency filter
         let predicate = NSPredicate(format: "currency == %@", currency.code)
@@ -51,10 +72,16 @@ struct CurrencyExpenseListView: View {
     }
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            // Show filter strip only when there are expenses
+            if !expenses.isEmpty {
+                FilterStripView(selectedFilter: $dateFilter)
+                    .accessibilityIdentifier("expense_filter_strip")
+            }
+
             // Expense List
             if expenses.isEmpty {
-                // Empty state for this currency
+                // Empty state for this currency (no expenses at all)
                 VStack(spacing: 16) {
                     Spacer()
 
@@ -76,16 +103,75 @@ struct CurrencyExpenseListView: View {
                     Spacer()
                 }
                 .padding()
+            } else if filteredExpenses.isEmpty {
+                // Empty state for filtered results
+                VStack(spacing: 16) {
+                    Spacer()
+
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.system(size: 48))
+                        .foregroundColor(.gray)
+
+                    VStack(spacing: 8) {
+                        Text("No Expenses for \(dateFilter.displayName)")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+
+                        Text("Try selecting a different time period")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Spacer()
+                }
+                .padding()
+                .accessibilityIdentifier("empty_filter_state")
             } else {
                 List {
-                    ForEach(expenses, id: \.id) { expense in
+                    ForEach(filteredExpenses, id: \.id) { expense in
                         CurrencyExpenseRowView(expense: expense, currency: currency)
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                Button {
+                                    expenseToEdit = expense
+                                    showEditSheet = true
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                                .tint(.blue)
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    expenseToDelete = expense
+                                    showDeleteConfirmation = true
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                     }
-                    .onDelete(perform: deleteExpenses)
                 }
                 .listStyle(.plain)
+            }
+        }
+        .alert("Delete Expense", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {
+                expenseToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let expense = expenseToDelete {
+                    performDelete(expense)
+                }
+                expenseToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this expense?")
+        }
+        .sheet(isPresented: $showEditSheet) {
+            if let expense = expenseToEdit {
+                EditExpenseSheet(expense: expense, currency: currency)
+                    .environment(\.managedObjectContext, viewContext)
             }
         }
     }
@@ -95,11 +181,10 @@ struct CurrencyExpenseListView: View {
         formattedTotal
     }
 
-    private func deleteExpenses(offsets: IndexSet) {
+    /// Perform the actual delete after confirmation
+    private func performDelete(_ expense: Expense) {
         withAnimation {
-            offsets.map { expenses[$0] }.forEach { expense in
-                viewContext.delete(expense)
-            }
+            viewContext.delete(expense)
 
             do {
                 try viewContext.save()
@@ -177,7 +262,11 @@ struct CurrencyExpenseRowView: View {
 
 // MARK: - Preview
 
-#Preview {
-    CurrencyExpenseListView(currency: .aed)
-        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+struct CurrencyExpenseListView_Previews: PreviewProvider {
+    @State static var dateFilter: DateFilter = .all
+
+    static var previews: some View {
+        CurrencyExpenseListView(currency: .aed, dateFilter: $dateFilter)
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
 }

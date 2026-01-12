@@ -49,6 +49,27 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9F3559892EEBF03600A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"test-data/README.md",
+			);
+			target = 3D8A9E152C9F4B2E00123456 /* JustSpent */;
+		};
+		9F35598A2EEBF06200A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				legal/README.md,
+			);
+			target = 9F7363322EAC94A300D50166 /* JustSpentTests */;
+		};
+		9F35598B2EEBF06500A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				legal/README.md,
+			);
+			target = 9F73634B2EAC951B00D50166 /* JustSpentUITests */;
+		};
 		9F73635B2EAC955D00D50166 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -79,6 +100,8 @@
 		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 		9F7363342EAC94A300D50166 /* JustSpentTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentTests; sourceTree = "<group>"; };
 		9F73634D2EAC951B00D50166 /* JustSpentUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentUITests; sourceTree = "<group>"; };
+		9FABA7572EEBDF98004E319D /* shared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9F3559892EEBF03600A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F35598A2EEBF06200A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F35598B2EEBF06500A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = shared; path = "/Users/maneesh/Documents/Portfolio Projects/just-spent/shared"; sourceTree = "<absolute>"; };
+		9FBC21922EC26B9F00ECDB75 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +152,7 @@
 		3D8A9E182C9F4B2E00123456 /* JustSpent */ = {
 			isa = PBXGroup;
 			children = (
+				9FABA7572EEBDF98004E319D /* shared */,
 				9F7362492EA581ED00D50166 /* SiriKit */,
 				3D8A9E192C9F4B2E00123456 /* JustSpentApp.swift */,
 				3D8A9E1B2C9F4B2E00123456 /* ContentView.swift */,
@@ -148,6 +172,7 @@
 				9F7362822EA5841400D50166 /* Views */,
 				9FC1297F2EBA293D000999C2 /* MainContent.swift */,
 				9FC129812EBA2941000999C2 /* Footer.swift */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			path = JustSpent;
 			sourceTree = "<group>";
@@ -187,6 +212,8 @@
 				9F7362792EA5841400D50166 /* Presentation */,
 				9F73627C2EA5841400D50166 /* Siri */,
 				9F7362822EA5841400D50166 /* Views */,
+				9FABA7572EEBDF98004E319D /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			name = JustSpent;
 			productName = JustSpent;
@@ -208,6 +235,8 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9F7363342EAC94A300D50166 /* JustSpentTests */,
+				9FABA7572EEBDF98004E319D /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			name = JustSpentTests;
 			packageProductDependencies = (
@@ -231,6 +260,8 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9F73634D2EAC951B00D50166 /* JustSpentUITests */,
+				9FABA7572EEBDF98004E319D /* shared */,
+				9FBC21922EC26B9F00ECDB75 /* Utils */,
 			);
 			name = JustSpentUITests;
 			packageProductDependencies = (
@@ -500,7 +531,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -533,7 +564,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -554,7 +585,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JustSpent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JustSpent";
 			};
 			name = Debug;
@@ -576,7 +607,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JustSpent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JustSpent";
 			};
 			name = Release;
@@ -597,7 +628,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = JustSpent;
 			};
 			name = Debug;
@@ -618,7 +649,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = JustSpent;
 			};
 			name = Release;
