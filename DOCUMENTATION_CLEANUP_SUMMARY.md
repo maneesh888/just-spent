@@ -203,8 +203,8 @@ This document summarizes the markdown documentation cleanup performed to streaml
 
 **Shared** (`shared/`):
 - ✅ **shared/LOCALIZATION_SETUP.md** - Localization setup guide
-- ✅ **shared/legal/README.md** - Legal documentation README
-- ✅ **shared/test-data/README.md** - Test data README
+- ✅ **shared/legal/LEGAL.md** - Legal documentation
+- ✅ **shared/test-data/TEST_DATA.md** - Test data documentation
 - ✅ **shared/test-data/MIGRATION_GUIDE.md** - Test data migration guide
 
 ---

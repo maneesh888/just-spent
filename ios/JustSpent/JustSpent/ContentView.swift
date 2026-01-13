@@ -54,8 +54,23 @@ struct ContentView: View {
     /// Get distinct currencies from expenses
     private var activeCurrencies: [Currency] {
         let currencyCodes = Set(expenses.compactMap { $0.currency })
-        return currencyCodes.compactMap { Currency.from(isoCode: $0) }
+        let currencies = currencyCodes.compactMap { Currency.from(isoCode: $0) }
             .sorted { $0.displayName < $1.displayName }
+
+        #if DEBUG
+        if TestDataManager.isUITesting() {
+            NSLog("🧪 [ContentView.activeCurrencies] Fetched %d total expenses", expenses.count)
+            NSLog("🧪 [ContentView.activeCurrencies] Unique currency codes: %@", currencyCodes.sorted().joined(separator: ", "))
+            NSLog("🧪 [ContentView.activeCurrencies] Currency.all has %d currencies", Currency.all.count)
+            NSLog("🧪 [ContentView.activeCurrencies] Resolved %d Currency objects", currencies.count)
+            if currencies.isEmpty && !currencyCodes.isEmpty {
+                NSLog("❌ [ContentView.activeCurrencies] CRITICAL: Currency codes exist but Currency.from() returned nil!")
+                NSLog("❌ This means Currency.all is likely empty!")
+            }
+        }
+        #endif
+
+        return currencies
     }
 
     /// Determine if we should show tabs (multiple currencies) or single list
@@ -63,8 +78,13 @@ struct ContentView: View {
         let result = activeCurrencies.count > 1
         #if DEBUG
         if TestDataManager.isUITesting() {
-            print("🧪 [ContentView] shouldShowTabs = \(result), activeCurrencies.count = \(activeCurrencies.count), expenses.count = \(expenses.count)")
-            print("🧪 [ContentView] Active currencies: \(activeCurrencies.map { $0.code }.joined(separator: ", "))")
+            NSLog("🧪 [ContentView.shouldShowTabs] ========================================")
+            NSLog("🧪 [ContentView.shouldShowTabs] DETERMINING VIEW STATE")
+            NSLog("🧪 [ContentView.shouldShowTabs] Total expenses: %d", expenses.count)
+            NSLog("🧪 [ContentView.shouldShowTabs] Active currencies count: %d", activeCurrencies.count)
+            NSLog("🧪 [ContentView.shouldShowTabs] Active currencies: %@", activeCurrencies.map { $0.code }.joined(separator: ", "))
+            NSLog("🧪 [ContentView.shouldShowTabs] Result: %@", result ? "MULTI-CURRENCY (tabs)" : "SINGLE/EMPTY")
+            NSLog("🧪 [ContentView.shouldShowTabs] ========================================")
         }
         #endif
         return result
@@ -77,12 +97,27 @@ struct ContentView: View {
     private var mainContentBody: some View {
         if expenses.isEmpty {
             // Empty state (without floating button)
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    print("🧪 [ContentView.mainContentBody] 📭 Showing EMPTY STATE")
+                }
+                #endif
+            }()
             emptyStateView
                 // Test marker for empty state
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("test_state_empty")
         } else if shouldShowTabs {
             // Multiple currencies → Tabbed interface
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    NSLog("🧪 [ContentView.mainContentBody] 📊 Showing MULTI-CURRENCY TABBED VIEW")
+                    NSLog("🧪 [ContentView.mainContentBody]    Currencies: %@", activeCurrencies.map { $0.code }.joined(separator: ", "))
+                }
+                #endif
+            }()
             MultiCurrencyTabbedView(currencies: activeCurrencies)
                 .environment(\.managedObjectContext, viewContext)
                 // Test marker for multi-currency state
@@ -90,6 +125,13 @@ struct ContentView: View {
                 .accessibilityIdentifier("test_state_multi_currency")
         } else if let currency = activeCurrencies.first {
             // Single currency → Simple list view
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    print("🧪 [ContentView.mainContentBody] 💰 Showing SINGLE CURRENCY VIEW: \(currency.code)")
+                }
+                #endif
+            }()
             SingleCurrencyView(currency: currency)
                 .environment(\.managedObjectContext, viewContext)
                 // Test marker for single currency state
@@ -97,6 +139,13 @@ struct ContentView: View {
                 .accessibilityIdentifier("test_state_single_currency")
         } else {
             // Fallback to empty state (shouldn't happen, but safety)
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    print("🧪 [ContentView.mainContentBody] ⚠️ FALLBACK TO EMPTY STATE (unexpected!)")
+                }
+                #endif
+            }()
             emptyStateView
         }
     }

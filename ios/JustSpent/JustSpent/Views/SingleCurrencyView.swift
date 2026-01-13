@@ -68,9 +68,11 @@ struct SingleCurrencyView: View {
                         Text(LocalizedStrings.appTitle)
                             .font(.largeTitle)
                             .fontWeight(.bold)
+                            .accessibilityIdentifier("single_currency_app_title")
                         Text(LocalizedStrings.appSubtitle)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("single_currency_app_subtitle")
                     }
 
                     Spacer()
@@ -79,9 +81,11 @@ struct SingleCurrencyView: View {
                         Text(LocalizedStrings.totalLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("single_currency_total_label")
                         Text(formattedTotal)
                             .font(.title2)
                             .fontWeight(.semibold)
+                            .accessibilityIdentifier("single_currency_total_amount")
                     }
                 }
                 .padding(.horizontal)

@@ -54,7 +54,10 @@ class TestDataManager {
             return
         }
 
-        print("🧪 Setting up UI test environment...")
+        NSLog("🧪 ========================================")
+        NSLog("🧪 STARTING UI TEST ENVIRONMENT SETUP")
+        NSLog("🧪 ========================================")
+        NSLog("🧪 Launch arguments: %@", ProcessInfo.processInfo.arguments.joined(separator: ", "))
 
         // Always clear existing data when in UI testing mode
         clearAllData(context: context)
@@ -70,32 +73,69 @@ class TestDataManager {
         }
 
         // Populate test data based on arguments
+        NSLog("🧪 Checking test data population flags:")
+        NSLog("🧪   - shouldShowEmptyState: %d", TestDataManager.shouldShowEmptyState())
+        NSLog("🧪   - shouldPopulateMultiCurrency: %d", TestDataManager.shouldPopulateMultiCurrency())
+
         if TestDataManager.shouldShowEmptyState() {
-            print("🧪 Empty state - no test data populated")
+            NSLog("🧪 Empty state - no test data populated")
             // No data needed, just cleared data is sufficient
         } else if TestDataManager.shouldPopulateMultiCurrency() {
-            print("🧪 Populating multi-currency test data")
+            NSLog("🧪 ⚡ POPULATING MULTI-CURRENCY TEST DATA ⚡")
             populateMultiCurrencyData(context: context)
         } else {
-            print("🧪 Populating default test data (single currency)")
+            NSLog("🧪 Populating default test data (single currency)")
             populateDefaultTestData(context: context)
         }
 
         // Save changes
         do {
+            NSLog("🧪 Attempting to save test data to Core Data...")
             try context.save()
-            print("✅ Test data saved to Core Data")
+            NSLog("✅ Test data saved to Core Data")
+
+            // Verify data was saved
+            let fetchRequest: NSFetchRequest<Expense> = Expense.fetchRequest()
+            let savedExpenseCount = try context.count(for: fetchRequest)
+            NSLog("🧪 VERIFICATION: Saved %d expenses to Core Data", savedExpenseCount)
+
+            // Check currency distribution
+            let expenses = try context.fetch(fetchRequest)
+            let currencyCounts = Dictionary(grouping: expenses) { $0.currency ?? "UNKNOWN" }.mapValues { $0.count }
+            NSLog("🧪 CURRENCY DISTRIBUTION:")
+            for (currency, count) in currencyCounts.sorted(by: { $0.key < $1.key }) {
+                NSLog("🧪   - %@: %d expenses", currency, count)
+            }
 
             // CRITICAL: Force context to refresh and merge changes
             // This ensures @FetchRequest in ContentView sees the new data immediately
             context.refreshAllObjects()
-            print("✅ Context refreshed - @FetchRequest should now see test data")
+            NSLog("✅ Context refreshed - @FetchRequest should now see test data")
+
+            // Force process pending changes
+            context.processPendingChanges()
+            NSLog("✅ Pending changes processed")
 
             // Post notification to force SwiftUI views to update
             NotificationCenter.default.post(name: .NSManagedObjectContextDidSave, object: context)
-            print("✅ Test environment setup complete")
+
+            // Additional synchronization: give Core Data time to propagate changes
+            // This is critical for @FetchRequest to see the new data
+            Thread.sleep(forTimeInterval: 0.5)
+
+            // Force another save to ensure persistence
+            if context.hasChanges {
+                try context.save()
+                NSLog("✅ Additional context save completed")
+            }
+
+            NSLog("🧪 ========================================")
+            NSLog("🧪 TEST ENVIRONMENT SETUP COMPLETE")
+            NSLog("🧪 Total Expenses: %d", savedExpenseCount)
+            NSLog("🧪 Unique Currencies: %d", currencyCounts.keys.count)
+            NSLog("🧪 ========================================")
         } catch {
-            print("❌ Failed to save test data: \(error)")
+            NSLog("❌ Failed to save test data: %@", error.localizedDescription)
         }
     }
 
@@ -148,59 +188,87 @@ class TestDataManager {
             expense.updatedAt = Date()
             expense.source = AppConstants.ExpenseSource.manual
             expense.status = "active"
+            expense.isRecurring = false // Required for Core Data validation
         }
 
         print("✅ Created 5 test expenses in AED")
     }
 
-    /// Populate multi-currency test data
+    /// Populate multi-currency test data with extensive entries for pagination testing
     private func populateMultiCurrencyData(context: NSManagedObjectContext) {
+        print("🧪 [populateMultiCurrencyData] Starting multi-currency data population...")
         let calendar = Calendar.current
         let today = Date()
 
-        // Create test expenses across multiple currencies
-        let testExpenses: [(amount: Double, currency: String, category: String, merchant: String?, daysAgo: Int)] = [
-            // AED expenses
-            (150.00, "AED", "Grocery", "Carrefour", 0),
-            (50.00, "AED", "Food & Dining", "Starbucks", 1),
-            (200.00, "AED", "Transportation", "Uber", 2),
-
-            // USD expenses
-            (25.00, "USD", "Food & Dining", "McDonald's", 0),
-            (100.00, "USD", "Shopping", "Amazon", 1),
-            (45.00, "USD", "Entertainment", "Cinema", 3),
-
-            // EUR expenses
-            (20.00, "EUR", "Food & Dining", "Cafe", 0),
-            (80.00, "EUR", "Shopping", "Store", 2),
-
-            // GBP expenses
-            (15.00, "GBP", "Food & Dining", "Pub", 1),
-            (60.00, "GBP", "Transportation", "Train", 3),
-
-            // INR expenses
-            (500.00, "INR", "Grocery", "Local Market", 0),
-            (200.00, "INR", "Food & Dining", "Restaurant", 1),
-
-            // SAR expenses
-            (75.00, "SAR", "Shopping", "Mall", 2),
-            (30.00, "SAR", "Food & Dining", "Fast Food", 3)
+        // Categories and merchants for varied data
+        let categories = ["Grocery", "Food & Dining", "Transportation", "Shopping", "Entertainment",
+                         "Bills & Utilities", "Healthcare", "Education"]
+        let merchantsByCategory: [String: [String]] = [
+            "Grocery": ["Carrefour", "Lulu", "Spinneys", "Waitrose", "Choithrams"],
+            "Food & Dining": ["Starbucks", "McDonald's", "KFC", "Shake Shack", "Five Guys", "Costa Coffee"],
+            "Transportation": ["Uber", "Careem", "RTA", "ENOC", "ADNOC", "Shell"],
+            "Shopping": ["Amazon", "Mall", "H&M", "Zara", "Noon", "Souq"],
+            "Entertainment": ["VOX Cinemas", "Reel Cinemas", "Dubai Parks", "IMG Worlds", "Ski Dubai"],
+            "Bills & Utilities": ["DEWA", "ADDC", "Du", "Etisalat", "Netflix", "Spotify"],
+            "Healthcare": ["Pharmacy", "Clinic", "Hospital", "Lab", "Dentist"],
+            "Education": ["School", "Course", "Books", "Tuition", "University"]
         ]
 
-        for expenseData in testExpenses {
-            let expense = Expense(context: context)
-            expense.id = UUID()
-            expense.amount = NSDecimalNumber(value: expenseData.amount)
-            expense.currency = expenseData.currency
-            expense.category = expenseData.category
-            expense.merchant = expenseData.merchant
-            expense.transactionDate = calendar.date(byAdding: .day, value: -expenseData.daysAgo, to: today)
-            expense.createdAt = Date()
-            expense.updatedAt = Date()
-            expense.source = AppConstants.ExpenseSource.manual
-            expense.status = "active"
+        // Currency configurations with realistic amount ranges
+        let currencyConfigs: [(code: String, minAmount: Double, maxAmount: Double, count: Int)] = [
+            ("AED", 10.0, 500.0, 50),   // 50 AED expenses
+            ("USD", 5.0, 200.0, 40),     // 40 USD expenses
+            ("EUR", 5.0, 150.0, 30),     // 30 EUR expenses
+            ("GBP", 3.0, 120.0, 25),     // 25 GBP expenses
+            ("INR", 100.0, 5000.0, 20),  // 20 INR expenses
+            ("SAR", 10.0, 400.0, 15)     // 15 SAR expenses
+        ]
+
+        var totalExpenses = 0
+
+        for config in currencyConfigs {
+            print("🧪 [populateMultiCurrencyData] Creating \(config.count) expenses for \(config.code)...")
+            for i in 0..<config.count {
+                let expense = Expense(context: context)
+                expense.id = UUID()
+
+                // Random amount within range
+                let amount = Double.random(in: config.minAmount...config.maxAmount)
+                expense.amount = NSDecimalNumber(value: round(amount * 100) / 100)
+                expense.currency = config.code
+
+                // Random category
+                let category = categories.randomElement()!
+                expense.category = category
+
+                // Random merchant from category
+                if let merchants = merchantsByCategory[category] {
+                    expense.merchant = merchants.randomElement()
+                } else {
+                    expense.merchant = "Merchant \(i + 1)"
+                }
+
+                // Varied dates over past 90 days
+                let daysAgo = Int.random(in: 0...90)
+                expense.transactionDate = calendar.date(byAdding: .day, value: -daysAgo, to: today)
+                expense.createdAt = Date()
+                expense.updatedAt = Date()
+
+                // Mix of manual and voice sources
+                expense.source = i % 3 == 0 ? AppConstants.ExpenseSource.voiceSiri : AppConstants.ExpenseSource.manual
+                expense.status = "active"
+                expense.isRecurring = false // Required for Core Data validation
+
+                totalExpenses += 1
+            }
+            print("🧪 [populateMultiCurrencyData] ✅ Created \(config.count) \(config.code) expenses")
         }
 
-        print("✅ Created \(testExpenses.count) test expenses across 6 currencies (AED, USD, EUR, GBP, INR, SAR)")
+        print("🧪 [populateMultiCurrencyData] ========================================")
+        print("🧪 [populateMultiCurrencyData] MULTI-CURRENCY DATA POPULATION COMPLETE")
+        print("🧪 [populateMultiCurrencyData] Total: \(totalExpenses) expenses")
+        print("🧪 [populateMultiCurrencyData] Distribution: 50 AED, 40 USD, 30 EUR, 25 GBP, 20 INR, 15 SAR")
+        print("🧪 [populateMultiCurrencyData] Date Range: 90 days")
+        print("🧪 [populateMultiCurrencyData] ========================================")
     }
 }

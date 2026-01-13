@@ -397,6 +397,7 @@ class BaseUITestCase: XCTestCase {
         testHelper = TestDataHelper(app: app)
 
         // Wait for app to fully load (increased timeout for simulator boot time)
+        // Use "Just Spent" title which appears in ALL view states (empty, single-currency, multi-currency)
         let appTitle = app.staticTexts["Just Spent"]
         XCTAssertTrue(appTitle.waitForExistence(timeout: 30.0), "App should launch and show title")
     }

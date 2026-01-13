@@ -321,7 +321,7 @@ xcodebuild test -project JustSpent.xcodeproj -scheme JustSpent \
 
 ## 🎓 **Learning Resources**
 
-- **JSON Test Data**: See `shared/test-data/README.md`
+- **JSON Test Data**: See `shared/test-data/TEST_DATA.md`
 - **Loader Examples**: See `SharedTestDataLoader.kt` and `.swift`
 - **Refactored Tests**: See `*RefactoredTest.kt` and `*RefactoredTests.swift`
 - **Data Structure**: See JSON files in `shared/test-data/`

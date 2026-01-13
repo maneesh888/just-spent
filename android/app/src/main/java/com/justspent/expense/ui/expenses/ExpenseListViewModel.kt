@@ -8,6 +8,7 @@ import com.justspent.expense.data.model.ExpenseData
 import com.justspent.expense.data.preferences.UserPreferences
 import com.justspent.expense.data.repository.ExpenseRepositoryInterface
 import com.justspent.expense.utils.CurrencyFormatter
+import com.justspent.expense.utils.DateFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -25,6 +26,14 @@ data class ExpenseListUiState(
     val formattedTotalSpending: String = "$0.00"
 )
 
+data class PaginationState(
+    val loadedExpenses: List<Expense> = emptyList(),
+    val currentPage: Int = 0,
+    val hasMore: Boolean = false,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
     private val repository: ExpenseRepositoryInterface,
@@ -36,6 +45,14 @@ class ExpenseListViewModel @Inject constructor(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    // Pagination state
+    private val _paginationState = MutableStateFlow(PaginationState())
+    val paginationState: StateFlow<PaginationState> = _paginationState.asStateFlow()
+
+    private var currentCurrency: String = ""
+    private var currentDateFilter: DateFilter = DateFilter.All
+    private val pageSize: Int = 20
 
     init {
         loadExpenses()
@@ -126,5 +143,84 @@ class ExpenseListViewModel @Inject constructor(
             showSymbol = true,
             showCode = false
         )
+    }
+
+    // Pagination methods
+    fun loadFirstPage(currency: String, dateFilter: DateFilter) {
+        currentCurrency = currency
+        currentDateFilter = dateFilter
+
+        viewModelScope.launch {
+            _paginationState.update { it.copy(isLoading = true, error = null) }
+
+            repository.loadExpensesPage(
+                currency = currency,
+                dateFilter = dateFilter,
+                page = 0,
+                pageSize = pageSize
+            ).fold(
+                onSuccess = { expenses ->
+                    _paginationState.update {
+                        PaginationState(
+                            loadedExpenses = expenses,
+                            currentPage = 0,
+                            hasMore = expenses.size == pageSize,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _paginationState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = error.message ?: "Failed to load expenses"
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun loadNextPage() {
+        val currentState = _paginationState.value
+
+        // Don't load if already loading or no more data
+        if (currentState.isLoading || !currentState.hasMore) {
+            return
+        }
+
+        val nextPage = currentState.currentPage + 1
+
+        viewModelScope.launch {
+            _paginationState.update { it.copy(isLoading = true, error = null) }
+
+            repository.loadExpensesPage(
+                currency = currentCurrency,
+                dateFilter = currentDateFilter,
+                page = nextPage,
+                pageSize = pageSize
+            ).fold(
+                onSuccess = { newExpenses ->
+                    _paginationState.update { state ->
+                        state.copy(
+                            loadedExpenses = state.loadedExpenses + newExpenses,
+                            currentPage = nextPage,
+                            hasMore = newExpenses.size == pageSize,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _paginationState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = error.message ?: "Failed to load more expenses"
+                        )
+                    }
+                }
+            )
+        }
     }
 }

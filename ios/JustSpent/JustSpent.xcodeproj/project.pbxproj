@@ -49,27 +49,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9F3559892EEBF03600A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"test-data/README.md",
-			);
-			target = 3D8A9E152C9F4B2E00123456 /* JustSpent */;
-		};
-		9F35598A2EEBF06200A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				legal/README.md,
-			);
-			target = 9F7363322EAC94A300D50166 /* JustSpentTests */;
-		};
-		9F35598B2EEBF06500A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				legal/README.md,
-			);
-			target = 9F73634B2EAC951B00D50166 /* JustSpentUITests */;
-		};
 		9F73635B2EAC955D00D50166 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -100,7 +79,7 @@
 		9F7362822EA5841400D50166 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 		9F7363342EAC94A300D50166 /* JustSpentTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentTests; sourceTree = "<group>"; };
 		9F73634D2EAC951B00D50166 /* JustSpentUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JustSpentUITests; sourceTree = "<group>"; };
-		9FABA7572EEBDF98004E319D /* shared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9F3559892EEBF03600A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F35598A2EEBF06200A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9F35598B2EEBF06500A9BC86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = shared; path = "/Users/maneesh/Documents/Portfolio Projects/just-spent/shared"; sourceTree = "<absolute>"; };
+		9FABA7572EEBDF98004E319D /* shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); name = shared; path = ../../shared; sourceTree = SOURCE_ROOT; };
 		9FBC21922EC26B9F00ECDB75 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -435,7 +414,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -492,7 +471,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
