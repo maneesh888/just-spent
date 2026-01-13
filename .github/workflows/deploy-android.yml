@@ -38,6 +38,39 @@ jobs:
           fetch-depth: 0  # Full history for version detection
 
       # ============================================
+      # STEP 1.5: Validate Tag is on Main/Develop Branch
+      # ============================================
+      - name: Validate tag branch
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "🏷️  Validating tag: $TAG_NAME"
+
+          # Check if this is a beta/alpha/test release (allowed on feature branches)
+          if [[ "$TAG_NAME" =~ -beta\. ]] || [[ "$TAG_NAME" =~ -alpha\. ]] || [[ "$TAG_NAME" =~ -test\. ]]; then
+            echo "✅ Beta/Alpha/Test release detected - can be deployed from any branch"
+            echo "📝 Tag $TAG_NAME is allowed for feature branch testing"
+            echo "Proceeding with deployment..."
+            exit 0
+          fi
+
+          # Production releases must be on main or develop
+          BRANCHES=$(git branch -r --contains $TAG_NAME | sed 's/origin\///' | grep -E '^(main|develop)$' || true)
+
+          if [ -z "$BRANCHES" ]; then
+            echo "❌ Error: Production tag $TAG_NAME is not on main or develop branch"
+            echo "Found on branches:"
+            git branch -r --contains $TAG_NAME
+            echo ""
+            echo "⚠️  Production releases must be on main or develop branch"
+            echo "💡 For feature testing, use beta/alpha tags (e.g., v1.0.0-beta.1)"
+            echo "Please merge your changes to main/develop before creating production tags"
+            exit 1
+          fi
+
+          echo "✅ Production tag $TAG_NAME is on branch(es): $BRANCHES"
+          echo "Proceeding with deployment..."
+
+      # ============================================
       # STEP 2: Setup Environment
       # ============================================
       - name: Setup Java
