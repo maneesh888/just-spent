@@ -22,13 +22,18 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          # Use Xcode 16+ which supports iOS 17.0+
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || \
+          # Use Xcode 16.1 which has compatible simulator runtimes on macos-15
+          # Note: Xcode 16.2's SDK version (22C146) is incompatible with available simulator runtimes
           sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || \
           sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        id: xcode-version
+        run: |
+          xcodebuild -version
+          XCODE_BUILD=$(xcodebuild -version | tail -1 | awk '{print $3}')
+          echo "xcode_build=$XCODE_BUILD" >> $GITHUB_OUTPUT
+          echo "Xcode Build Version: $XCODE_BUILD"
 
       - name: Boot Simulator and Grant Permissions
         run: |
@@ -46,9 +51,12 @@ jobs:
           echo "Booting simulator..."
           xcrun simctl boot "$SIMULATOR_ID" || true
 
-          # Wait for simulator to fully boot
+          # Wait for simulator to fully boot (wait for bootstatus to complete)
           echo "Waiting for simulator to boot..."
-          sleep 10
+          xcrun simctl bootstatus "$SIMULATOR_ID" || true
+
+          # Additional short wait to ensure xcodebuild can recognize it
+          sleep 5
 
           # Grant permissions
           echo "Granting microphone permission..."
@@ -61,15 +69,19 @@ jobs:
 
           echo "✅ Permissions granted to iOS simulator"
 
-      - name: Cache Xcode DerivedData
-        uses: actions/cache@v4
-        continue-on-error: true
-        with:
-          path: |
-            ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-
+      # NOTE: DerivedData caching is disabled to avoid simulator runtime version mismatches
+      # The cache was causing errors like:
+      # "No simulator runtime version from [DVTBuildVersion] available to use with iphonesimulator SDK"
+      # This happens when cached data from one Xcode version is restored in a different Xcode environment
+      # - name: Cache Xcode DerivedData
+      #   uses: actions/cache@v4
+      #   continue-on-error: true
+      #   with:
+      #     path: |
+      #       ~/Library/Developer/Xcode/DerivedData
+      #     key: ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-${{ github.sha }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-xcode-${{ steps.xcode-version.outputs.xcode_build }}-
 
       - name: Build iOS app
         working-directory: ios/JustSpent
