@@ -37,7 +37,15 @@ class UserPreferences: ObservableObject {
 
     // MARK: - Singleton
 
-    static let shared = UserPreferences(context: PersistenceController.shared.container.viewContext)
+    static let shared: UserPreferences = {
+        if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+            print("🧪 UserPreferences: UI Testing detected - using isolated in-memory context")
+            // Create a temporary controller for preferences to avoid touching production stack
+            let controller = PersistenceController(inMemory: true)
+            return UserPreferences(context: controller.container.viewContext)
+        }
+        return UserPreferences(context: PersistenceController.shared.container.viewContext)
+    }()
 
     // MARK: - Initialization
 

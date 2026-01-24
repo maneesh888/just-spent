@@ -3,8 +3,9 @@ import NaturalLanguage
 
 @main
 struct JustSpentApp: App {
-    // Use in-memory store for UI tests, production store otherwise
-    let persistenceController: PersistenceController
+    // Use State for persistence controller to allow async loading without blocking init
+    // Renamed to avoid any potential conflict or caching issue
+    @State private var appPersistence: PersistenceController? = nil
 
     // App lifecycle management
     @StateObject private var lifecycleManager = AppLifecycleManager()
@@ -14,15 +15,6 @@ struct JustSpentApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        // CRITICAL FIX: Use in-memory Core Data store for UI tests
-        // This ensures @FetchRequest sees test data immediately
-        if TestDataManager.isUITesting() {
-            NSLog("🧪 UI Testing mode detected - using IN-MEMORY Core Data store")
-            persistenceController = PersistenceController(inMemory: true)
-        } else {
-            persistenceController = PersistenceController.shared
-        }
-
         // Create lifecycle manager first
         let lifecycle = AppLifecycleManager()
         _lifecycleManager = StateObject(wrappedValue: lifecycle)
@@ -30,47 +22,68 @@ struct JustSpentApp: App {
         // Create auto-recording coordinator with dependency
         _autoRecordingCoordinator = StateObject(wrappedValue: AutoRecordingCoordinator(lifecycleManager: lifecycle))
 
+        // Reuse existing UserPreferences singleton logic which is safe (uses semaphore in init)
+        
         // Initialize currency system from JSON
         Currency.initialize()
         NSLog("✅ Currency system initialized with %d currencies", Currency.all.count)
 
         // Initialize default currency based on locale if not already set
-        // This ensures app ALWAYS has a default currency (module independence)
         UserPreferences.shared.initializeDefaultCurrency()
         NSLog("💱 Default currency initialized")
-
-        // Setup test environment if running UI tests
-        if TestDataManager.isUITesting() {
-            NSLog("🧪 Setting up test environment with in-memory store")
-            let context = persistenceController.container.viewContext
-            TestDataManager.shared.setupTestEnvironment(context: context)
-            NSLog("🧪 Test environment setup complete")
-        }
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environmentObject(lifecycleManager)
-                .environmentObject(autoRecordingCoordinator)
-                .onContinueUserActivity(AppConstants.UserActivityType.logExpense) { userActivity in
-                    handleSiriExpense(userActivity)
+            ZStack {
+                if let controller = appPersistence {
+                    ContentView()
+                        .environment(\.managedObjectContext, controller.container.viewContext)
+                        .environmentObject(lifecycleManager)
+                        .environmentObject(autoRecordingCoordinator)
+                } else {
+                    // Use static text instead of ProgressView to avoid infinite animation blocking UI tests
+                    Text("Loading...")
+                        .onAppear {
+                            NSLog("🔍 Loading view appeared, triggering loadPersistence")
+                            loadPersistence()
+                        }
                 }
-                .onContinueUserActivity(AppConstants.UserActivityType.viewExpenses) { userActivity in
-                    #if DEBUG
-                    print(LocalizedStrings.debugReceivedURL("view_expenses"))
-                    #endif
-                }
-                .onContinueUserActivity(AppConstants.UserActivityType.processVoiceCommand) { userActivity in
-                    handleVoiceCommandProcessing(userActivity)
-                }
-                .onOpenURL { url in
-                    handleIncomingURL(url)
-                }
-                .onChange(of: scenePhase) { oldPhase, newPhase in
-                    handleScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
-                }
+            }
+            .onContinueUserActivity(AppConstants.UserActivityType.logExpense) { userActivity in
+                handleSiriExpense(userActivity)
+            }
+            .onContinueUserActivity(AppConstants.UserActivityType.viewExpenses) { userActivity in
+                #if DEBUG
+                print(LocalizedStrings.debugReceivedURL("view_expenses"))
+                #endif
+            }
+            .onContinueUserActivity(AppConstants.UserActivityType.processVoiceCommand) { userActivity in
+                handleVoiceCommandProcessing(userActivity)
+            }
+            .onOpenURL { url in
+                handleIncomingURL(url)
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                handleScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
+            }
+        }
+    }
+    
+    private func loadPersistence() {
+        if appPersistence != nil { return }
+        
+        if TestDataManager.isUITesting() {
+            NSLog("🧪 UI Testing Mode: Loading store asynchronously...")
+            PersistenceController.loadAsync(inMemory: true) { controller in
+                NSLog("🧪 Store loaded - initializing test environment")
+                TestDataManager.shared.setupTestEnvironment(context: controller.container.viewContext)
+                NSLog("🧪 Test environment setup complete")
+                self.appPersistence = controller
+            }
+        } else {
+            // Production: use shared controller (blocking but safe here as we are already in body)
+            self.appPersistence = PersistenceController.shared
         }
     }
 
