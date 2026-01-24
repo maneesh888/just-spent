@@ -6,11 +6,24 @@ import IntentsUI
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
 
-    // Direct CoreData fetch for reliable initial load and auto-updates
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
-        animation: .default)
-    private var expenses: FetchedResults<Expense>
+    // Manual fetch for robust stability (Bypassing NSFetchedResultsController crash in tests)
+    @State private var expenses: [Expense] = []
+
+    // Helper to fetch expenses manually using the environment's viewContext
+    private func fetchExpenses() {
+        let request: NSFetchRequest<Expense> = Expense.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "transactionDate", ascending: false)]
+        do {
+            expenses = try viewContext.fetch(request)
+            #if DEBUG
+            if TestDataManager.isUITesting() {
+                print("🧪 [ContentView] Manually fetched \(expenses.count) expenses")
+            }
+            #endif
+        } catch {
+            print("❌ [ContentView] Error fetching expenses: \(error.localizedDescription)")
+        }
+    }
 
     @StateObject private var viewModel = ExpenseListViewModel()
     @StateObject private var speechRecognitionManager = SpeechRecognitionManager()
@@ -236,6 +249,7 @@ struct ContentView: View {
                 // Refresh the list
                 Task {
                     await viewModel.loadExpenses()
+                    fetchExpenses() // Manual refresh for local state
                 }
             }
         }
@@ -286,6 +300,9 @@ struct ContentView: View {
     // MARK: - Setup
 
     private func setupViewOnAppear() {
+        // Initial fetch
+        fetchExpenses()
+        
         // Setup speech recognition callbacks
         speechRecognitionManager.onTranscriptionResult = { transcription in
             processVoiceTranscription(transcription)
