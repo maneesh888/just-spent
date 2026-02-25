@@ -13,75 +13,7 @@
 
 ## ⚠️ High Priority Issues
 
-### 1. Android: 2 UI Tests Failing on Phone Emulator
-**Component**: EditExpenseUITest
-**Impact**: Test suite at 83.3% pass rate (10/12 passing)
-**Status**: Active investigation
-**Date Discovered**: December 5, 2025
-
-**Failing Tests**:
-1. `editDialog_isAccessible` (Line 336)
-   - **Error**: Cannot find "Cancel" button
-   - **Likely Cause**: Timing issue - dialog not fully rendered
-   - **Suggested Fix**: Add 500-1000ms wait after dialog opens
-
-2. `categoryDropdown_showsAvailableCategories` (Line 231)
-   - **Error**: Category options not visible when dropdown clicked
-   - **Likely Cause**: ExposedDropdownMenuBox animation delay
-   - **Suggested Fix**: Add explicit wait after dropdown click
-
-**Context**:
-- Previously, 8/13 tests were failing on tablet emulator (38.5% pass rate)
-- Switching to phone emulator fixed 6 tests (improvement to 83.3%)
-- Remaining 2 failures appear to be timing-related, not emulator type
-
-**Proposed Solution**:
-```kotlin
-// In openEditDialog() helper
-firstRow.performTouchInput { swipeRight() }
-composeTestRule.waitForIdle()
-Thread.sleep(1000) // Increase from 500ms
-
-// In categoryDropdown test
-composeTestRule.onNodeWithTag("category_dropdown").performClick()
-composeTestRule.waitForIdle()
-Thread.sleep(500) // Add explicit wait for dropdown animation
-```
-
-**Priority**: High - blocks 100% test pass rate
-**Effort**: Low - Simple timing adjustments
-**Risk**: Low - Tests pass in other scenarios
-
----
-
-### 2. iOS: 1 UI Test Failing - Multi-Currency Tabs
-**Component**: MultiCurrencyTabbedUITests
-**Impact**: Test suite at 98.8% pass rate (80/81 passing)
-**Status**: Active investigation
-**Date Discovered**: November 12, 2025
-
-**Failing Test**:
-- `testCurrencyTabsDisplayWithMultipleCurrencies` (Line 15-54)
-  - **Error**: Currency tabs not appearing despite test data being created
-  - **Likely Cause**: UI rendering timing or data loading mechanism
-  - **Investigation Status**: 2 fix attempts unsuccessful
-    - ✅ Verified TestDataHelper creates expenses for all 6 currencies
-    - ✅ Increased all timeouts (tab bar: 10s, data: 10s, tabs: 5s)
-    - ❌ Test still fails after 15.622 seconds
-
-**Context**:
-- Test data setup is correct (confirmed in TestDataManager.populateMultiCurrencyData)
-- Timeout increases did not resolve the issue
-- Root cause appears deeper than timing/synchronization
-
-**Next Steps**:
-1. Debug with Xcode UI test recording to see actual UI state
-2. Verify accessibility identifiers in MultiCurrencyTabbedView.swift
-3. Consider tab generation timing or different wait strategy
-
-**Priority**: High - blocks 100% test pass rate
-**Effort**: Medium - Requires deeper investigation
-**Risk**: Low - Does not affect production functionality
+### None currently — all high priority issues resolved! 🎉
 
 ---
 
@@ -156,6 +88,33 @@ Thread.sleep(500) // Add explicit wait for dropdown animation
 
 ## ✅ Resolved Issues
 
+### 9. Android: 4 UI Tests with @Ignore - Timing Issues
+**Status**: ✅ RESOLVED (February 25, 2026)
+**Resolution**: Fixed timing issues and removed @Ignore annotations
+
+**Details**:
+- **Problem**: 4 tests in EditExpenseUITest were marked @Ignore due to dialog timing issues
+- **Tests Fixed**: editDialog_isAccessible, categoryDropdown_showsAvailableCategories, editDialog_showsAmountField, editExpense_updatesDisplayedAmount
+- **Root Cause**: CI emulators need more time for dialog animations
+- **Solution**: Added proper Thread.sleep() and waitForIdle() calls after opening dialogs
+- **Commit**: `a7ec507` - "fix(android): remove @Ignore from UI tests by fixing timing issues"
+- **Result**: All 12 EditExpenseUITest tests now pass
+
+---
+
+### 10. iOS: Multi-Currency Tabs Not Found in UI Test
+**Status**: ✅ RESOLVED (February 25, 2026)
+**Resolution**: Added button accessibility trait to currency tabs
+
+**Details**:
+- **Problem**: testCurrencyTabsDisplayWithMultipleCurrencies couldn't find currency tabs
+- **Root Cause**: CurrencyTab view had .accessibilityElement(children: .combine) but no button trait
+- **Solution**: Added .accessibilityAddTraits(.isButton) to CurrencyTab, updated test to query buttons first
+- **Commit**: `6b74f8a` - "fix(ios): add button trait to currency tabs for reliable UI test detection"
+- **Result**: Test passes in 11.67 seconds
+
+---
+
 ### 6. iOS: 119 UI Tests Failing - Incorrect Element Locator
 **Status**: ✅ RESOLVED (December 18, 2025)
 **Resolution**: Fixed accessibility identifier in test setup
@@ -206,20 +165,18 @@ Thread.sleep(500) // Add explicit wait for dropdown animation
 
 ### Overall Statistics
 - **Total Tests**: 428 (iOS: 186, Android: 242)
-- **Passing**: 425/428 (99.3%)
-- **Failing**: 3 (iOS: 1, Android: 2)
+- **Passing**: 428/428 (100%) 🎉
+- **Failing**: 0
 
 ### Platform Breakdown
 
-**iOS** (99.5% pass rate):
+**iOS** (100% pass rate):
 - Unit Tests: 105/105 passing (100%)
-- UI Tests: 80/81 passing (98.8%)
-- Failing: 1 test (multi-currency tabs)
+- UI Tests: 81/81 passing (100%)
 
-**Android** (98.9% pass rate):
+**Android** (100% pass rate):
 - Unit Tests: 145/145 passing (100%)
-- UI Tests: 133/133 on tablet, 10/12 on phone (83.3%)
-- Failing: 2 tests (dialog timing issues)
+- UI Tests: 12/12 passing (100%)
 
 ---
 
