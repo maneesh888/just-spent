@@ -15,7 +15,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -149,19 +148,15 @@ class EditExpenseUITest {
 
     /**
      * Test that edit dialog shows amount field
-     *
-     * TEMPORARILY IGNORED: Flaky in GitHub Actions CI environment
-     * Issue: Amount field not found due to dialog timing/rendering delay
-     * Root Cause: Dialog elements not fully rendered when test checks for them
-     * Tracked in: KNOWN_ISSUES.md #1 (Android: UI Tests Failing on Phone Emulator)
-     * Fix: Same as other dialog tests - increase wait time in openEditDialog()
-     * TODO: Remove @Ignore after fixing timing issue
      */
-    @Ignore("Flaky in CI - timing issue with dialog rendering. See KNOWN_ISSUES.md #1")
     @Test
     fun editDialog_showsAmountField() {
         // Given - Open edit dialog
         openEditDialog()
+
+        // Wait for dialog to fully render
+        Thread.sleep(1000)
+        composeTestRule.waitForIdle()
 
         // Then - Amount text field should exist
         composeTestRule.onNodeWithTag("amount_field").assertExists()
@@ -235,24 +230,20 @@ class EditExpenseUITest {
 
     /**
      * Test that category dropdown shows available categories
-     *
-     * TEMPORARILY IGNORED: Flaky in GitHub Actions CI environment
-     * Issue: Category options not visible after dropdown click due to animation delay
-     * Root Cause: ExposedDropdownMenuBox animation not completing in CI emulator
-     * Tracked in: KNOWN_ISSUES.md #1 (Android: 2 UI Tests Failing on Phone Emulator)
-     * Fix: Add additional wait after dropdown click or use waitUntil for menu items
-     * TODO: Remove @Ignore after fixing timing issue
      */
-    @Ignore("Flaky in CI - timing issue with dropdown animation. See KNOWN_ISSUES.md #1")
     @Test
     fun categoryDropdown_showsAvailableCategories() {
         // Given - Open edit dialog
         openEditDialog()
 
+        // Wait for dialog to be fully ready before interacting
+        Thread.sleep(1000)
+        composeTestRule.waitForIdle()
+
         // When - Click on category dropdown
         composeTestRule.onNodeWithTag("category_dropdown").performClick()
         composeTestRule.waitForIdle()
-        Thread.sleep(1500) // Increased to 1500ms for reliable dropdown expansion
+        Thread.sleep(2000) // Increased for CI emulator dropdown animation
 
         // Then - Category options should appear
         // Check for at least one common category
@@ -348,22 +339,14 @@ class EditExpenseUITest {
 
     /**
      * Test edit dialog accessibility - all elements should be accessible
-     *
-     * TEMPORARILY IGNORED: Flaky in GitHub Actions CI environment
-     * Issue: Dialog text "Edit Expense" not found due to timing/rendering delay
-     * Root Cause: Emulator slower than local development, 1500ms wait insufficient
-     * Tracked in: KNOWN_ISSUES.md #1 (Android: 2 UI Tests Failing on Phone Emulator)
-     * Fix: Increase wait time to 2000ms or use waitUntil with condition
-     * TODO: Remove @Ignore after fixing timing issue
      */
-    @Ignore("Flaky in CI - timing issue with dialog rendering. See KNOWN_ISSUES.md #1")
     @Test
     fun editDialog_isAccessible() {
         // Given - Open edit dialog
         openEditDialog()
 
-        // Wait for dialog to fully render
-        Thread.sleep(1500)
+        // Wait for dialog to fully render (increased for CI emulators)
+        Thread.sleep(2500)
         composeTestRule.waitForIdle()
 
         // First verify the dialog itself is showing
@@ -387,14 +370,7 @@ class EditExpenseUITest {
 
     /**
      * Test that editing an expense updates the displayed amount
-     *
-     * TEMPORARILY IGNORED: Flaky in GitHub Actions CI environment
-     * Issue: Amount field not found or dialog not fully rendered in time
-     * Root Cause: CI emulator slower than local development, dialog animations/timing issues
-     * Tracked in: KNOWN_ISSUES.md #1 (Android: UI Tests Failing on Phone Emulator)
-     * TODO: Remove @Ignore after improving dialog timing with waitUntil conditions
      */
-    @Ignore("Flaky in CI - timing issue with dialog rendering. See KNOWN_ISSUES.md #1")
     @Test
     fun editExpense_updatesDisplayedAmount() {
         // Given - App with expenses loaded
@@ -413,13 +389,17 @@ class EditExpenseUITest {
         // When - Open edit dialog, change amount, and save
         openEditDialog()
 
+        // Wait for dialog to fully render
+        Thread.sleep(1000)
+        composeTestRule.waitForIdle()
+
         val amountField = composeTestRule.onNodeWithTag("amount_field")
         amountField.performTextClearance()
         amountField.performTextInput("888.88")
 
         composeTestRule.onNodeWithText("Save").performClick()
         composeTestRule.waitForIdle()
-        Thread.sleep(1000)
+        Thread.sleep(1500)
 
         // Then - The updated amount should be visible in the list
         composeTestRule.onNodeWithText("888.88", substring = true).assertExists()
