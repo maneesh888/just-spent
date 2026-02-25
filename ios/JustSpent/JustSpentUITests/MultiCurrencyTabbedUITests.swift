@@ -73,11 +73,11 @@ class MultiCurrencyTabbedUITests: BaseUITestCase {
             let tabIdentifier = "currency_tab_\(code)"
 
             // Try different query strategies:
-            // 1. As otherElement
-            // 2. As button (since it has .onTapGesture)
-            // 3. As any descendant
-            let tabElement = app.otherElements[tabIdentifier].exists ? app.otherElements[tabIdentifier] :
-                             app.buttons[tabIdentifier].exists ? app.buttons[tabIdentifier] :
+            // 1. As button (preferred - we added .accessibilityAddTraits(.isButton))
+            // 2. As otherElement (fallback)
+            // 3. As any descendant (last resort)
+            let tabElement = app.buttons[tabIdentifier].exists ? app.buttons[tabIdentifier] :
+                             app.otherElements[tabIdentifier].exists ? app.otherElements[tabIdentifier] :
                              app.descendants(matching: .any)[tabIdentifier]
 
             if tabElement.waitForExistence(timeout: 3.0) {
