@@ -153,7 +153,7 @@ DEVICE_ID="emulator-5554"  # Replace with actual device ID
 
 # Run specific voice integration tests
 ./gradlew connectedAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.justspent.app.voice.GoogleAssistantIntegrationTest
+  -Pandroid.testInstrumentationRunnerArguments.class=com.justspent.expense.voice.GoogleAssistantIntegrationTest
 ```
 
 **Expected Outcome**: Real-world validation of voice features on actual Android devices

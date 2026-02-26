@@ -6,15 +6,29 @@ import IntentsUI
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
 
-    // Direct CoreData fetch for reliable initial load and auto-updates
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)],
-        animation: .default)
-    private var expenses: FetchedResults<Expense>
+    // Manual fetch for robust stability (Bypassing NSFetchedResultsController crash in tests)
+    @State private var expenses: [Expense] = []
+
+    // Helper to fetch expenses manually using the environment's viewContext
+    private func fetchExpenses() {
+        let request: NSFetchRequest<Expense> = Expense.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "transactionDate", ascending: false)]
+        do {
+            expenses = try viewContext.fetch(request)
+            #if DEBUG
+            if TestDataManager.isUITesting() {
+                print("🧪 [ContentView] Manually fetched \(expenses.count) expenses")
+            }
+            #endif
+        } catch {
+            print("❌ [ContentView] Error fetching expenses: \(error.localizedDescription)")
+        }
+    }
 
     @StateObject private var viewModel = ExpenseListViewModel()
     @StateObject private var speechRecognitionManager = SpeechRecognitionManager()
     @StateObject private var permissionManager = PermissionManager()
+    @StateObject private var voiceTransactionManager = VoiceTransactionManager()
 
     @State private var showingSiriSuccess = false
     @State private var siriMessage = ""
@@ -53,13 +67,133 @@ struct ContentView: View {
     /// Get distinct currencies from expenses
     private var activeCurrencies: [Currency] {
         let currencyCodes = Set(expenses.compactMap { $0.currency })
-        return currencyCodes.compactMap { Currency.from(isoCode: $0) }
+        let currencies = currencyCodes.compactMap { Currency.from(isoCode: $0) }
             .sorted { $0.displayName < $1.displayName }
+
+        #if DEBUG
+        if TestDataManager.isUITesting() {
+            NSLog("🧪 [ContentView.activeCurrencies] Fetched %d total expenses", expenses.count)
+            NSLog("🧪 [ContentView.activeCurrencies] Unique currency codes: %@", currencyCodes.sorted().joined(separator: ", "))
+            NSLog("🧪 [ContentView.activeCurrencies] Currency.all has %d currencies", Currency.all.count)
+            NSLog("🧪 [ContentView.activeCurrencies] Resolved %d Currency objects", currencies.count)
+            if currencies.isEmpty && !currencyCodes.isEmpty {
+                NSLog("❌ [ContentView.activeCurrencies] CRITICAL: Currency codes exist but Currency.from() returned nil!")
+                NSLog("❌ This means Currency.all is likely empty!")
+            }
+        }
+        #endif
+
+        return currencies
     }
 
     /// Determine if we should show tabs (multiple currencies) or single list
     private var shouldShowTabs: Bool {
-        return activeCurrencies.count > 1
+        let result = activeCurrencies.count > 1
+        #if DEBUG
+        if TestDataManager.isUITesting() {
+            NSLog("🧪 [ContentView.shouldShowTabs] ========================================")
+            NSLog("🧪 [ContentView.shouldShowTabs] DETERMINING VIEW STATE")
+            NSLog("🧪 [ContentView.shouldShowTabs] Total expenses: %d", expenses.count)
+            NSLog("🧪 [ContentView.shouldShowTabs] Active currencies count: %d", activeCurrencies.count)
+            NSLog("🧪 [ContentView.shouldShowTabs] Active currencies: %@", activeCurrencies.map { $0.code }.joined(separator: ", "))
+            NSLog("🧪 [ContentView.shouldShowTabs] Result: %@", result ? "MULTI-CURRENCY (tabs)" : "SINGLE/EMPTY")
+            NSLog("🧪 [ContentView.shouldShowTabs] ========================================")
+        }
+        #endif
+        return result
+    }
+
+    // MARK: - View Components
+
+    /// Main content body - extracted to help Swift compiler
+    @ViewBuilder
+    private var mainContentBody: some View {
+        if expenses.isEmpty {
+            // Empty state (without floating button)
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    print("🧪 [ContentView.mainContentBody] 📭 Showing EMPTY STATE")
+                }
+                #endif
+            }()
+            emptyStateView
+                // Test marker for empty state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_empty")
+        } else if shouldShowTabs {
+            // Multiple currencies → Tabbed interface
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    NSLog("🧪 [ContentView.mainContentBody] 📊 Showing MULTI-CURRENCY TABBED VIEW")
+                    NSLog("🧪 [ContentView.mainContentBody]    Currencies: %@", activeCurrencies.map { $0.code }.joined(separator: ", "))
+                }
+                #endif
+            }()
+            MultiCurrencyTabbedView(currencies: activeCurrencies)
+                .environment(\.managedObjectContext, viewContext)
+                // Test marker for multi-currency state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_multi_currency")
+        } else if let currency = activeCurrencies.first {
+            // Single currency → Simple list view
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    print("🧪 [ContentView.mainContentBody] 💰 Showing SINGLE CURRENCY VIEW: \(currency.code)")
+                }
+                #endif
+            }()
+            SingleCurrencyView(currency: currency)
+                .environment(\.managedObjectContext, viewContext)
+                // Test marker for single currency state
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("test_state_single_currency")
+        } else {
+            // Fallback to empty state (shouldn't happen, but safety)
+            let _ = {
+                #if DEBUG
+                if TestDataManager.isUITesting() {
+                    print("🧪 [ContentView.mainContentBody] ⚠️ FALLBACK TO EMPTY STATE (unexpected!)")
+                }
+                #endif
+            }()
+            emptyStateView
+        }
+    }
+
+    /// Empty state view - extracted to avoid duplication
+    private var emptyStateView: some View {
+        EmptyStateView(
+            speechRecognitionAvailable: speechRecognitionManager.speechRecognitionAvailable,
+            speechPermissionGranted: permissionManager.speechPermissionGranted,
+            microphonePermissionGranted: permissionManager.microphonePermissionGranted,
+            errorMessage: viewModel.errorMessage,
+            onOpenSettings: permissionManager.openAppSettings
+        )
+    }
+
+    /// Floating voice button - extracted to help Swift compiler
+    private var floatingVoiceButton: some View {
+        FloatingVoiceButton(
+            isRecording: $speechRecognitionManager.isRecording,
+            hasDetectedSpeech: $speechRecognitionManager.hasDetectedSpeech,
+            speechRecognitionAvailable: $speechRecognitionManager.speechRecognitionAvailable,
+            speechPermissionGranted: $permissionManager.speechPermissionGranted,
+            microphonePermissionGranted: $permissionManager.microphonePermissionGranted,
+            onStartRecording: speechRecognitionManager.startRecording,
+            onStopRecording: speechRecognitionManager.stopRecording,
+            onPermissionAlert: handlePermissionAlert
+        )
+    }
+
+    /// Permission alert handler - extracted to reduce inline closure complexity
+    private func handlePermissionAlert() {
+        showPermissionAlert(
+            title: LocalizedStrings.permissionTitleVoiceUnavailable,
+            message: LocalizedStrings.permissionMessageUnavailable
+        )
     }
 
     var body: some View {
@@ -77,52 +211,10 @@ struct ContentView: View {
     private var mainAppContent: some View {
         ZStack {
             // MARK: - Main Content View Based on Currency Count
-            Group {
-                if expenses.isEmpty {
-                    // Empty state (without floating button)
-                    EmptyStateView(
-                        speechRecognitionAvailable: speechRecognitionManager.speechRecognitionAvailable,
-                        speechPermissionGranted: permissionManager.speechPermissionGranted,
-                        microphonePermissionGranted: permissionManager.microphonePermissionGranted,
-                        errorMessage: viewModel.errorMessage,
-                        onOpenSettings: permissionManager.openAppSettings
-                    )
-                } else if shouldShowTabs {
-                    // Multiple currencies → Tabbed interface
-                    MultiCurrencyTabbedView(currencies: activeCurrencies)
-                        .environment(\.managedObjectContext, viewContext)
-                } else if let currency = activeCurrencies.first {
-                    // Single currency → Simple list view
-                    SingleCurrencyView(currency: currency)
-                        .environment(\.managedObjectContext, viewContext)
-                } else {
-                    // Fallback to empty state (shouldn't happen, but safety)
-                    EmptyStateView(
-                        speechRecognitionAvailable: speechRecognitionManager.speechRecognitionAvailable,
-                        speechPermissionGranted: permissionManager.speechPermissionGranted,
-                        microphonePermissionGranted: permissionManager.microphonePermissionGranted,
-                        errorMessage: viewModel.errorMessage,
-                        onOpenSettings: permissionManager.openAppSettings
-                    )
-                }
-            }
+            mainContentBody
 
             // MARK: - Floating Voice Button (Always Visible)
-            FloatingVoiceButton(
-                isRecording: $speechRecognitionManager.isRecording,
-                hasDetectedSpeech: $speechRecognitionManager.hasDetectedSpeech,
-                speechRecognitionAvailable: $speechRecognitionManager.speechRecognitionAvailable,
-                speechPermissionGranted: $permissionManager.speechPermissionGranted,
-                microphonePermissionGranted: $permissionManager.microphonePermissionGranted,
-                onStartRecording: speechRecognitionManager.startRecording,
-                onStopRecording: speechRecognitionManager.stopRecording,
-                onPermissionAlert: {
-                    showPermissionAlert(
-                        title: LocalizedStrings.permissionTitleVoiceUnavailable,
-                        message: LocalizedStrings.permissionMessageUnavailable
-                    )
-                }
-            )
+            floatingVoiceButton
         }
         .alert(isErrorMessage ? LocalizedStrings.voiceRecognitionErrorTitle : LocalizedStrings.voiceRecognitionSuccessTitle, isPresented: $showingSiriSuccess) {
             Button(LocalizedStrings.buttonOK) {
@@ -157,6 +249,7 @@ struct ContentView: View {
                 // Refresh the list
                 Task {
                     await viewModel.loadExpenses()
+                    fetchExpenses() // Manual refresh for local state
                 }
             }
         }
@@ -207,6 +300,9 @@ struct ContentView: View {
     // MARK: - Setup
 
     private func setupViewOnAppear() {
+        // Initial fetch
+        fetchExpenses()
+        
         // Setup speech recognition callbacks
         speechRecognitionManager.onTranscriptionResult = { transcription in
             processVoiceTranscription(transcription)
@@ -235,122 +331,38 @@ struct ContentView: View {
     // MARK: - Voice Command Processing
 
     private func processVoiceInput(_ input: String) {
-        // Use VoiceCommandParser for NLP processing
-        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(input)
-
-        if let amount = extractedData.amount,
-           let category = extractedData.category {
-
-            Task {
-                do {
-                    let repository = ExpenseRepository()
-                    let expenseData = ExpenseData(
-                        amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
-                        category: category,
-                        merchant: extractedData.merchant,
-                        notes: LocalizedStrings.expenseAddedViaIntelligent,
-                        transactionDate: Date(),
-                        source: AppConstants.ExpenseSource.voiceSiri,
-                        voiceTranscript: input
-                    )
-
-                    _ = try await repository.addExpense(expenseData)
-
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseSmartProcessing(
-                            amount: String(amount),
-                            category: category,
-                            transcript: input
-                        )
-                        showingSiriSuccess = true
-                        Task {
-                            await viewModel.loadExpenses()
-                        }
-                    }
-
-                } catch {
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseFailedToSave(error.localizedDescription)
-                        isErrorMessage = true
-                        showingSiriSuccess = true
+        Task {
+            let result = await voiceTransactionManager.process(input: input, source: AppConstants.ExpenseSource.voiceSiri)
+            await MainActor.run {
+                siriMessage = result.message
+                isErrorMessage = result.isError
+                showingSiriSuccess = true
+                if result.success {
+                    Task {
+                        await viewModel.loadExpenses()
                     }
                 }
             }
-        } else {
-            siriMessage = LocalizedStrings.expenseCouldNotUnderstand(input)
-            isErrorMessage = true
-            showingSiriSuccess = true
         }
     }
 
     private func processVoiceTranscription(_ transcription: String) {
-        print(LocalizedStrings.debugProcessingTranscription(transcription))
-
-        // Validate input
-        guard !transcription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            siriMessage = LocalizedStrings.voiceRecognitionSpeakClearly
-            isErrorMessage = true
-            showingSiriSuccess = true
-            return
-        }
-
-        // Use VoiceCommandParser for NLP processing
-        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(transcription)
-
-        // Debug output
         #if DEBUG
-        print(LocalizedStrings.debugExtracted(
-            amount: String(extractedData.amount ?? 0),
-            currency: extractedData.currency ?? "none",
-            category: extractedData.category ?? "none"
-        ))
+        print(LocalizedStrings.debugProcessingTranscription(transcription))
         #endif
 
-        if let amount = extractedData.amount,
-           let category = extractedData.category {
-
-            Task {
-                do {
-                    let repository = ExpenseRepository()
-                    let expenseData = ExpenseData(
-                        amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
-                        category: category,
-                        merchant: extractedData.merchant,
-                        notes: LocalizedStrings.expenseAddedViaVoice,
-                        transactionDate: Date(),
-                        source: AppConstants.ExpenseSource.voiceRecognition,
-                        voiceTranscript: transcription
-                    )
-
-                    _ = try await repository.addExpense(expenseData)
-
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseAddedSuccess(
-                            currency: extractedData.currency ?? "",
-                            amount: String(amount),
-                            category: category,
-                            transcript: transcription
-                        )
-                        showingSiriSuccess = true
-                        Task {
-                            await viewModel.loadExpenses()
-                        }
-                    }
-
-                } catch {
-                    await MainActor.run {
-                        siriMessage = LocalizedStrings.expenseFailedToSave(error.localizedDescription)
-                        isErrorMessage = true
-                        showingSiriSuccess = true
+        Task {
+            let result = await voiceTransactionManager.process(input: transcription, source: AppConstants.ExpenseSource.voiceRecognition)
+            await MainActor.run {
+                siriMessage = result.message
+                isErrorMessage = result.isError
+                showingSiriSuccess = true
+                if result.success {
+                    Task {
+                        await viewModel.loadExpenses()
                     }
                 }
             }
-        } else {
-            siriMessage = LocalizedStrings.expenseCouldNotUnderstand(transcription)
-            isErrorMessage = true
-            showingSiriSuccess = true
         }
     }
 

@@ -3,7 +3,9 @@ import NaturalLanguage
 
 @main
 struct JustSpentApp: App {
-    let persistenceController = PersistenceController.shared
+    // Use State for persistence controller to allow async loading without blocking init
+    // Renamed to avoid any potential conflict or caching issue
+    @State private var appPersistence: PersistenceController? = nil
 
     // App lifecycle management
     @StateObject private var lifecycleManager = AppLifecycleManager()
@@ -20,44 +22,68 @@ struct JustSpentApp: App {
         // Create auto-recording coordinator with dependency
         _autoRecordingCoordinator = StateObject(wrappedValue: AutoRecordingCoordinator(lifecycleManager: lifecycle))
 
+        // Reuse existing UserPreferences singleton logic which is safe (uses semaphore in init)
+        
         // Initialize currency system from JSON
         Currency.initialize()
-        print("✅ Currency system initialized with \(Currency.all.count) currencies")
+        NSLog("✅ Currency system initialized with %d currencies", Currency.all.count)
 
         // Initialize default currency based on locale if not already set
-        // This ensures app ALWAYS has a default currency (module independence)
         UserPreferences.shared.initializeDefaultCurrency()
-        print("💱 Default currency initialized")
-
-        // Setup test environment if running UI tests
-        if TestDataManager.isUITesting() {
-            print("🧪 UI Testing mode detected - setting up test environment")
-            let context = persistenceController.container.viewContext
-            TestDataManager.shared.setupTestEnvironment(context: context)
-        }
+        NSLog("💱 Default currency initialized")
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environmentObject(lifecycleManager)
-                .environmentObject(autoRecordingCoordinator)
-                .onContinueUserActivity(AppConstants.UserActivityType.logExpense) { userActivity in
-                    handleSiriExpense(userActivity)
+            ZStack {
+                if let controller = appPersistence {
+                    ContentView()
+                        .environment(\.managedObjectContext, controller.container.viewContext)
+                        .environmentObject(lifecycleManager)
+                        .environmentObject(autoRecordingCoordinator)
+                } else {
+                    // Use static text instead of ProgressView to avoid infinite animation blocking UI tests
+                    Text("Loading...")
+                        .onAppear {
+                            NSLog("🔍 Loading view appeared, triggering loadPersistence")
+                            loadPersistence()
+                        }
                 }
-                .onContinueUserActivity(AppConstants.UserActivityType.viewExpenses) { userActivity in
-                    print(LocalizedStrings.debugReceivedURL("view_expenses"))
-                }
-                .onContinueUserActivity(AppConstants.UserActivityType.processVoiceCommand) { userActivity in
-                    handleVoiceCommandProcessing(userActivity)
-                }
-                .onOpenURL { url in
-                    handleIncomingURL(url)
-                }
-                .onChange(of: scenePhase) { oldPhase, newPhase in
-                    handleScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
-                }
+            }
+            .onContinueUserActivity(AppConstants.UserActivityType.logExpense) { userActivity in
+                handleSiriExpense(userActivity)
+            }
+            .onContinueUserActivity(AppConstants.UserActivityType.viewExpenses) { userActivity in
+                #if DEBUG
+                print(LocalizedStrings.debugReceivedURL("view_expenses"))
+                #endif
+            }
+            .onContinueUserActivity(AppConstants.UserActivityType.processVoiceCommand) { userActivity in
+                handleVoiceCommandProcessing(userActivity)
+            }
+            .onOpenURL { url in
+                handleIncomingURL(url)
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                handleScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
+            }
+        }
+    }
+    
+    private func loadPersistence() {
+        if appPersistence != nil { return }
+        
+        if TestDataManager.isUITesting() {
+            NSLog("🧪 UI Testing Mode: Loading store asynchronously...")
+            PersistenceController.loadAsync(inMemory: true) { controller in
+                NSLog("🧪 Store loaded - initializing test environment")
+                TestDataManager.shared.setupTestEnvironment(context: controller.container.viewContext)
+                NSLog("🧪 Test environment setup complete")
+                self.appPersistence = controller
+            }
+        } else {
+            // Production: use shared controller (blocking but safe here as we are already in body)
+            self.appPersistence = PersistenceController.shared
         }
     }
 
@@ -133,58 +159,35 @@ struct JustSpentApp: App {
     }
     
     private func processVoiceCommand(_ command: String) {
+        #if DEBUG
         print(LocalizedStrings.debugProcessing(command))
+        #endif
 
-        // Use VoiceCommandParser for NLP processing
-        let extractedData = VoiceCommandParser.shared.parseExpenseCommand(command)
-        
-        if let amount = extractedData.amount,
-           let category = extractedData.category {
+        Task {
+            // Use local manager for background processing
+            let manager = VoiceTransactionManager()
+            let result = await manager.process(input: command, source: AppConstants.ExpenseSource.voiceSiri)
             
-            // Save the expense
-            Task {
-                do {
-                    let repository = ExpenseRepository()
-                    let expenseData = ExpenseData(
-                        amount: NSDecimalNumber(value: amount),
-                        currency: extractedData.currency ?? AppConstants.CurrencyDefaults.defaultCurrency,
-                        category: category,
-                        merchant: extractedData.merchant,
-                        notes: LocalizedStrings.expenseAddedViaIntelligent,
-                        transactionDate: Date(),
-                        source: AppConstants.ExpenseSource.voiceSiri,
-                        voiceTranscript: command
+            if result.success {
+                // Show success notification which updates UI
+                await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name(AppConstants.Notification.siriExpenseReceived),
+                        object: nil,
+                        userInfo: [
+                            "message": result.message
+                        ]
                     )
-
-                    _ = try await repository.addExpense(expenseData)
-
-                    // Show success notification
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(
-                            name: NSNotification.Name(AppConstants.Notification.siriExpenseReceived),
-                            object: nil,
-                            userInfo: [
-                                "message": LocalizedStrings.expenseSmartProcessing(
-                                    amount: String(amount),
-                                    category: category,
-                                    transcript: command
-                                )
-                            ]
-                        )
-                    }
-
-                    #if DEBUG
-                    print(LocalizedStrings.debugSavedExpense(amount: String(amount), category: category))
-                    #endif
-                    
-                } catch {
-                    print("❌ Failed to save intelligent expense: \(error)")
                 }
+                
+                #if DEBUG
+                print("✅ Successfully processed voice command via Manager")
+                #endif
+            } else {
+                #if DEBUG
+                print("❌ Failed to process voice command: \(result.message)")
+                #endif
             }
-        } else {
-            #if DEBUG
-            print(LocalizedStrings.errorCouldNotExtract(command))
-            #endif
         }
     }
 

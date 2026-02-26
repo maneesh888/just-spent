@@ -1,0 +1,5 @@
+# Ignore any JSON files that should come from shared/ folder
+# Source of truth is in shared/ directory, accessed via Gradle sourceSets
+# These files are NOT copied - Gradle references shared/ directly
+localizations.json
+currencies.json

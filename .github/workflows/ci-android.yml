@@ -2,10 +2,16 @@ name: Android CI
 
 on:
   workflow_call:
+    outputs:
+      coverage:
+        description: 'Android coverage percentage'
+        value: ${{ jobs.build-and-test.outputs.coverage }}
   workflow_dispatch:
 
 jobs:
   build-and-test:
+    outputs:
+      coverage: ${{ steps.android-coverage.outputs.android_coverage }}
     name: Android Build & Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -36,17 +42,69 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Pre-download Gradle wrapper with retry
+        working-directory: android
+        run: |
+          # Download Gradle wrapper with retry logic to handle 503 errors
+          for i in {1..5}; do
+            echo "Attempt $i: Downloading Gradle wrapper..."
+            ./gradlew --version && echo "Gradle download successful" && break || {
+              echo "⚠️  Gradle download attempt $i failed, retrying in $((i*2)) seconds..."
+              sleep $((i*2))
+            }
+          done
+
       - name: Build Debug APK
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests with Coverage
         working-directory: android
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: |
+          # Run tests and generate coverage report
+          # --rerun-tasks forces test execution even if cached (needed for coverage .exec file)
+          # --no-build-cache prevents using/storing in Gradle build cache
+          ./gradlew clean testDebugUnitTest jacocoUnitTestReport --rerun-tasks --no-build-cache --stacktrace
 
-      - name: Generate Code Coverage Report
+          # Debug: show jacoco files
+          echo "=== Checking for coverage files ==="
+          find app/build -name "*.exec" -o -name "*.xml" 2>/dev/null | grep -i jacoco || echo "No jacoco files found"
+          ls -la app/build/jacoco/ 2>/dev/null || echo "No jacoco directory"
+          ls -la app/build/outputs/unit_test_code_coverage/ 2>/dev/null || echo "No unit_test_code_coverage directory"
+          ls -la app/build/reports/jacoco/unitTests/ 2>/dev/null || echo "No unitTests report directory"
+
+      - name: Extract Coverage Percentage
         working-directory: android
-        run: ./gradlew jacocoTestReport
+        id: android-coverage
+        run: |
+          # Extract coverage percentage from Jacoco XML report
+          COVERAGE_FILE="app/build/reports/jacoco/unitTests/jacocoUnitTestReport.xml"
+
+          if [ -f "$COVERAGE_FILE" ]; then
+            # Extract line coverage from Jacoco XML
+            COVERAGE_PCT=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('app/build/reports/jacoco/unitTests/jacocoUnitTestReport.xml')
+          root = tree.getroot()
+          for counter in root.findall('counter'):
+              if counter.get('type') == 'LINE':
+                  missed = int(counter.get('missed', 0))
+                  covered = int(counter.get('covered', 0))
+                  total = missed + covered
+                  if total > 0:
+                      print(f'{(covered / total) * 100:.1f}')
+                  else:
+                      print('0.0')
+                  break
+          else:
+              print('0.0')
+          " 2>/dev/null || echo "0.0")
+            echo "Android Coverage: ${COVERAGE_PCT}%"
+            echo "android_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
+          else
+            echo "Coverage file not found"
+            echo "android_coverage=0.0" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload Unit Test Results
         if: always()
@@ -55,14 +113,12 @@ jobs:
           name: android-unit-test-results
           path: android/app/build/reports/tests/testDebugUnitTest/
 
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Upload Unit Test Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          files: android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-          flags: android-unit
-          name: android-coverage
-          fail_ci_if_error: false
-          verbose: true
+          name: android-unit-coverage-report
+          path: android/app/build/reports/jacoco/unitTests/
 
   ui-tests:
     name: Android UI Tests
@@ -98,6 +154,18 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Pre-download Gradle wrapper with retry
+        working-directory: android
+        run: |
+          # Download Gradle wrapper with retry logic to handle 503 errors
+          for i in {1..5}; do
+            echo "Attempt $i: Downloading Gradle wrapper..."
+            ./gradlew --version && echo "Gradle download successful" && break || {
+              echo "⚠️  Gradle download attempt $i failed, retrying in $((i*2)) seconds..."
+              sleep $((i*2))
+            }
+          done
 
       - name: Enable KVM
         run: |
@@ -159,11 +227,11 @@ jobs:
             adb install -r android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
             echo "=== Granting runtime permissions ==="
-            adb shell pm grant com.justspent.app android.permission.RECORD_AUDIO
+            adb shell pm grant com.justspent.expense android.permission.RECORD_AUDIO
 
             # Verify permissions were granted
             echo "=== Checking granted permissions ==="
-            adb shell dumpsys package com.justspent.app | grep permission || true
+            adb shell dumpsys package com.justspent.expense | grep permission || true
 
             echo "=== Starting UI tests with timeout protection ==="
             # Run tests with timeout to prevent hanging (35 minutes max for tests)
@@ -173,12 +241,35 @@ jobs:
 
             echo "=== UI tests completed successfully ==="
 
+      - name: Generate Full Coverage Report (Unit + UI tests)
+        if: always()
+        working-directory: android
+        run: |
+          # Run unit tests first to generate their coverage data
+          ./gradlew testDebugUnitTest --stacktrace || true
+          # Generate combined coverage report (unit + UI tests)
+          ./gradlew jacocoFullReport --stacktrace || true
+
       - name: Upload UI Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: android-ui-test-results
           path: android/app/build/reports/androidTests/connected/
+
+      - name: Upload Full Coverage Report (Unit + UI)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-full-coverage-report
+          path: android/app/build/reports/jacoco/fullCoverage/
+
+      - name: Upload UI Test Coverage Data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-ui-coverage-data
+          path: android/app/build/outputs/code_coverage/
 
       - name: Upload UI Test Screenshots
         if: failure()

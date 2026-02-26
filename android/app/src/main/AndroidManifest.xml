@@ -20,22 +20,34 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Just Spent"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.JustSpent"
         tools:targetApi="31">
-        
+
+        <!-- Support for large screens and foldables -->
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.4" />
+
         <!-- App Actions metadata -->
         <meta-data
             android:name="com.google.assistant.app.ACTIONS"
             android:resource="@xml/actions" />
+
+        <!-- Shortcuts metadata for Google Assistant discovery -->
+        <meta-data
+            android:name="android.app.shortcuts"
+            android:resource="@xml/shortcuts" />
         
         <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="Just Spent"
+            android:screenOrientation="portrait"
+            android:resizeableActivity="true"
             android:theme="@style/Theme.JustSpent">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -47,24 +59,17 @@
         <activity
             android:name=".ui.voice.VoiceDeepLinkActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
+            android:resizeableActivity="true"
             android:theme="@style/Theme.JustSpent.NoActionBar"
             android:launchMode="singleTop">
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https"
-                    android:host="justspent.app"
-                    android:pathPrefix="/expense" />
-            </intent-filter>
-            
-            <!-- Support for Assistant shortcuts -->
+            <!-- Voice Deep Link Handler -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="justspent"
-                    android:host="expense" />
+                <data android:scheme="justspent" android:host="expense" />
+                <data android:scheme="justspent" android:host="view" />
             </intent-filter>
         </activity>
         

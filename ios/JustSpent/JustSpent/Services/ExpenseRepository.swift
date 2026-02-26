@@ -7,6 +7,9 @@ protocol ExpenseRepositoryProtocol {
     func getExpensesByCategory(_ category: String) -> AnyPublisher<[Expense], Error>
     func addExpense(_ expense: ExpenseData) async throws -> Expense
     func deleteExpense(_ expense: Expense) async throws
+
+    // Pagination methods
+    func loadExpensesPage(currency: String, dateFilter: DateFilter, page: Int, pageSize: Int) async throws -> [Expense]
 }
 
 struct ExpenseData {
@@ -85,6 +88,44 @@ class ExpenseRepository: ObservableObject, ExpenseRepositoryProtocol {
                     self.viewContext.delete(expense)
                     try self.viewContext.save()
                     continuation.resume()
+                } catch {
+                    continuation.resume(throwing: ExpenseError.databaseError(error.localizedDescription))
+                }
+            }
+        }
+    }
+
+    // MARK: - Pagination
+    @MainActor
+    func loadExpensesPage(currency: String, dateFilter: DateFilter, page: Int, pageSize: Int) async throws -> [Expense] {
+        return try await withCheckedThrowingContinuation { continuation in
+            viewContext.perform {
+                do {
+                    let request: NSFetchRequest<Expense> = Expense.fetchRequest()
+
+                    // Currency filter
+                    var predicates: [NSPredicate] = [
+                        NSPredicate(format: "currency == %@", currency)
+                    ]
+
+                    // Date filter (if not .all)
+                    if let datePredicate = DateFilterUtils().predicate(for: dateFilter, dateKeyPath: "transactionDate") {
+                        predicates.append(datePredicate)
+                    }
+
+                    // Combine predicates
+                    request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+
+                    // Sort by transaction date (newest first)
+                    request.sortDescriptors = [NSSortDescriptor(keyPath: \Expense.transactionDate, ascending: false)]
+
+                    // Pagination
+                    request.fetchLimit = pageSize
+                    request.fetchOffset = page * pageSize
+
+                    // Execute fetch
+                    let expenses = try self.viewContext.fetch(request)
+                    continuation.resume(returning: expenses)
                 } catch {
                     continuation.resume(throwing: ExpenseError.databaseError(error.localizedDescription))
                 }

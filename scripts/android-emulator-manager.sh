@@ -26,8 +26,8 @@ set -o pipefail  # Catch errors in pipes
 # Emulator boot timeout (seconds)
 BOOT_TIMEOUT=300  # 5 minutes
 
-# Package name for Just Spent app
-PACKAGE_NAME="com.justspent.app"
+# Package name for Just Spent app (Android)
+PACKAGE_NAME="com.justspent.expense"
 
 # Required permissions
 REQUIRED_PERMISSIONS=(

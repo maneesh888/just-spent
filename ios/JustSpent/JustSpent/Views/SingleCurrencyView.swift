@@ -19,6 +19,9 @@ struct SingleCurrencyView: View {
     // Fetch expenses for total calculation
     @FetchRequest private var expenses: FetchedResults<Expense>
 
+    // Date filter state
+    @State private var dateFilter: DateFilter = .all
+
     init(currency: Currency) {
         self.currency = currency
 
@@ -31,8 +34,17 @@ struct SingleCurrencyView: View {
         )
     }
 
+    // Filtered expenses based on date filter
+    private var filteredExpenses: [Expense] {
+        let dateFilterUtils = DateFilterUtils.shared
+        return expenses.filter { expense in
+            guard let transactionDate = expense.transactionDate else { return true }
+            return dateFilterUtils.isDate(transactionDate, inFilter: dateFilter)
+        }
+    }
+
     private var totalSpending: Double {
-        expenses.reduce(0) { total, expense in
+        filteredExpenses.reduce(0) { total, expense in
             total + (expense.amount?.doubleValue ?? 0)
         }
     }
@@ -56,9 +68,11 @@ struct SingleCurrencyView: View {
                         Text(LocalizedStrings.appTitle)
                             .font(.largeTitle)
                             .fontWeight(.bold)
+                            .accessibilityIdentifier("single_currency_app_title")
                         Text(LocalizedStrings.appSubtitle)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("single_currency_app_subtitle")
                     }
 
                     Spacer()
@@ -67,9 +81,11 @@ struct SingleCurrencyView: View {
                         Text(LocalizedStrings.totalLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .accessibilityIdentifier("single_currency_total_label")
                         Text(formattedTotal)
                             .font(.title2)
                             .fontWeight(.semibold)
+                            .accessibilityIdentifier("single_currency_total_amount")
                     }
                 }
                 .padding(.horizontal)
@@ -78,7 +94,7 @@ struct SingleCurrencyView: View {
                 .background(Color(.systemBackground))
 
                 // Expense list
-                CurrencyExpenseListView(currency: currency)
+                CurrencyExpenseListView(currency: currency, dateFilter: $dateFilter)
             }
             .navigationBarHidden(true)
         }

@@ -24,23 +24,23 @@ struct SettingsView: View {
                 Section {
                     currencyPicker
                 } header: {
-                    Text("Currency Settings")
+                    Text(LocalizationManager.shared.settingsCurrencySettings)
                 } footer: {
-                    Text("All expenses will be displayed in your selected currency.")
+                    Text(LocalizationManager.shared.settingsCurrencyFooter)
                 }
 
                 // User Information Section
                 Section {
                     userInfoRows
                 } header: {
-                    Text("User Information")
+                    Text(LocalizationManager.shared.settingsUserInformation)
                 }
 
                 // App Information Section
                 Section {
                     appInfoRows
                 } header: {
-                    Text("About")
+                    Text(LocalizationManager.shared.settingsAbout)
                 }
 
                 // Reset Section
@@ -48,11 +48,11 @@ struct SettingsView: View {
                     resetButton
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle(LocalizationManager.shared.settingsTitle)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(LocalizationManager.shared.settingsDone) {
                         dismiss()
                     }
                 }
@@ -63,7 +63,7 @@ struct SettingsView: View {
     // MARK: - Components
 
     private var currencyPicker: some View {
-        Picker("Default Currency", selection: $preferences.defaultCurrency) {
+        Picker(LocalizationManager.shared.settingsDefaultCurrency, selection: $preferences.defaultCurrency) {
             ForEach(Currency.all.sorted(by: { $0.displayName < $1.displayName })) { currency in
                 HStack {
                     Text(currency.symbol)
@@ -84,7 +84,7 @@ struct SettingsView: View {
         Group {
             if let user = preferences.currentUser {
                 HStack {
-                    Text("Name")
+                    Text(LocalizationManager.shared.settingsName)
                     Spacer()
                     Text(user.name ?? "User")
                         .foregroundColor(.secondary)
@@ -92,7 +92,7 @@ struct SettingsView: View {
 
                 if let email = user.email {
                     HStack {
-                        Text("Email")
+                        Text(LocalizationManager.shared.settingsEmail)
                         Spacer()
                         Text(email)
                             .foregroundColor(.secondary)
@@ -100,7 +100,7 @@ struct SettingsView: View {
                 }
 
                 HStack {
-                    Text("Member Since")
+                    Text(LocalizationManager.shared.settingsMemberSince)
                     Spacer()
                     Text(formatDate(user.createdAt))
                         .foregroundColor(.secondary)
@@ -112,16 +112,16 @@ struct SettingsView: View {
     private var appInfoRows: some View {
         Group {
             HStack {
-                Text("Version")
+                Text(LocalizationManager.shared.settingsVersion)
                 Spacer()
                 Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                     .foregroundColor(.secondary)
             }
 
             HStack {
-                Text("Build")
+                Text(LocalizationManager.shared.settingsBuild)
                 Spacer()
-                Text(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")
+                Text(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1.0")
                     .foregroundColor(.secondary)
             }
         }
@@ -133,7 +133,7 @@ struct SettingsView: View {
         } label: {
             HStack {
                 Spacer()
-                Text("Reset to Defaults")
+                Text(LocalizationManager.shared.settingsResetToDefaults)
                 Spacer()
             }
         }
@@ -171,7 +171,7 @@ struct CurrencySelectionView: View {
                     }
             }
         }
-        .navigationTitle("Select Currency (160+)")
+        .navigationTitle(LocalizationManager.shared.get("settings.selectCurrency"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

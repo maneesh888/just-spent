@@ -33,13 +33,46 @@ struct PersistenceController {
 
     let container: NSPersistentContainer
 
-    init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "JustSpent")
-        
+    init(container: NSPersistentContainer) {
+        self.container = container
+        self.container.viewContext.automaticallyMergesChangesFromParent = true
+    }
+
+    init(inMemory: Bool = false, completion: ((NSManagedObjectContext) -> Void)? = nil) {
+        let container = NSPersistentContainer(name: "JustSpent")
+
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
+
+        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+
+        let semaphore = DispatchSemaphore(value: 0)
+        container.loadPersistentStores { _, error in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .now() + 2.0) // 2s timeout to prevent infinite deadlock
+
+        // Execute completion handler if provided
+        if let completion = completion {
+            DispatchQueue.main.async {
+                completion(container.viewContext)
+            }
+        }
         
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        self.container = container
+    }
+    
+    static func loadAsync(inMemory: Bool = false, completion: @escaping (PersistenceController) -> Void) {
+        let container = NSPersistentContainer(name: "JustSpent")
+        if inMemory {
+            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        }
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         
@@ -47,9 +80,12 @@ struct PersistenceController {
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
+            
+            DispatchQueue.main.async {
+                let controller = PersistenceController(container: container)
+                completion(controller)
+            }
         }
-        
-        container.viewContext.automaticallyMergesChangesFromParent = true
     }
     
     func save() {

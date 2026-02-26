@@ -54,6 +54,14 @@ class PermissionManager: ObservableObject {
     func requestInitialPermissions(lifecycleManager: AppLifecycleManager, completion: @escaping () -> Void) {
         permissionsChecked = true
 
+        // Skip permission requests during UI testing to prevent system alerts blocking tests
+        if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+            print("🧪 UI Testing detected - skipping system permission requests")
+            // Default to false (permissions not granted) which the test expects to handle
+            completion()
+            return
+        }
+
         // First request speech recognition permission
         requestSpeechPermissionAtLaunch { [weak self] speechGranted in
             DispatchQueue.main.async {

@@ -2,10 +2,16 @@ name: iOS CI
 
 on:
   workflow_call:
+    outputs:
+      coverage:
+        description: 'iOS coverage percentage'
+        value: ${{ jobs.build-and-test.outputs.coverage }}
   workflow_dispatch:
 
 jobs:
   build-and-test:
+    outputs:
+      coverage: ${{ steps.ios-coverage.outputs.ios_coverage }}
     name: iOS Build & Test
     runs-on: macos-15  # macOS with Xcode 16+
     timeout-minutes: 30
@@ -51,17 +57,19 @@ jobs:
           echo "Granting speech recognition permission..."
           xcrun simctl privacy "$SIMULATOR_ID" grant speech-recognition com.justspent.app || true
 
+          # Note: iOS bundle ID is com.justspent.app (not changed during Android package rename)
+
           echo "✅ Permissions granted to iOS simulator"
 
-      - name: Cache Swift Package Manager dependencies
+      - name: Cache Xcode DerivedData
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: |
-            ios/JustSpent/.build
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-xcode-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-spm-
+            ${{ runner.os }}-xcode-
 
       - name: Build iOS app
         working-directory: ios/JustSpent
@@ -76,59 +84,89 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Run Unit Tests
+      - name: Run All Tests with Coverage
         working-directory: ios/JustSpent
         run: |
+          # Run ALL tests without -only-testing flag to properly instrument the app target for coverage
+          # IMPORTANT: This must be run FIRST before any -only-testing runs, as coverage data requires
+          # the app to be built with coverage instrumentation enabled for all targets
+          rm -rf ./test-results.xcresult
           xcodebuild test \
             -project JustSpent.xcodeproj \
             -scheme JustSpent \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -only-testing:JustSpentTests \
             -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-unit.xcresult \
+            -resultBundlePath ./test-results.xcresult \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || exit 1
 
-      - name: Run UI Tests
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: ios/JustSpent/test-results.xcresult
+
+      - name: Extract Coverage Report from xcresult
         working-directory: ios/JustSpent
         run: |
-          xcodebuild test \
-            -project JustSpent.xcodeproj \
-            -scheme JustSpent \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -only-testing:JustSpentUITests \
-            -enableCodeCoverage YES \
-            -resultBundlePath ./test-results-ui.xcresult \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || exit 1
+          # Extract coverage data from the combined test results bundle
+          echo "=== Extracting iOS coverage from xcresult ==="
 
-      - name: Upload Unit Test Results
+          # Create coverage directory
+          mkdir -p coverage-report
+
+          # Use the result bundle from the full test run (no -only-testing flag)
+          COVERAGE_BUNDLE="test-results.xcresult"
+
+          # Debug: List available xcresults
+          echo "Available xcresult bundles:"
+          ls -la *.xcresult 2>/dev/null || echo "No xcresult bundles found"
+
+          # Extract coverage report as JSON from the bundle
+          if [ -d "$COVERAGE_BUNDLE" ]; then
+            xcrun xccov view --report --json "$COVERAGE_BUNDLE" > coverage-report/coverage.json || {
+              echo "⚠️  Failed to extract coverage from $COVERAGE_BUNDLE"
+            }
+          else
+            echo "⚠️  Coverage bundle $COVERAGE_BUNDLE not found"
+          fi
+
+          # Generate human-readable summary
+          echo "=== iOS Coverage Summary ==="
+          xcrun xccov view --report "$COVERAGE_BUNDLE" 2>/dev/null | head -50 || echo "Coverage summary not available"
+
+          # Extract overall coverage percentage for PR comment
+          COVERAGE_PCT=$(xcrun xccov view --report --json "$COVERAGE_BUNDLE" 2>/dev/null | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              # Get line coverage from targets
+              if 'targets' in data:
+                  for target in data['targets']:
+                      if target.get('name', '').endswith('.app'):
+                          pct = target.get('lineCoverage', 0) * 100
+                          print(f'{pct:.1f}')
+                          sys.exit(0)
+              # Fallback to overall lineCoverage
+              pct = data.get('lineCoverage', 0) * 100
+              print(f'{pct:.1f}')
+          except:
+              print('0.0')
+          " || echo "0.0")
+
+          echo "iOS Coverage: ${COVERAGE_PCT}%"
+          echo "ios_coverage=${COVERAGE_PCT}" >> $GITHUB_OUTPUT
+        id: ios-coverage
+
+      - name: Upload iOS Coverage Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-unit-test-results
-          path: ios/JustSpent/test-results-unit.xcresult
-
-      - name: Upload UI Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ui-test-results
-          path: ios/JustSpent/test-results-ui.xcresult
-
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          flags: ios
-          name: ios-coverage
-          fail_ci_if_error: false
-          verbose: true
-          xcode: true
-          xcode_archive_path: ios/JustSpent/test-results-unit.xcresult
+          name: ios-coverage-report
+          path: ios/JustSpent/coverage-report/
 
       - name: Upload Test Logs
         if: failure()

@@ -10,6 +10,26 @@ class TestDataHelper {
         self.app = app
     }
 
+    // MARK: - Simulator Detection
+
+    /// Check if running in simulator at runtime (not compile-time)
+    /// Use this instead of #if targetEnvironment(simulator) to ensure tests are counted
+    static var isRunningInSimulator: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    /// Skip test if running in simulator (use instead of compile-time #if)
+    /// This ensures the test is still counted even when skipped
+    static func skipIfSimulator(_ reason: String = "This test requires hardware features not available in iOS Simulator") throws {
+        if isRunningInSimulator {
+            throw XCTSkip(reason)
+        }
+    }
+
     // MARK: - Launch Argument Helpers
 
     /// Configure app to skip onboarding for tests
@@ -168,8 +188,25 @@ class TestDataHelper {
         "JPY": "Japanese Yen"
     ]
 
-    /// All supported currency codes
-    // All 36 supported currencies from currencies.json
+    // MARK: - Currency Data Loading
+
+    /// Load all currency codes from shared/currencies.json using JSONLoader
+    /// Returns array of currency codes dynamically loaded from JSON
+    static func loadCurrencyCodesFromJSON() -> [String] {
+        // Use JSONLoader (works in both main app and test bundles)
+        let codes = JSONLoader.loadCurrencyCodes(from: Bundle(for: TestDataHelper.self))
+
+        if codes.isEmpty {
+            print("⚠️ TestDataHelper: JSONLoader returned empty, falling back to hardcoded")
+            return allCurrencyCodes
+        }
+
+        print("✅ TestDataHelper: Loaded \(codes.count) currencies via JSONLoader")
+        return codes
+    }
+
+    /// All supported currency codes (DEPRECATED - use loadCurrencyCodesFromJSON())
+    /// Kept for backward compatibility, but tests should migrate to JSON loading
     static let allCurrencyCodes = [
         "AED", "AUD", "BHD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR",
         "GBP", "HKD", "HUF", "IDR", "INR", "JPY", "KRW", "KWD", "MXN", "MYR",
@@ -359,9 +396,10 @@ class BaseUITestCase: XCTestCase {
 
         testHelper = TestDataHelper(app: app)
 
-        // Wait for app to fully load
+        // Wait for app to fully load (increased timeout for simulator boot time)
+        // Use "Just Spent" title which appears in ALL view states (empty, single-currency, multi-currency)
         let appTitle = app.staticTexts["Just Spent"]
-        XCTAssertTrue(appTitle.waitForExistence(timeout: 10.0), "App should launch and show title")
+        XCTAssertTrue(appTitle.waitForExistence(timeout: 30.0), "App should launch and show title")
     }
 
     override func tearDownWithError() throws {
