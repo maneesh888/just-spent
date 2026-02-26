@@ -152,9 +152,9 @@ class ShortcutsManager @Inject constructor(
         merchant: String?
     ): Intent {
         val uri = Uri.Builder()
-            .scheme("https")
-            .authority("justspent.app")
-            .path("/expense")
+            .scheme("justspent")
+            .authority("expense")
+            .path("")
             .appendQueryParameter("amount", amount.toString())
             .appendQueryParameter("category", category)
             .apply {
@@ -245,7 +245,7 @@ class ShortcutsManager @Inject constructor(
     
     private fun createViewShortcuts(): List<ShortcutInfoCompat> {
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("https://justspent.app/view?period=today")
+            data = Uri.parse("justspent://view?period=today")
         }
         
         return listOf(
